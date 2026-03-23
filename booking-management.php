@@ -13,10 +13,10 @@
  * @package Booking_Management
  *
  * @wordpress-plugin
- * Plugin Name:       BookingManagement
+ * Plugin Name:       SG Flexi Booking Lite
  * Plugin URI:        https://startandgrow.in
- * Description:       A Plugin to book and manage services
- * Version:           1.0.0
+ * Description:       A free, powerful booking engine for WordPress & WooCommerce. Create services, manage bookings, and accept payments. Upgrade to Pro for analytics, coupons, price modules, PDF builder, and more.
+ * Version:           1.1.0
  * Author:            Start and Grow
  * Author URI:        https://startandgrow.in
  * License:           GPL-2.0+
@@ -35,7 +35,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'BOOKING_MANAGEMENT_VERSION', '1.0.0' );
+define( 'BOOKING_MANAGEMENT_VERSION', '1.1.0' );
 
 
 /**
