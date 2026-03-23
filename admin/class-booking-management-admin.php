@@ -60,20 +60,14 @@ class Booking_Management_Admin {
 	 * @since 1.0.0
 	 */
 	public function enqueue_styles() {
-		/*
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Booking_Management_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Booking_Management_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
 
 		if ( is_user_logged_in() ) {
 			$screen = get_current_screen();
+
+			// Only load plugin assets on FlexiBooking admin pages.
+			if ( ! $this->is_flexi_admin_page( $screen ) ) {
+				return;
+			}
 
 			wp_enqueue_style( 'jquery-ui-styles' );
 			wp_enqueue_style( 'wp-color-picker' );
@@ -126,6 +120,41 @@ class Booking_Management_Admin {
 		} //end if
 	}//end enqueue_styles()
 
+	/**
+	 * Check if the current admin screen is a FlexiBooking page.
+	 *
+	 * Used to conditionally load assets only on plugin pages.
+	 *
+	 * @since  1.1.0
+	 * @param  WP_Screen|null $screen The current screen object.
+	 * @return bool True if on a FlexiBooking admin page.
+	 */
+	private function is_flexi_admin_page( $screen ) {
+		if ( ! $screen ) {
+			return false;
+		}
+
+		// Check if the screen base contains our plugin's page identifiers.
+		$flexi_pages = array(
+			'toplevel_page_bm_home',
+			'flexibooking_page_',
+			'admin_page_bm_',
+		);
+
+		foreach ( $flexi_pages as $page_prefix ) {
+			if ( strpos( $screen->base, $page_prefix ) !== false ) {
+				return true;
+			}
+		}
+
+		// Also check the parent_base.
+		if ( isset( $screen->parent_base ) && $screen->parent_base === 'bm_home' ) {
+			return true;
+		}
+
+		return false;
+	}//end is_flexi_admin_page()
+
 
 	/**
 	 * Register the JavaScript for the admin area.
@@ -133,24 +162,19 @@ class Booking_Management_Admin {
 	 * @since 1.0.0
 	 */
 	public function enqueue_scripts() {
-		/*
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Booking_Management_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Booking_Management_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
 
 		if ( is_user_logged_in() ) {
+			$screen = get_current_screen();
+
+			// Only load plugin scripts on FlexiBooking admin pages.
+			if ( ! $this->is_flexi_admin_page( $screen ) ) {
+				return;
+			}
+
 			$dbhandler   = new BM_DBhandler();
 			$bmrequests  = new BM_Request();
 			$post_id     = get_the_ID();
 			$post        = get_post( $post_id );
-			$screen      = get_current_screen();
 			$plugin_path = plugin_dir_url( __FILE__ );
 
 			$age_groups = array(

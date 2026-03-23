@@ -198,7 +198,13 @@ class Booking_Management_Activator {
 		`is_active` int(11) DEFAULT NULL,
 		`booking_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`booking_updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
+        PRIMARY KEY (`id`),
+		KEY `idx_booking_service_id` (`service_id`),
+		KEY `idx_booking_date` (`booking_date`),
+		KEY `idx_booking_status` (`order_status`),
+		KEY `idx_booking_customer_id` (`customer_id`),
+		KEY `idx_booking_wc_order_id` (`wc_order_id`),
+		KEY `idx_booking_svc_date` (`service_id`, `booking_date`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -223,7 +229,13 @@ class Booking_Management_Activator {
 		`is_active` int(11) DEFAULT NULL,
 		`slot_booked_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`slot_updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
+        PRIMARY KEY (`id`),
+		KEY `idx_slot_service_id` (`service_id`),
+		KEY `idx_slot_booking_date` (`booking_date`),
+		KEY `idx_slot_slot_id` (`slot_id`),
+		KEY `idx_slot_is_active` (`is_active`),
+		KEY `idx_slot_svc_date` (`service_id`, `booking_date`),
+		KEY `idx_slot_svc_date_slot` (`service_id`, `booking_date`, `slot_id`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -242,7 +254,11 @@ class Booking_Management_Activator {
 		`is_active` int(11) DEFAULT NULL,
 		`slot_booked_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`slot_updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
+        PRIMARY KEY (`id`),
+		KEY `idx_extslot_extra_svc_id` (`extra_svc_id`),
+		KEY `idx_extslot_service_id` (`service_id`),
+		KEY `idx_extslot_booking_date` (`booking_date`),
+		KEY `idx_extslot_is_active` (`is_active`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -318,7 +334,12 @@ class Booking_Management_Activator {
 		`is_active` int(11) DEFAULT NULL,
 		`transaction_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`transaction_updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`))$charset_collate;";
+        PRIMARY KEY (`id`),
+		KEY `idx_txn_booking_id` (`booking_id`),
+		KEY `idx_txn_customer_id` (`customer_id`),
+		KEY `idx_txn_payment_status` (`payment_status`),
+		KEY `idx_txn_wc_order_id` (`wc_order_id`)
+		)$charset_collate;";
 		dbDelta( $sql );
 
 		$table_name = $this->get_db_table_name( 'BOOKING_ARCHIVE' );
@@ -423,7 +444,12 @@ class Booking_Management_Activator {
 		`status` int(11) DEFAULT 1,
 		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
+        PRIMARY KEY (`id`),
+		KEY `idx_voucher_booking_id` (`booking_id`),
+		KEY `idx_voucher_customer_id` (`customer_id`),
+		KEY `idx_voucher_code` (`code`),
+		KEY `idx_voucher_status` (`status`),
+		KEY `idx_voucher_is_redeemed` (`is_redeemed`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -438,7 +464,10 @@ class Booking_Management_Activator {
 			`service_expired` tinyint(1) DEFAULT 0,
 			`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			`updated_at` datetime DEFAULT NULL,
-			PRIMARY KEY (`id`)
+			PRIMARY KEY (`id`),
+			KEY `idx_checkin_booking_id` (`booking_id`),
+			KEY `idx_checkin_qr_token` (`qr_token`),
+			KEY `idx_checkin_status` (`status`)
 		)$charset_collate;";
 		dbDelta( $sql );
 

@@ -136,17 +136,48 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-smtp.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-sanitized.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-payment-gateway.php';
+
+		/**
+		 * Stripe payment gateway — loaded conditionally.
+		 * In Lite, the file exists but the heavy Stripe SDK under src/stripe/
+		 * is NOT loaded. The Pro add-on will hook into `sg_booking_load_pro_libraries`
+		 * to require the Stripe SDK. The Lite gateway class gracefully handles
+		 * the missing SDK by checking class_exists() before usage.
+		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-stripes.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-process-payment.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-voucher-base.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-voucher-redeem.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-coupon-validation.php';
+
+		/**
+		 * Freemium gatekeeper and feature control.
+		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-feature-control.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-limits.php';
+
+		/**
+		 * PDF Customizer — loaded conditionally.
+		 * The class file is always available for basic PDF generation using
+		 * default templates. The drag-and-drop builder UI and heavy DOMPDF
+		 * library are loaded by the Pro add-on via `sg_booking_load_pro_libraries`.
+		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-pdf-customizer.php';
+
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-api.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-react-shortcodes.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-validation.php';
+
+		/**
+		 * Fires after the Lite plugin has loaded its core dependencies.
+		 *
+		 * The Pro add-on hooks here to load additional Pro-only class files
+		 * (e.g., advanced analytics, extended coupon logic, QR scanner).
+		 *
+		 * @since 1.1.0
+		 */
+		do_action( 'sg_booking_dependencies_loaded' );
+
 		$this->loader = new Booking_Management_Loader();
 	}
 
