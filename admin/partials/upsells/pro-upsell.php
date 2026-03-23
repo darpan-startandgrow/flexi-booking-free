@@ -17,7 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 $upsell_url = Booking_Management_Limits::get_pro_upsell_url();
 
 // Determine which feature the user was trying to access.
-$page_slug   = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+$raw_page_slug = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
 $feature_map = array(
 	'bm_booking_analytics'          => array(
 		'title'       => __( 'Advanced Analytics', 'service-booking' ),
@@ -55,6 +56,9 @@ $feature_map = array(
 		'icon'        => 'dashicons-admin-settings',
 	),
 );
+
+// Validate page slug against the allowlist of known feature pages.
+$page_slug = array_key_exists( $raw_page_slug, $feature_map ) ? $raw_page_slug : '';
 
 $feature = isset( $feature_map[ $page_slug ] ) ? $feature_map[ $page_slug ] : array(
 	'title'       => __( 'Pro Feature', 'service-booking' ),

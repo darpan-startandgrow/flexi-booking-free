@@ -282,7 +282,7 @@
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 768px) {
+@media (max-width: 48em) {
 	.sg-upsell-hero {
 		padding: 30px 20px;
 	}
