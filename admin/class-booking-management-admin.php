@@ -875,11 +875,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_home() {
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			include 'partials/booking-management-dashboard.php';
-		} else {
-			include 'partials/booking-management-dashboard.php';
-		}
+		include 'partials/booking-management-dashboard.php';
 	}//end bm_home()
 
     // Display analytics page

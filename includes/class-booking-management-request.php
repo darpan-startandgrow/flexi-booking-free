@@ -2021,7 +2021,7 @@ class BM_Request {
 			'is_editable'       => 1,
 			'ordering'          => 7,
 			'woocommerce_field' => 'billing_country',
-			'field_key'         => 'sgbm_field_7',
+			'field_key'         => 'sgbm_field_8',
 			'field_position'    => 7,
 		);
 		$field_arg  = array(
@@ -2060,7 +2060,7 @@ class BM_Request {
 			'is_editable'       => 1,
 			'ordering'          => 6,
 			'woocommerce_field' => 'billing_state',
-			'field_key'         => 'sgbm_field_6',
+			'field_key'         => 'sgbm_field_7',
 			'field_position'    => 6,
 		);
 		$field_arg  = array(
@@ -2100,7 +2100,7 @@ class BM_Request {
 			'is_editable'       => 1,
 			'ordering'          => 8,
 			'woocommerce_field' => 'order_comments',
-			'field_key'         => 'sgbm_field_8',
+			'field_key'         => 'sgbm_field_10',
 			'field_position'    => 8,
 		);
 		$field_arg  = array(
