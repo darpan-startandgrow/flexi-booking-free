@@ -169,6 +169,19 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-validation.php';
 
 		/**
+		 * Licence management — always loaded.
+		 * Provides the admin licence page and validation helpers.
+		 * The Pro plugin uses this to verify its licence status.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-license-manager.php';
+
+		/**
+		 * Core REST API for the Lite plugin's own frontend.
+		 * Separate from the React v2 API in class-booking-api.php.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-rest-api.php';
+
+		/**
 		 * Fires after the Lite plugin has loaded its core dependencies.
 		 *
 		 * The Pro add-on hooks here to load additional Pro-only class files

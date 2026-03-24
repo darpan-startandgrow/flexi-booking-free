@@ -12149,6 +12149,10 @@ class BM_Request {
 
 						if ( $finaldata != false && $finaldata != null ) {
 
+							// Begin ACID transaction for booking + slot count inserts.
+							global $wpdb;
+							$wpdb->query( 'START TRANSACTION' );
+
 							$booking_id = $dbhandler->insert_row( 'BOOKING', $finaldata );
 
 							if ( $booking_id ) {
@@ -12212,8 +12216,18 @@ class BM_Request {
 											}
 										} //end foreach
 									} //end if
+
+									// All inserts successful — commit the transaction.
+									$wpdb->query( 'COMMIT' );
+								} else {
+									// Slot count insert failed — rollback.
+									$wpdb->query( 'ROLLBACK' );
+									$order_number = 0;
 								} //end if
 								$dbhandler->update_global_option_value( 'bm_flexibooking_booking_id' . $booking_key, $booking_id );
+							} else {
+								// Booking insert failed — rollback.
+								$wpdb->query( 'ROLLBACK' );
 							} //end if
 						} //end if
 					} //end if

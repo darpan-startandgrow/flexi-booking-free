@@ -1,10 +1,15 @@
 <?php
-
-if ( !class_exists( 'Dompdf\Dompdf' ) ) {
-    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'src/dompdf/vendor/autoload.php';
-}
-
-use Dompdf\Dompdf as Dompdf;
+/**
+ * PDF processing class.
+ *
+ * The Lite version does NOT bundle dompdf or phpqrcode. The Pro add-on
+ * loads these via `sg_booking_load_pro_libraries`. If the libraries are
+ * not available, PDF generation methods return empty strings / false.
+ *
+ * @since      1.0.0
+ * @package    Booking_Management
+ * @subpackage Booking_Management/includes
+ */
 
 class BM_PDF_Processor {
 
@@ -371,8 +376,13 @@ class BM_PDF_Processor {
         $original_error_reporting = error_reporting();
         error_reporting( $original_error_reporting & ~E_DEPRECATED & ~E_USER_DEPRECATED );
 
+        if ( ! class_exists( 'Dompdf\Dompdf' ) ) {
+            error_reporting( $original_error_reporting );
+            return '';
+        }
+
         try {
-            $dompdf = new Dompdf();
+            $dompdf = new \Dompdf\Dompdf();
             $dompdf->set_option( 'isHtml5ParserEnabled', true );
             $dompdf->set_option( 'isRemoteEnabled', true );
 
@@ -623,9 +633,15 @@ class BM_PDF_Processor {
         if ( empty( $booking_reference ) ) {
 			return '';
         }
+
+        /**
+         * phpqrcode is NOT bundled in the Lite version.
+         * The Pro add-on loads it via `sg_booking_load_pro_libraries`.
+         */
         if ( ! class_exists( 'QRcode' ) ) {
-            require_once plugin_dir_path( dirname( __FILE__ ) ) . 'src/phpqrcode/qrlib.php';
+            return '';
         }
+
         if ( ob_get_length() ) {
 			ob_clean();
         }

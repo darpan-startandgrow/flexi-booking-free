@@ -783,6 +783,17 @@ class Booking_Management_Admin {
 		} else {
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_pro_upsell_page' ) );
 		}
+
+		/**
+		 * Fires after the Lite plugin has registered all admin menus.
+		 *
+		 * The Pro add-on hooks here to replace locked upsell menu
+		 * callbacks with real Pro page callbacks, and to register
+		 * any additional Pro-only admin menus.
+		 *
+		 * @since 1.1.0
+		 */
+		do_action( 'sg_booking_register_pro_menus' );
 	} //end booking_admin_menu()
 
 	/**
