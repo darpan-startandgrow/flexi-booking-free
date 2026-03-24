@@ -12219,6 +12219,9 @@ class BM_Request {
 
 									// All inserts successful — commit the transaction.
 									$wpdb->query( 'COMMIT' );
+
+									// Invalidate timeslot cache for this service/date.
+									delete_transient( 'sg_ts_' . (int) $service_id . '_' . sanitize_text_field( $date ) );
 								} else {
 									// Slot count insert failed — rollback.
 									$wpdb->query( 'ROLLBACK' );
