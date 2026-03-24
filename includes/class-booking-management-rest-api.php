@@ -140,6 +140,269 @@ class Booking_Management_Rest_API {
 				),
 			)
 		);
+
+		// --- Fields Management REST Endpoints ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/fields',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_fields' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'form_id' => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/fields/(?P<id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_field' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/fields/(?P<id>\d+)',
+			array(
+				'methods'             => 'PUT',
+				'callback'            => array( $this, 'update_field' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id'          => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'field_label' => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'placeholder' => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'is_required' => array(
+						'required'          => false,
+						'sanitize_callback' => 'absint',
+					),
+					'visible'     => array(
+						'required'          => false,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/fields/reorder',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'reorder_fields' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'field_id'  => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'direction' => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+						'validate_callback' => function ( $param ) {
+							return in_array( $param, array( 'up', 'down' ), true );
+						},
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/fields/preview',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'preview_fields' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'form_id' => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// --- Billing Forms REST Endpoints ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/forms',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_forms' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
+
+		// --- Voucher Listing REST Endpoint ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/vouchers',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_vouchers' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'page'     => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'required'          => false,
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+					'status'   => array(
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		// --- Customer Listing REST Endpoint ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/customers',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_customers' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'page'     => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'required'          => false,
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+					'search'   => array(
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		// --- Check-In REST Endpoints ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/checkins',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_checkins' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'page'     => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'required'          => false,
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+					'status'   => array(
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'search'   => array(
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/checkins/(?P<id>\d+)',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'manual_checkin' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// --- Email Listing REST Endpoint ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/emails',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_emails' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'page'     => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'required'          => false,
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// --- Dashboard REST Endpoint ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_dashboard' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -459,6 +722,661 @@ class Booking_Management_Rest_API {
 			'page'     => $page,
 			'per_page' => $per_page,
 		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Fields Management Handlers
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /fields — Retrieve all fields for a form.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_fields( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'FIELDS' );
+		$form_id   = $request->get_param( 'form_id' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'fields' => array() ) );
+		}
+
+		$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
+		$has_form_id = in_array( 'form_id', $columns, true );
+
+		if ( $has_form_id ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$fields = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM {$table} WHERE form_id = %d ORDER BY ordering ASC",
+					$form_id
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$fields = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY ordering ASC" );
+		}
+
+		return rest_ensure_response( array(
+			'fields'  => $fields ? $fields : array(),
+			'form_id' => $form_id,
+		) );
+	}
+
+	/**
+	 * GET /fields/{id} — Retrieve a single field.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_field( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'FIELDS' );
+		$id        = $request->get_param( 'id' );
+
+		if ( empty( $table ) ) {
+			return new WP_Error( 'db_error', esc_html__( 'Database tables not found.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$field = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id )
+		);
+
+		if ( ! $field ) {
+			return new WP_Error( 'not_found', esc_html__( 'Field not found.', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		return rest_ensure_response( $field );
+	}
+
+	/**
+	 * PUT /fields/{id} — Update a field (label, placeholder, required, visible).
+	 *
+	 * In the free version, only editing of default fields is allowed.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function update_field( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'FIELDS' );
+		$id        = $request->get_param( 'id' );
+
+		if ( empty( $table ) ) {
+			return new WP_Error( 'db_error', esc_html__( 'Database tables not found.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$field = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id )
+		);
+
+		if ( ! $field ) {
+			return new WP_Error( 'not_found', esc_html__( 'Field not found.', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		$update_data   = array();
+		$update_format = array();
+
+		// Update label.
+		$label = $request->get_param( 'field_label' );
+		if ( null !== $label ) {
+			$update_data['field_label'] = sanitize_text_field( $label );
+			$update_format[]            = '%s';
+		}
+
+		// Update field_options for placeholder.
+		$placeholder = $request->get_param( 'placeholder' );
+		if ( null !== $placeholder ) {
+			$options = maybe_unserialize( $field->field_options );
+			if ( ! is_array( $options ) ) {
+				$options = array();
+			}
+			$options['placeholder']     = sanitize_text_field( $placeholder );
+			$update_data['field_options'] = maybe_serialize( $options );
+			$update_format[]            = '%s';
+		}
+
+		// Update required status.
+		$is_required = $request->get_param( 'is_required' );
+		if ( null !== $is_required ) {
+			$update_data['is_required'] = absint( $is_required ) ? 1 : 0;
+			$update_format[]            = '%d';
+		}
+
+		// Update visibility.
+		$visible = $request->get_param( 'visible' );
+		if ( null !== $visible ) {
+			$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
+			if ( in_array( 'visible', $columns, true ) ) {
+				$update_data['visible'] = absint( $visible ) ? 1 : 0;
+				$update_format[]        = '%d';
+			}
+		}
+
+		if ( empty( $update_data ) ) {
+			return new WP_Error( 'no_data', esc_html__( 'No data to update.', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		$wpdb->update( $table, $update_data, array( 'id' => $id ), $update_format, array( '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$updated_field = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id )
+		);
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'field'   => $updated_field,
+		) );
+	}
+
+	/**
+	 * POST /fields/reorder — Reorder a field up or down.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function reorder_fields( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'FIELDS' );
+		$field_id  = $request->get_param( 'field_id' );
+		$direction = $request->get_param( 'direction' );
+
+		if ( empty( $table ) ) {
+			return new WP_Error( 'db_error', esc_html__( 'Database tables not found.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$current = $wpdb->get_row(
+			$wpdb->prepare( "SELECT id, ordering FROM {$table} WHERE id = %d", $field_id )
+		);
+
+		if ( ! $current ) {
+			return new WP_Error( 'not_found', esc_html__( 'Field not found.', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		$current_order = (int) $current->ordering;
+
+		if ( 'up' === $direction ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$swap = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT id, ordering FROM {$table} WHERE ordering < %d ORDER BY ordering DESC LIMIT 1",
+					$current_order
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$swap = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT id, ordering FROM {$table} WHERE ordering > %d ORDER BY ordering ASC LIMIT 1",
+					$current_order
+				)
+			);
+		}
+
+		if ( ! $swap ) {
+			return rest_ensure_response( array(
+				'success' => false,
+				'message' => esc_html__( 'Cannot move field further in this direction.', 'service-booking' ),
+			) );
+		}
+
+		// Swap the ordering values.
+		$wpdb->update( $table, array( 'ordering' => (int) $swap->ordering ), array( 'id' => $field_id ), array( '%d' ), array( '%d' ) );
+		$wpdb->update( $table, array( 'ordering' => $current_order ), array( 'id' => (int) $swap->id ), array( '%d' ), array( '%d' ) );
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Field reordered successfully.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * GET /fields/preview — Preview how the form will render.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function preview_fields( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'FIELDS' );
+		$form_id   = $request->get_param( 'form_id' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'html' => '' ) );
+		}
+
+		$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
+		$has_visible = in_array( 'visible', $columns, true );
+		$has_form_id = in_array( 'form_id', $columns, true );
+
+		$where = '1=1';
+		$values = array();
+
+		if ( $has_visible ) {
+			$where .= ' AND visible = 1';
+		}
+		if ( $has_form_id ) {
+			$where .= ' AND form_id = %d';
+			$values[] = $form_id;
+		}
+
+		if ( ! empty( $values ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$fields = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM {$table} WHERE {$where} ORDER BY ordering ASC",
+					$values
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$fields = $wpdb->get_results( "SELECT * FROM {$table} WHERE {$where} ORDER BY ordering ASC" );
+		}
+
+		$html = '<div class="sg-booking-preview-form">';
+		if ( $fields ) {
+			foreach ( $fields as $field ) {
+				$options     = maybe_unserialize( $field->field_options );
+				$placeholder = is_array( $options ) && isset( $options['placeholder'] ) ? esc_attr( $options['placeholder'] ) : '';
+				$required    = $field->is_required ? ' <span class="required">*</span>' : '';
+				$field_width = is_array( $options ) && isset( $options['field_width'] ) ? esc_attr( $options['field_width'] ) : 'full';
+
+				$html .= '<div class="sg-field-row sg-field-width-' . $field_width . '">';
+				$html .= '<label>' . esc_html( $field->field_label ) . $required . '</label>';
+
+				switch ( $field->field_type ) {
+					case 'textarea':
+						$html .= '<textarea placeholder="' . $placeholder . '" disabled></textarea>';
+						break;
+					case 'select':
+						$html .= '<select disabled><option>' . $placeholder . '</option></select>';
+						break;
+					case 'tel':
+						$html .= '<input type="tel" placeholder="' . $placeholder . '" disabled />';
+						break;
+					default:
+						$html .= '<input type="' . esc_attr( $field->field_type ) . '" placeholder="' . $placeholder . '" disabled />';
+						break;
+				}
+
+				$html .= '</div>';
+			}
+		}
+		$html .= '</div>';
+
+		return rest_ensure_response( array(
+			'html'   => $html,
+			'fields' => $fields ? $fields : array(),
+		) );
+	}
+
+	/**
+	 * GET /forms — Retrieve all billing forms.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_forms( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'BILLING_FORMS' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'forms' => array() ) );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$forms = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY id ASC" );
+
+		return rest_ensure_response( array(
+			'forms' => $forms ? $forms : array(),
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Voucher Listing Handler
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /vouchers — Retrieve voucher listing.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_vouchers( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'VOUCHERS' );
+		$page      = max( 1, $request->get_param( 'page' ) );
+		$per_page  = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
+		$status    = $request->get_param( 'status' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'vouchers' => array(), 'total' => 0 ) );
+		}
+
+		$where  = array( '1=1' );
+		$values = array();
+
+		if ( ! empty( $status ) ) {
+			$where[]  = 'status = %d';
+			$values[] = absint( $status );
+		}
+
+		$where_clause = implode( ' AND ', $where );
+		$offset       = ( $page - 1 ) * $per_page;
+
+		if ( ! empty( $values ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", $values )
+			);
+			$values[] = $per_page;
+			$values[] = $offset;
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results(
+				$wpdb->prepare( "SELECT id, code, booking_id, status, created_at FROM {$table} WHERE {$where_clause} ORDER BY id DESC LIMIT %d OFFSET %d", $values )
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results(
+				$wpdb->prepare( "SELECT id, code, booking_id, status, created_at FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d", $per_page, $offset )
+			);
+		}
+
+		return rest_ensure_response( array(
+			'vouchers' => $rows ? $rows : array(),
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $per_page,
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Customer Listing Handler
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /customers — Retrieve customer email listing.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_customers( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'CUSTOMERS' );
+		$page      = max( 1, $request->get_param( 'page' ) );
+		$per_page  = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
+		$search    = $request->get_param( 'search' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'customers' => array(), 'total' => 0 ) );
+		}
+
+		$where  = array( '1=1' );
+		$values = array();
+
+		if ( ! empty( $search ) ) {
+			$like     = '%' . $wpdb->esc_like( $search ) . '%';
+			$where[]  = 'customer_email LIKE %s';
+			$values[] = $like;
+		}
+
+		$where_clause = implode( ' AND ', $where );
+		$offset       = ( $page - 1 ) * $per_page;
+
+		// In free version, only show email column.
+		$select_cols = Booking_Management_Limits::is_pro_active()
+			? 'id, customer_name, customer_email, customer_created_at'
+			: 'id, customer_email';
+
+		if ( ! empty( $values ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", $values )
+			);
+			$values[] = $per_page;
+			$values[] = $offset;
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results(
+				$wpdb->prepare( "SELECT {$select_cols} FROM {$table} WHERE {$where_clause} ORDER BY id DESC LIMIT %d OFFSET %d", $values )
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results(
+				$wpdb->prepare( "SELECT {$select_cols} FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d", $per_page, $offset )
+			);
+		}
+
+		return rest_ensure_response( array(
+			'customers' => $rows ? $rows : array(),
+			'total'     => $total,
+			'page'      => $page,
+			'per_page'  => $per_page,
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Check-In Handlers
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /checkins — Retrieve check-in listing.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_checkins( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'CHECKIN' );
+		$page      = max( 1, $request->get_param( 'page' ) );
+		$per_page  = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
+		$status    = $request->get_param( 'status' );
+		$search    = $request->get_param( 'search' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'checkins' => array(), 'total' => 0 ) );
+		}
+
+		$where  = array( '1=1' );
+		$values = array();
+
+		if ( ! empty( $status ) ) {
+			$where[]  = 'status = %s';
+			$values[] = $status;
+		}
+
+		$where_clause = implode( ' AND ', $where );
+		$offset       = ( $page - 1 ) * $per_page;
+
+		if ( ! empty( $values ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", $values )
+			);
+			$values[] = $per_page;
+			$values[] = $offset;
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results(
+				$wpdb->prepare( "SELECT * FROM {$table} WHERE {$where_clause} ORDER BY id DESC LIMIT %d OFFSET %d", $values )
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results(
+				$wpdb->prepare( "SELECT * FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d", $per_page, $offset )
+			);
+		}
+
+		return rest_ensure_response( array(
+			'checkins' => $rows ? $rows : array(),
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $per_page,
+		) );
+	}
+
+	/**
+	 * POST /checkins/{id} — Manual check-in for a booking.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function manual_checkin( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'CHECKIN' );
+		$id        = $request->get_param( 'id' );
+
+		if ( empty( $table ) ) {
+			return new WP_Error( 'db_error', esc_html__( 'Database tables not found.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$checkin = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id )
+		);
+
+		if ( ! $checkin ) {
+			return new WP_Error( 'not_found', esc_html__( 'Check-in record not found.', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		$wpdb->update(
+			$table,
+			array(
+				'status'       => 'checked_in',
+				'checkin_time' => current_time( 'mysql' ),
+				'updated_at'   => current_time( 'mysql' ),
+			),
+			array( 'id' => $id ),
+			array( '%s', '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Check-in completed successfully.', 'service-booking' ),
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Email Listing Handler
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /emails — Retrieve email listing.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_emails( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'EMAILS' );
+		$page      = max( 1, $request->get_param( 'page' ) );
+		$per_page  = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'emails' => array(), 'total' => 0 ) );
+		}
+
+		$offset = ( $page - 1 ) * $per_page;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, mail_to, mail_sub, created_at, status FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d",
+				$per_page,
+				$offset
+			)
+		);
+
+		return rest_ensure_response( array(
+			'emails'   => $rows ? $rows : array(),
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $per_page,
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Dashboard Handler
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /dashboard — Retrieve simplified dashboard metrics.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_dashboard( $request ) {
+		global $wpdb;
+		$activator    = new Booking_Management_Activator();
+		$book_table   = $activator->get_db_table_name( 'BOOKING' );
+		$cust_table   = $activator->get_db_table_name( 'CUSTOMERS' );
+
+		$data = array(
+			'total_bookings'    => 0,
+			'total_customers'   => 0,
+			'upcoming_bookings' => 0,
+			'recent_orders'     => array(),
+			'revenue'           => 0,
+		);
+
+		if ( ! empty( $book_table ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$data['total_bookings'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$book_table} WHERE is_active = 1" );
+
+			$seven_days_later = gmdate( 'Y-m-d', strtotime( '+7 days' ) );
+			$today            = gmdate( 'Y-m-d' );
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$data['upcoming_bookings'] = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM {$book_table} WHERE is_active = 1 AND booking_date >= %s AND booking_date <= %s",
+					$today,
+					$seven_days_later
+				)
+			);
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$data['recent_orders'] = $wpdb->get_results(
+				"SELECT id, service_name, booking_date, order_status, total_cost, booking_created_at FROM {$book_table} WHERE is_active = 1 ORDER BY id DESC LIMIT 10"
+			);
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$data['revenue'] = (float) $wpdb->get_var(
+				"SELECT COALESCE(SUM(total_cost), 0) FROM {$book_table} WHERE is_active = 1 AND order_status IN ('booked', 'completed')"
+			);
+		}
+
+		if ( ! empty( $cust_table ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$data['total_customers'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$cust_table}" );
+		}
+
+		return rest_ensure_response( $data );
 	}
 
 	// ------------------------------------------------------------------

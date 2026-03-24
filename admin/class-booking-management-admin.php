@@ -703,14 +703,14 @@ class Booking_Management_Admin {
     public function booking_admin_menu() {
 		$is_pro = Booking_Management_Limits::is_pro_active();
 
-		// Main menu page — Dashboard is Pro-only; free users see an overview.
+		// Main menu page — Dashboard.
 		add_menu_page( __( 'FlexiBooking', 'service-booking' ), __( 'FlexiBooking', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ), 'dashicons-groups', 26 );
 
-		// Dashboard: Pro-only full dashboard; free gets upsell.
+		// Dashboard: Available in both free (simple) and pro (advanced).
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
 		} else {
-			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard ★', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
+			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
 		}
 
 		// Analytics: Pro-only.
@@ -723,11 +723,29 @@ class Booking_Management_Admin {
 		// --- FREE menus (always available) ---
 		add_submenu_page( 'bm_home', __( 'Orders', 'service-booking' ), __( 'Orders', 'service-booking' ), 'manage_options', 'bm_all_orders', array( $this, 'bm_all_orders' ) );
 		add_submenu_page( '', __( 'Add Order', 'service-booking' ), __( 'Add Order', 'service-booking' ), 'manage_options', 'bm_add_order', array( $this, 'bm_add_order' ) );
-		add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_service_booking_planner' ) );
+
+		// Service Booking Planner: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_service_booking_planner' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner ★', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
 		add_submenu_page( '', __( 'Single Order Page', 'service-booking' ), __( 'Single Order Page', 'service-booking' ), 'manage_options', 'bm_single_order', array( $this, 'bm_single_order' ) );
-		add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_single_service_booking_planner' ) );
+
+		// Single Service Booking Planner: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_single_service_booking_planner' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner ★', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Customers: Available in free (email-only) and pro (full management).
 		add_submenu_page( 'bm_home', __( 'Customers', 'service-booking' ), __( 'Customers', 'service-booking' ), 'manage_options', 'bm_all_customers', array( $this, 'bm_all_customers' ) );
-		add_submenu_page( '', __( 'Add Customer', 'service-booking' ), __( 'Add Customer', 'service-booking' ), 'manage_options', 'bm_add_customer', array( $this, 'bm_add_customer' ) );
+		if ( $is_pro ) {
+			add_submenu_page( '', __( 'Add Customer', 'service-booking' ), __( 'Add Customer', 'service-booking' ), 'manage_options', 'bm_add_customer', array( $this, 'bm_add_customer' ) );
+		}
+
 		add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
 		add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
@@ -751,12 +769,8 @@ class Booking_Management_Admin {
 			add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// Fields: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields ★', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Fields: Available in free (default billing form only) and pro (advanced).
+		add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
 
 		// Price Modules: Pro-only.
 		if ( $is_pro ) {
@@ -783,41 +797,36 @@ class Booking_Management_Admin {
 			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records ★', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// Vouchers: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers ★', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Vouchers: Available in free (listing only) and pro (full management + redemption).
+		add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
 
-		// Check ins: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins ★', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Check ins: Available in free (manual only) and pro (scanner + resend).
+		add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
 
-		// PDF Customization: Pro-only.
+		// PDF Customization: Pro-only (free gets default non-customizable templates).
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'PDF Customization', 'service-booking' ), __( 'PDF Customization', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pdf_customization' ) );
 		} else {
-			add_submenu_page( 'bm_home', __( 'PDF Customization', 'service-booking' ), __( 'PDF Customization ★', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( 'bm_home', __( 'PDF Templates', 'service-booking' ), __( 'PDF Templates', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pdf_templates_page' ) );
 		}
 
-		// Email Logs and Payment Logs — free menus.
+		// Email Logs — available in free version.
 		add_submenu_page( 'bm_home', __( 'Email Logs', 'service-booking' ), __( 'Email Logs', 'service-booking' ), 'manage_options', 'bm_email_logs', array( $this, 'bm_email_logs' ) );
-		add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_payment_logs' ) );
 
-		// Coupons: Pro-only.
+		// Payment Logs: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_payment_logs' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs ★', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Coupons: Pro-only — completely removed from free version.
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_all_coupons' ) );
 			add_submenu_page( '', __( 'Add Coupon', 'service-booking' ), __( 'Add Coupon', 'service-booking' ), 'manage_options', 'bm_add_coupon', array( $this, 'bm_add_coupon' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons ★', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_pro_upsell_page' ) );
-			add_submenu_page( '', __( 'Add Coupon', 'service-booking' ), __( 'Add Coupon', 'service-booking' ), 'manage_options', 'bm_add_coupon', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// --- Global Settings (free) ---
+		// --- Global Settings ---
 		add_submenu_page( 'bm_home', __( 'Global Settings', 'service-booking' ), __( 'Global Settings', 'service-booking' ), 'manage_options', 'bm_global', array( $this, 'bm_global' ) );
 		add_submenu_page( '', __( 'Global General Settings', 'service-booking' ), __( 'Global General Settings', 'service-booking' ), 'manage_options', 'bm_global_general_settings', array( $this, 'bm_global_general_settings' ) );
 		add_submenu_page( '', __( 'Service and Booking Settings', 'service-booking' ), __( 'Service and Booking Settings', 'service-booking' ), 'manage_options', 'bm_svc_booking_settings', array( $this, 'bm_svc_booking_settings' ) );
@@ -827,17 +836,17 @@ class Booking_Management_Admin {
 		add_submenu_page( '', __( 'Language Settings', 'service-booking' ), __( 'Language Settings', 'service-booking' ), 'manage_options', 'bm_global_language_settings', array( $this, 'bm_global_language_settings' ) );
 		add_submenu_page( '', __( 'Format Settings', 'service-booking' ), __( 'Format Settings', 'service-booking' ), 'manage_options', 'bm_global_format_settings', array( $this, 'bm_global_format_settings' ) );
 
-		// Pro-only settings pages (hidden).
+		// Mail settings available in free (basic, no SMTP).
+		add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_global_email_settings' ) );
+		add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_upload_settings' ) );
+
+		// Pro-only settings pages.
 		if ( $is_pro ) {
-			add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_global_email_settings' ) );
 			add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_global_payment_settings' ) );
-			add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_upload_settings' ) );
 			add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_global_integration_settings' ) );
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_global_coupon_settings' ) );
 		} else {
-			add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_pro_upsell_page' ) );
-			add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_pro_upsell_page' ) );
 		}
@@ -866,13 +875,24 @@ class Booking_Management_Admin {
 
 
 	public function bm_home() {
-		$this->bm_pro_upsell_page();
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			include 'partials/booking-management-dashboard.php';
+		} else {
+			include 'partials/booking-management-dashboard.php';
+		}
 	}//end bm_home()
 
     // Display analytics page
     public function bm_booking_analytics() {
         $this->bm_pro_upsell_page();
     }
+
+	/**
+	 * PDF Templates page for free version — non-customizable defaults.
+	 */
+	public function bm_pdf_templates_page() {
+		include 'partials/booking-management-pdf-templates-free.php';
+	}
 
 
 	public function bm_all_orders() {

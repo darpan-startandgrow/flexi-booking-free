@@ -283,6 +283,104 @@
 	display: none !important;
 }
 
+/* ===== Hide Pro-Only Service Editor Fields in Free ===== */
+.sg-free-version .bm-stop-sales-section,
+.sg-free-version .bm-saleswitch-section,
+.sg-free-version .bm-max-capacity-section,
+.sg-free-version .bm-timeslot-calendar-section,
+.sg-free-version .bm-age-settings-section,
+.sg-free-version .bm-price-module-section,
+.sg-free-version [data-pro-feature="stop-sales"],
+.sg-free-version [data-pro-feature="saleswitch"],
+.sg-free-version [data-pro-feature="max-capacity"],
+.sg-free-version [data-pro-feature="timeslot-calendar"],
+.sg-free-version [data-pro-feature="age-settings"],
+.sg-free-version [data-pro-feature="price-module"] {
+	display: none !important;
+}
+
+/* ===== Hide QR Scanner in Free ===== */
+.sg-free-version .bm-qr-scanner-btn,
+.sg-free-version .bm-resend-ticket-btn,
+.sg-free-version [data-action="qr-scan"],
+.sg-free-version [data-action="resend-ticket"] {
+	display: none !important;
+}
+
+/* ===== Hide Email Resend Button in Free ===== */
+.sg-free-version .bm-resend-email-btn,
+.sg-free-version [data-action="resend-email"] {
+	display: none !important;
+}
+
+/* ===== Hide Add Customer Button in Free ===== */
+.sg-free-version .bm-add-customer-btn,
+.sg-free-version [data-action="add-customer"] {
+	display: none !important;
+}
+
+/* ===== Hide Coupon Fields in Free ===== */
+.sg-free-version .bm-coupon-section,
+.sg-free-version .bm-coupon-field,
+.sg-free-version [data-pro-feature="coupon"] {
+	display: none !important;
+}
+
+/* ===== Hide Voucher Redemption in Free ===== */
+.sg-free-version .bm-voucher-redeem-section,
+.sg-free-version .bm-voucher-redeem-btn,
+.sg-free-version [data-action="redeem-voucher"] {
+	display: none !important;
+}
+
+/* ===== Hide SMTP Settings in Free ===== */
+.sg-free-version .bm-smtp-settings-section,
+.sg-free-version [data-pro-feature="smtp"] {
+	display: none !important;
+}
+
+/* ===== Pro Badge Styling ===== */
+.sg-pro-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	background: linear-gradient(135deg, #6366f1, #8b5cf6);
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 100px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	vertical-align: middle;
+	margin-left: 6px;
+}
+
+.sg-pro-badge .dashicons {
+	font-size: 12px;
+	width: 12px;
+	height: 12px;
+}
+
+/* ===== Locked Feature Overlay ===== */
+.sg-free-version .sg-pro-locked {
+	position: relative;
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.sg-free-version .sg-pro-locked::after {
+	content: '\f160';
+	font-family: dashicons;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 32px;
+	color: #7c3aed;
+	opacity: 0.5;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 48em) {
 	.sg-upsell-hero {
