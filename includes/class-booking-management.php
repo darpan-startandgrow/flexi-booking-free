@@ -251,19 +251,24 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_get_service_prices', $plugin_admin, 'bm_get_service_prices' );
 		$this->loader->add_action( 'wp_ajax_bm_set_serice_price', $plugin_admin, 'bm_set_serice_price' );
 		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price', $plugin_admin, 'bm_set_bulk_serice_price' );
-		$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
-		$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
-		$this->loader->add_action( 'wp_ajax_bm_set_service_saleswitch', $plugin_admin, 'bm_set_service_saleswitch' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_stopsales', $plugin_admin, 'bm_set_bulk_serice_stopsales' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_service_saleswitch', $plugin_admin, 'bm_set_bulk_service_saleswitch' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_max_cap', $plugin_admin, 'bm_get_service_max_cap' );
-		$this->loader->add_action( 'wp_ajax_bm_set_serice_max_cap', $plugin_admin, 'bm_set_serice_max_cap' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_max_cap', $plugin_admin, 'bm_set_bulk_serice_max_cap' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_time_slots', $plugin_admin, 'bm_get_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_bm_get_specific_time_slot', $plugin_admin, 'bm_get_specific_time_slot' );
-		$this->loader->add_action( 'wp_ajax_bm_set_variable_time_slot', $plugin_admin, 'bm_set_variable_time_slot' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_variable_time_slot', $plugin_admin, 'bm_remove_variable_time_slot' );
+
+		// Pro-only service management AJAX hooks: stopsales, saleswitch, max capacity, variable time slots.
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
+			$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
+			$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
+			$this->loader->add_action( 'wp_ajax_bm_set_service_saleswitch', $plugin_admin, 'bm_set_service_saleswitch' );
+			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_stopsales', $plugin_admin, 'bm_set_bulk_serice_stopsales' );
+			$this->loader->add_action( 'wp_ajax_bm_set_bulk_service_saleswitch', $plugin_admin, 'bm_set_bulk_service_saleswitch' );
+			$this->loader->add_action( 'wp_ajax_bm_get_service_max_cap', $plugin_admin, 'bm_get_service_max_cap' );
+			$this->loader->add_action( 'wp_ajax_bm_set_serice_max_cap', $plugin_admin, 'bm_set_serice_max_cap' );
+			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_max_cap', $plugin_admin, 'bm_set_bulk_serice_max_cap' );
+			$this->loader->add_action( 'wp_ajax_bm_get_service_time_slots', $plugin_admin, 'bm_get_service_time_slots' );
+			$this->loader->add_action( 'wp_ajax_bm_get_specific_time_slot', $plugin_admin, 'bm_get_specific_time_slot' );
+			$this->loader->add_action( 'wp_ajax_bm_set_variable_time_slot', $plugin_admin, 'bm_set_variable_time_slot' );
+			$this->loader->add_action( 'wp_ajax_bm_remove_variable_time_slot', $plugin_admin, 'bm_remove_variable_time_slot' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_bm_save_field_and_setting', $plugin_admin, 'bm_save_field_and_setting' );
 		$this->loader->add_action( 'wp_ajax_bm_get_all_field_labels', $plugin_admin, 'bm_get_all_field_labels' );
 		$this->loader->add_action( 'wp_ajax_bm_get_field_settings', $plugin_admin, 'bm_get_field_settings' );

@@ -141,6 +141,108 @@ class Booking_Management_Rest_API {
 			)
 		);
 
+		// --- Service Management REST Endpoints ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/services',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_services' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'page'     => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'required'          => false,
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+					'search'   => array(
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'category_id' => array(
+						'required'          => false,
+						'default'           => 0,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/services/(?P<id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_service' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/services/(?P<id>\d+)',
+			array(
+				'methods'             => 'PUT',
+				'callback'            => array( $this, 'update_service' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id'           => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'service_name' => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'service_desc' => array(
+						'required'          => false,
+						'sanitize_callback' => 'wp_kses_post',
+					),
+					'service_category' => array(
+						'required'          => false,
+						'sanitize_callback' => 'absint',
+					),
+					'service_duration' => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'service_price' => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/services/(?P<id>\d+)',
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( $this, 'delete_service' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
 		// --- Fields Management REST Endpoints ---
 
 		register_rest_route(
@@ -727,6 +829,185 @@ class Booking_Management_Rest_API {
 	// ------------------------------------------------------------------
 	// Fields Management Handlers
 	// ------------------------------------------------------------------
+
+	/**
+	 * GET /services — Retrieve a list of services.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_services( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'SERVICE' );
+
+		$page     = $request->get_param( 'page' );
+		$per_page = $request->get_param( 'per_page' );
+		$search   = $request->get_param( 'search' );
+		$cat_id   = $request->get_param( 'category_id' );
+
+		$offset = ( $page - 1 ) * $per_page;
+
+		$where = 'WHERE 1=1';
+		$args  = array();
+
+		if ( ! empty( $search ) ) {
+			$where .= ' AND service_name LIKE %s';
+			$args[] = '%' . $wpdb->esc_like( $search ) . '%';
+		}
+
+		if ( ! empty( $cat_id ) ) {
+			$where .= ' AND service_category = %d';
+			$args[] = $cat_id;
+		}
+
+		$args[] = $per_page;
+		$args[] = $offset;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
+		$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} {$where}", array_slice( $args, 0, -2 ) ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
+		$services = $wpdb->get_results(
+			$wpdb->prepare( "SELECT id, service_name, service_desc, service_category, service_duration, service_price, is_service_front, service_position FROM {$table} {$where} ORDER BY service_position ASC LIMIT %d OFFSET %d", $args )
+		);
+
+		$items = array();
+		if ( ! empty( $services ) ) {
+			foreach ( $services as $svc ) {
+				$items[] = array(
+					'id'               => (int) $svc->id,
+					'service_name'     => $svc->service_name,
+					'service_desc'     => $svc->service_desc,
+					'service_category' => (int) $svc->service_category,
+					'service_duration' => $svc->service_duration,
+					'service_price'    => $svc->service_price,
+					'is_service_front' => (int) $svc->is_service_front,
+					'service_position' => (int) $svc->service_position,
+				);
+			}
+		}
+
+		return new WP_REST_Response(
+			array(
+				'items' => $items,
+				'total' => $total,
+				'page'  => $page,
+				'pages' => ceil( $total / max( 1, $per_page ) ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * GET /services/{id} — Retrieve a single service.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_service( $request ) {
+		$dbhandler = new BM_DBhandler();
+		$id        = $request->get_param( 'id' );
+		$service   = $dbhandler->get_row( 'SERVICE', $id );
+
+		if ( empty( $service ) ) {
+			return new WP_REST_Response( array( 'message' => esc_html__( 'Service not found.', 'service-booking' ) ), 404 );
+		}
+
+		// For free version, return only essential fields.
+		$data = array(
+			'id'               => (int) $service->id,
+			'service_name'     => $service->service_name,
+			'service_desc'     => isset( $service->service_desc ) ? $service->service_desc : '',
+			'service_short_desc' => isset( $service->service_short_desc ) ? $service->service_short_desc : '',
+			'service_category' => (int) $service->service_category,
+			'service_duration' => $service->service_duration,
+			'service_price'    => $service->service_price,
+			'is_service_front' => (int) $service->is_service_front,
+			'service_position' => (int) $service->service_position,
+		);
+
+		// Only include Pro-specific fields if Pro is active.
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$data['default_stopsales']  = isset( $service->default_stopsales ) ? $service->default_stopsales : '';
+			$data['default_saleswitch'] = isset( $service->default_saleswitch ) ? $service->default_saleswitch : '';
+			$data['default_max_cap']    = isset( $service->default_max_cap ) ? $service->default_max_cap : '';
+		}
+
+		return new WP_REST_Response( $data, 200 );
+	}
+
+	/**
+	 * PUT /services/{id} — Update a service (basic fields only in free version).
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function update_service( $request ) {
+		$dbhandler = new BM_DBhandler();
+		$id        = $request->get_param( 'id' );
+		$service   = $dbhandler->get_row( 'SERVICE', $id );
+
+		if ( empty( $service ) ) {
+			return new WP_REST_Response( array( 'message' => esc_html__( 'Service not found.', 'service-booking' ) ), 404 );
+		}
+
+		$update_data = array();
+		$update_args = array();
+
+		// Only allow updating basic service fields.
+		$allowed_fields = array(
+			'service_name'     => '%s',
+			'service_desc'     => '%s',
+			'service_category' => '%d',
+			'service_duration' => '%s',
+			'service_price'    => '%s',
+		);
+
+		foreach ( $allowed_fields as $field => $format ) {
+			$value = $request->get_param( $field );
+			if ( null !== $value ) {
+				$update_data[ $field ] = $value;
+				$update_args[]         = $format;
+			}
+		}
+
+		if ( empty( $update_data ) ) {
+			return new WP_REST_Response( array( 'message' => esc_html__( 'No fields to update.', 'service-booking' ) ), 400 );
+		}
+
+		$result = $dbhandler->update_row( 'SERVICE', $update_data, array( 'id' => $id ), $update_args, array( '%d' ) );
+
+		if ( false === $result ) {
+			return new WP_REST_Response( array( 'message' => esc_html__( 'Failed to update service.', 'service-booking' ) ), 500 );
+		}
+
+		return new WP_REST_Response( array( 'message' => esc_html__( 'Service updated.', 'service-booking' ) ), 200 );
+	}
+
+	/**
+	 * DELETE /services/{id} — Delete a service.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function delete_service( $request ) {
+		$dbhandler = new BM_DBhandler();
+		$id        = $request->get_param( 'id' );
+		$service   = $dbhandler->get_row( 'SERVICE', $id );
+
+		if ( empty( $service ) ) {
+			return new WP_REST_Response( array( 'message' => esc_html__( 'Service not found.', 'service-booking' ) ), 404 );
+		}
+
+		$deleted = $dbhandler->remove_row( 'SERVICE', 'id', $id, '%d' );
+
+		if ( ! $deleted ) {
+			return new WP_REST_Response( array( 'message' => esc_html__( 'Failed to delete service.', 'service-booking' ) ), 500 );
+		}
+
+		return new WP_REST_Response( array( 'message' => esc_html__( 'Service deleted.', 'service-booking' ) ), 200 );
+	}
 
 	/**
 	 * GET /fields — Retrieve all fields for a form.

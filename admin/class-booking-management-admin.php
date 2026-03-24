@@ -2482,6 +2482,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_serice_stopsales() {
+		if ( ! Booking_Management_Limits::can_use_stop_sales() ) {
+			wp_send_json_error( esc_html__( 'Stop-sales is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2517,6 +2521,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_service_saleswitch() {
+		if ( ! Booking_Management_Limits::can_use_saleswitch() ) {
+			wp_send_json_error( esc_html__( 'Saleswitch is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2552,6 +2560,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_service_max_cap() {
+		if ( ! Booking_Management_Limits::can_edit_max_capacity() ) {
+			wp_send_json_error( esc_html__( 'Max capacity management is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2587,6 +2599,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_service_time_slots() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2620,6 +2636,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_specific_time_slot() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2759,6 +2779,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_remove_variable_time_slot() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -3746,6 +3770,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_serice_stopsales() {
+		if ( ! Booking_Management_Limits::can_use_stop_sales() ) {
+			wp_send_json_error( esc_html__( 'Stop-sales is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -3879,6 +3907,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_service_saleswitch() {
+		if ( ! Booking_Management_Limits::can_use_saleswitch() ) {
+			wp_send_json_error( esc_html__( 'Saleswitch is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4012,6 +4044,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_bulk_serice_stopsales() {
+		if ( ! Booking_Management_Limits::can_use_stop_sales() ) {
+			wp_send_json_error( esc_html__( 'Stop-sales is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4171,6 +4207,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_bulk_service_saleswitch() {
+		if ( ! Booking_Management_Limits::can_use_saleswitch() ) {
+			wp_send_json_error( esc_html__( 'Saleswitch is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4330,6 +4370,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_serice_max_cap() {
+		if ( ! Booking_Management_Limits::can_edit_max_capacity() ) {
+			wp_send_json_error( esc_html__( 'Max capacity management is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4451,6 +4495,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_bulk_serice_max_cap() {
+		if ( ! Booking_Management_Limits::can_edit_max_capacity() ) {
+			wp_send_json_error( esc_html__( 'Max capacity management is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4594,6 +4642,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_variable_time_slot() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
