@@ -1,3 +1,8 @@
 # Ignore all files in src/mail-attachments
 src/mail-attachments/
 /vendor/
+
+# Premium libraries (loaded by Pro add-on only)
+src/stripe/
+src/dompdf/
+src/phpqrcode/

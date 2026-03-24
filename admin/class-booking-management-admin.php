@@ -86,28 +86,28 @@ class Booking_Management_Admin {
 			wp_enqueue_style( 'flexi-daterangepicker', plugin_dir_url( __FILE__ ) . 'css/booking-management-daterangepicker.css', array(), $this->version, 'all' );
 			wp_enqueue_style( 'flexi-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-service-booking-planner.css', array(), $this->version, 'all' );
 			wp_enqueue_style( 'flexi-single-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-service-booking-planner.css', array(), $this->version, 'all' );
-            if ( $screen->base == 'toplevel_page_bm_home' ) {
+            if ( $screen->base == 'toplevel_page_bm_home' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'dashboard-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-dashboard.css', array(), $this->version, 'all' );
             }
-            if ( $screen->base == 'flexibooking_page_bm_email_records' ) {
+            if ( $screen->base == 'flexibooking_page_bm_email_records' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'resend-email-custom', plugin_dir_url( __FILE__ ) . 'css/booking-management-resend-email-custom.css', array(), $this->version, 'all' );
             }
-            if ( $screen->base == 'admin_page_bm_customer_profile' ) {
+            if ( $screen->base == 'admin_page_bm_customer_profile' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'customer-profile-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-customer-profile.css', array(), $this->version, 'all' );
             }
-            if ( $screen->base == 'admin_page_bm_customer_profile' || $screen->base == 'flexibooking_page_bm_check_ins' || $screen->base == 'flexibooking_page_bm_booking_analytics' ) {
+            if ( ( $screen->base == 'admin_page_bm_customer_profile' || $screen->base == 'flexibooking_page_bm_check_ins' || $screen->base == 'flexibooking_page_bm_booking_analytics' ) && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'jquery-datatable-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-jquery-datatable.css', array(), $this->version, 'all' );
                 wp_enqueue_style( 'jquery-datatable-buttons-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-jquery-datatable-buttons.css', array(), $this->version, 'all' );
                 wp_enqueue_style( 'jquery-datatable-select-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-jquery-datatable-select.css', array(), $this->version, 'all' );
             }
-            if ( $screen->base == 'flexibooking_page_bm_check_ins' ) {
+            if ( $screen->base == 'flexibooking_page_bm_check_ins' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'check-in-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-check-ins.css', array(), $this->version, 'all' );
                 wp_enqueue_style( 'resend-email-custom', plugin_dir_url( __FILE__ ) . 'css/booking-management-resend-email-custom.css', array(), $this->version, 'all' );
             }
-            if ( $screen->base == 'flexibooking_page_bm_booking_analytics' ) {
+            if ( $screen->base == 'flexibooking_page_bm_booking_analytics' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'analytics', plugin_dir_url( __FILE__ ) . 'css/booking-management-analytics.css', array(), $this->version, 'all' );
             }
-            if ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) {
+            if ( ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'coupon-module-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-coupon.css', array(), $this->version, 'all' );
             }
 
@@ -220,7 +220,9 @@ class Booking_Management_Admin {
 			wp_enqueue_script( 'jquery-ui', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-ui.js', array( 'jquery' ), $this->version, false );
 			wp_enqueue_script( 'intl-tel-input', plugin_dir_url( __FILE__ ) . 'js/booking-management-intl-tel-input.js', array( 'jquery' ), $this->version, false );
 			wp_enqueue_script( 'multiselect', plugin_dir_url( __FILE__ ) . 'js/booking-management-multiselect.js', array( 'jquery' ), $this->version, false );
-			wp_enqueue_script( 'chart-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-chart.js', array( 'jquery' ), $this->version, false );
+			if ( Booking_Management_Limits::is_pro_active() ) {
+				wp_enqueue_script( 'chart-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-chart.js', array( 'jquery' ), $this->version, false );
+			}
 			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-admin.js', array( 'jquery' ), $this->version, false );
 			wp_enqueue_script( 'jquery-datepicker-i18n', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-datepicker-i18n.min.js', array( 'jquery' ), $this->version, true );
 			wp_enqueue_script( 'jquery-moment', plugin_dir_url( __FILE__ ) . 'js/booking-management-momentjs.js', array( 'jquery' ), $this->version, true );
@@ -230,15 +232,15 @@ class Booking_Management_Admin {
 			wp_enqueue_script( 'single-service-planner', plugin_dir_url( __FILE__ ) . 'js/booking-management-single-service-booking-planner.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 			wp_enqueue_script( 'service-planner', plugin_dir_url( __FILE__ ) . 'js/booking-management-service-booking-planner.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 
-			if ( $screen->base == 'toplevel_page_bm_home' ) {
+			if ( $screen->base == 'toplevel_page_bm_home' && Booking_Management_Limits::is_pro_active() ) {
 				wp_enqueue_script( 'dashboard-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-dashboard.js', array( 'jquery' ), $this->version, false );
 			}
 
-			if ( $screen->base == 'admin_page_bm_customer_profile' ) {
+			if ( $screen->base == 'admin_page_bm_customer_profile' && Booking_Management_Limits::is_pro_active() ) {
 				wp_enqueue_script( 'customer-profile-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-customer-profile.js', array( 'jquery' ), $this->version, false );
 			}
 
-            if ( $screen->base == 'admin_page_bm_customer_profile' || $screen->base == 'flexibooking_page_bm_check_ins' || $screen->base == 'flexibooking_page_bm_booking_analytics' ) {
+            if ( ( $screen->base == 'admin_page_bm_customer_profile' || $screen->base == 'flexibooking_page_bm_check_ins' || $screen->base == 'flexibooking_page_bm_booking_analytics' ) && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_script( 'jquery-datatable-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-datatable.js', array( 'jquery' ), $this->version, true );
                 wp_enqueue_script( 'datatables-buttons-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-datatable-buttons.js', array( 'jquery' ), $this->version, true );
                 wp_enqueue_script( 'datatables-colvis-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-datatable-colvis.js', array( 'datatables-buttons-js' ), $this->version, true );
@@ -250,7 +252,7 @@ class Booking_Management_Admin {
                 wp_enqueue_script( 'datatables-select-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-datatable-select', array( 'jquery-datatable-js' ), $this->version, true );
             }
 
-            if ( $screen->base == 'flexibooking_page_bm_booking_analytics' ) {
+            if ( $screen->base == 'flexibooking_page_bm_booking_analytics' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_script( 'bm-analytics-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-analytics.js', array( 'jquery', 'chart-js' ), '1.0', true );
 
                 // Localize script with AJAX URL
@@ -628,7 +630,7 @@ class Booking_Management_Admin {
 			wp_localize_script( $this->plugin_name, 'bm_success_object', $success );
 			wp_localize_script( $this->plugin_name, 'bm_normal_object', $normal );
 
-			if ( $screen->base == 'admin_page_bm_add_external_service_price' ) {
+			if ( $screen->base == 'admin_page_bm_add_external_service_price' && Booking_Management_Limits::is_pro_active() ) {
 				wp_enqueue_script( 'service-price-module-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-price-module.js', array( 'jquery' ), $this->version, false );
 				wp_localize_script( 'service-price-module-js', 'bm_error_object', $error );
 				wp_localize_script( 'service-price-module-js', 'bm_normal_object', $normal );
@@ -640,7 +642,7 @@ class Booking_Management_Admin {
 				wp_localize_script( 'backennd-order-script', 'bm_normal_object', $normal );
 			}
 
-			if ( $screen->base == 'flexibooking_page_bm_check_ins' ) {
+			if ( $screen->base == 'flexibooking_page_bm_check_ins' && Booking_Management_Limits::is_pro_active() ) {
 				wp_enqueue_script( 'admin-jsqr', plugin_dir_url( __FILE__ ) . 'js/booking-management-jsqr.js', array( 'jquery' ), $this->version, true );
 				wp_enqueue_script( 'check-in-script', plugin_dir_url( __FILE__ ) . 'js/booking-management-check-ins.js', array( 'jquery' ), $this->version, true );
 				// WPML compatibility for QR scanner page URL
@@ -668,7 +670,7 @@ class Booking_Management_Admin {
 				);
 			}
 
-			if ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) {
+			if ( ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) && Booking_Management_Limits::is_pro_active() ) {
 				wp_enqueue_script( 'coupon-module-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-coupon.js', array( 'jquery' ), $this->version, false );
 				wp_enqueue_script( 'country-state', plugin_dir_url( __FILE__ ) . 'js/country-states.js', array( 'jquery' ), $this->version, false );
 				wp_localize_script( 'coupon-module-js', 'bm_error_object', $error );
@@ -701,19 +703,24 @@ class Booking_Management_Admin {
     public function booking_admin_menu() {
 		$is_pro = Booking_Management_Limits::is_pro_active();
 
-		// Main menu page.
-		add_menu_page( __( 'Dashboard', 'service-booking' ), __( 'FlexiBooking', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ), 'dashicons-groups', 26 );
+		// Main menu page — Dashboard is Pro-only; free users see an overview.
+		add_menu_page( __( 'FlexiBooking', 'service-booking' ), __( 'FlexiBooking', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ), 'dashicons-groups', 26 );
 
-		// --- FREE menus (always available) ---
-		add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
+		// Dashboard: Pro-only full dashboard; free gets upsell.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard ★', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
+		}
 
-		// Analytics: Pro-only full page, free gets upsell.
+		// Analytics: Pro-only.
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'Analytics', 'service-booking' ), __( 'Analytics', 'service-booking' ), 'manage_options', 'bm_booking_analytics', array( $this, 'bm_booking_analytics' ) );
 		} else {
 			add_submenu_page( 'bm_home', __( 'Analytics', 'service-booking' ), __( 'Analytics ★', 'service-booking' ), 'manage_options', 'bm_booking_analytics', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
+		// --- FREE menus (always available) ---
 		add_submenu_page( 'bm_home', __( 'Orders', 'service-booking' ), __( 'Orders', 'service-booking' ), 'manage_options', 'bm_all_orders', array( $this, 'bm_all_orders' ) );
 		add_submenu_page( '', __( 'Add Order', 'service-booking' ), __( 'Add Order', 'service-booking' ), 'manage_options', 'bm_add_order', array( $this, 'bm_add_order' ) );
 		add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_service_booking_planner' ) );
@@ -721,14 +728,35 @@ class Booking_Management_Admin {
 		add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_single_service_booking_planner' ) );
 		add_submenu_page( 'bm_home', __( 'Customers', 'service-booking' ), __( 'Customers', 'service-booking' ), 'manage_options', 'bm_all_customers', array( $this, 'bm_all_customers' ) );
 		add_submenu_page( '', __( 'Add Customer', 'service-booking' ), __( 'Add Customer', 'service-booking' ), 'manage_options', 'bm_add_customer', array( $this, 'bm_add_customer' ) );
-		add_submenu_page( '', __( 'Customer Profile', 'service-booking' ), __( 'Customer Profile', 'service-booking' ), 'manage_options', 'bm_customer_profile', array( $this, 'bm_customer_profile' ) );
 		add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
 		add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
 		add_submenu_page( '', __( 'Add Category', 'service-booking' ), __( 'Add Category', 'service-booking' ), 'manage_options', 'bm_add_category', array( $this, 'bm_add_category' ) );
-		add_submenu_page( 'bm_home', __( 'Mail Templates', 'service-booking' ), __( 'Mail Templates', 'service-booking' ), 'manage_options', 'bm_email_templates', array( $this, 'bm_email_templates' ) );
-		add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_add_template' ) );
-		add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
+
+		// --- Pro-only menus (locked with ★ star; unlocked by Pro add-on) ---
+
+		// Customer Profile: Pro-only (hidden page).
+		if ( $is_pro ) {
+			add_submenu_page( '', __( 'Customer Profile', 'service-booking' ), __( 'Customer Profile', 'service-booking' ), 'manage_options', 'bm_customer_profile', array( $this, 'bm_customer_profile' ) );
+		} else {
+			add_submenu_page( '', __( 'Customer Profile', 'service-booking' ), __( 'Customer Profile', 'service-booking' ), 'manage_options', 'bm_customer_profile', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Mail Templates: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Mail Templates', 'service-booking' ), __( 'Mail Templates', 'service-booking' ), 'manage_options', 'bm_email_templates', array( $this, 'bm_email_templates' ) );
+			add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_add_template' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Mail Templates', 'service-booking' ), __( 'Mail Templates ★', 'service-booking' ), 'manage_options', 'bm_email_templates', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Fields: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields ★', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_pro_upsell_page' ) );
+		}
 
 		// Price Modules: Pro-only.
 		if ( $is_pro ) {
@@ -739,11 +767,35 @@ class Booking_Management_Admin {
 			add_submenu_page( '', __( 'Add Price Module', 'service-booking' ), __( 'Add Price Module', 'service-booking' ), 'manage_options', 'bm_add_external_service_price', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		add_submenu_page( 'bm_home', __( 'Notification Processes', 'service-booking' ), __( 'Notification Processes', 'service-booking' ), 'manage_options', 'bm_all_notification_processes', array( $this, 'bm_all_notification_processes' ) );
-		add_submenu_page( '', __( 'Add Process', 'service-booking' ), __( 'Add Process', 'service-booking' ), 'manage_options', 'bm_add_notification_process', array( $this, 'bm_add_notification_process' ) );
-		add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
-		add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
-		add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
+		// Notification Processes: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Notification Processes', 'service-booking' ), __( 'Notification Processes', 'service-booking' ), 'manage_options', 'bm_all_notification_processes', array( $this, 'bm_all_notification_processes' ) );
+			add_submenu_page( '', __( 'Add Process', 'service-booking' ), __( 'Add Process', 'service-booking' ), 'manage_options', 'bm_add_notification_process', array( $this, 'bm_add_notification_process' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Notification Processes', 'service-booking' ), __( 'Notification Processes ★', 'service-booking' ), 'manage_options', 'bm_all_notification_processes', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( '', __( 'Add Process', 'service-booking' ), __( 'Add Process', 'service-booking' ), 'manage_options', 'bm_add_notification_process', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Email Records: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records ★', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Vouchers: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers ★', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Check ins: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins ★', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_pro_upsell_page' ) );
+		}
 
 		// PDF Customization: Pro-only.
 		if ( $is_pro ) {
@@ -752,6 +804,7 @@ class Booking_Management_Admin {
 			add_submenu_page( 'bm_home', __( 'PDF Customization', 'service-booking' ), __( 'PDF Customization ★', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
+		// Email Logs and Payment Logs — free menus.
 		add_submenu_page( 'bm_home', __( 'Email Logs', 'service-booking' ), __( 'Email Logs', 'service-booking' ), 'manage_options', 'bm_email_logs', array( $this, 'bm_email_logs' ) );
 		add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_payment_logs' ) );
 
@@ -764,25 +817,41 @@ class Booking_Management_Admin {
 			add_submenu_page( '', __( 'Add Coupon', 'service-booking' ), __( 'Add Coupon', 'service-booking' ), 'manage_options', 'bm_add_coupon', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
+		// --- Global Settings (free) ---
 		add_submenu_page( 'bm_home', __( 'Global Settings', 'service-booking' ), __( 'Global Settings', 'service-booking' ), 'manage_options', 'bm_global', array( $this, 'bm_global' ) );
 		add_submenu_page( '', __( 'Global General Settings', 'service-booking' ), __( 'Global General Settings', 'service-booking' ), 'manage_options', 'bm_global_general_settings', array( $this, 'bm_global_general_settings' ) );
-		add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_global_email_settings' ) );
-		add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_global_payment_settings' ) );
 		add_submenu_page( '', __( 'Service and Booking Settings', 'service-booking' ), __( 'Service and Booking Settings', 'service-booking' ), 'manage_options', 'bm_svc_booking_settings', array( $this, 'bm_svc_booking_settings' ) );
 		add_submenu_page( '', __( 'CSS Settings', 'service-booking' ), __( 'CSS Settings', 'service-booking' ), 'manage_options', 'bm_global_css_settings', array( $this, 'bm_global_css_settings' ) );
 		add_submenu_page( '', __( 'Timezone And Country Settings', 'service-booking' ), __( 'Timezone And Country Settings', 'service-booking' ), 'manage_options', 'bm_global_timezone_country_settings', array( $this, 'bm_global_timezone_country_settings' ) );
 		add_submenu_page( '', __( 'Pagination Settings', 'service-booking' ), __( 'Pagination Settings', 'service-booking' ), 'manage_options', 'bm_pagination_settings', array( $this, 'bm_pagination_settings' ) );
-		add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_upload_settings' ) );
 		add_submenu_page( '', __( 'Language Settings', 'service-booking' ), __( 'Language Settings', 'service-booking' ), 'manage_options', 'bm_global_language_settings', array( $this, 'bm_global_language_settings' ) );
 		add_submenu_page( '', __( 'Format Settings', 'service-booking' ), __( 'Format Settings', 'service-booking' ), 'manage_options', 'bm_global_format_settings', array( $this, 'bm_global_format_settings' ) );
-		add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_global_integration_settings' ) );
 
-		// Coupon Settings: Pro-only (hidden page).
+		// Pro-only settings pages (hidden).
 		if ( $is_pro ) {
+			add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_global_email_settings' ) );
+			add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_global_payment_settings' ) );
+			add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_upload_settings' ) );
+			add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_global_integration_settings' ) );
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_global_coupon_settings' ) );
 		} else {
+			add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_pro_upsell_page' ) );
 		}
+
+		/**
+		 * Fires after the Lite plugin has registered all admin menus.
+		 *
+		 * The Pro add-on hooks here to replace locked upsell menu
+		 * callbacks with real Pro page callbacks, and to register
+		 * any additional Pro-only admin menus.
+		 *
+		 * @since 1.1.0
+		 */
+		do_action( 'sg_booking_register_pro_menus' );
 	} //end booking_admin_menu()
 
 	/**
@@ -797,12 +866,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_home() {
-		include 'partials/booking-management-dashboard.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_home()
 
     // Display analytics page
     public function bm_booking_analytics() {
-        include 'partials/booking-management-analytics.php';
+        $this->bm_pro_upsell_page();
     }
 
 
@@ -848,7 +917,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_customer_profile() {
-		include 'partials/booking-management-customer-profile.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_customer_profile()
 
 
@@ -858,12 +927,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_all_external_service_prices() {
-		include 'partials/booking-management-price-module-listing.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_all_external_service_prices()
 
 
 	public function bm_add_external_service_price() {
-		include 'partials/booking-management-add-service-price-module.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_external_service_price()
 
 
@@ -878,17 +947,17 @@ class Booking_Management_Admin {
 
 
 	public function bm_email_records() {
-		include 'partials/booking-management-email-records.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_email_records()
 
 
 	public function bm_voucher_records() {
-		include 'partials/booking-management-voucher-records.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_voucher_records()
 
 
 	public function bm_check_ins() {
-		include 'partials/booking-management-check_ins.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_check_ins()
 
 
@@ -913,12 +982,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_global_email_settings() {
-		include 'partials/booking-management-global-mail-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_email_settings()
 
 
 	public function bm_global_payment_settings() {
-		include 'partials/booking-management-global-payment-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_payment_settings()
 
 
@@ -943,8 +1012,8 @@ class Booking_Management_Admin {
 
 
 	public function bm_upload_settings() {
-		include 'partials/booking-management-global-upload-settings.php';
-	} //end bm_uploa    } //end bm_global_coupon_settings()
+		$this->bm_pro_upsell_page();
+	} //end bm_upload_settings()
 
 
 	public function bm_global_language_settings() {
@@ -958,46 +1027,46 @@ class Booking_Management_Admin {
 
 
 	public function bm_global_integration_settings() {
-		include 'partials/booking-management-global-integration-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_integration_settings()
 
 	public function bm_global_coupon_settings() {
-		include 'partials/booking-management-global-coupon-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_coupon_settings()
 
 
 	public function bm_fields() {
-		include 'partials/booking-management-field-listing.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_fields()
 
 	public function bm_email_templates() {
-		include 'partials/booking-management-email-template-listing.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_email_templates()
 
 
 	public function bm_add_template() {
-		include 'partials/booking-management-add-email-template.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_template()
 
 	public function bm_all_notification_processes() {
-		include 'partials/booking-management-notification-processes.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_all_notification_processes()
 
 
 	public function bm_add_notification_process() {
-		include 'partials/booking-management-add-notification-process.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_notification_process()
 
 	public function bm_all_coupons() {
-		include 'partials/booking-management-coupon-listing.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_all_coupons
 
 	public function bm_add_coupon() {
-		include 'partials/booking-management-add-coupon.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_add_coupon
 
     public function bm_pdf_customization() {
-        include 'partials/booking-management-pdf-customization.php';
+        $this->bm_pro_upsell_page();
 	} //end bm_pdf_customization();
 
 
@@ -5258,7 +5327,13 @@ class Booking_Management_Admin {
             return;
         }
 
-        $type          = sanitize_text_field( filter_input( INPUT_POST, 'type' ) ?? 'booking' );
+        $type = sanitize_text_field( filter_input( INPUT_POST, 'type' ) ?? 'booking' );
+
+        if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+            wp_send_json_error( __( 'PDF processing is not available.', 'service-booking' ) );
+            return;
+        }
+
         $pdf_processor = new BM_PDF_Processor();
         $html          = $pdf_processor->bm_get_template_pdf_content( $type, 'dummy' );
 
@@ -5282,6 +5357,10 @@ class Booking_Management_Admin {
 
             if ( ! wp_verify_nonce( $nonce, 'test_pdf_action_' . $type . '_' . $booking_id_or_key ) ) {
                 wp_die( esc_html__( 'Security check failed', 'service-booking' ) );
+            }
+
+            if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+                wp_die( esc_html__( 'PDF processing is not available.', 'service-booking' ) );
             }
 
             $pdf_processor = new BM_PDF_Processor();
@@ -11970,7 +12049,7 @@ class Booking_Management_Admin {
 			$transaction_id = $dbhandler->get_value( 'TRANSACTIONS', 'transaction_id', $booking_id, 'booking_id' );
 
 			if ( $transaction_id > 0 ) {
-				if ( defined( 'STRIPE_SECRET_KEY' ) ) {
+				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
 					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 					if ( $payment_processor->isConnected() ) {
@@ -12562,20 +12641,22 @@ class Booking_Management_Admin {
 			return $status;
 		}
 
-		$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_paid_amount   = isset( $get_transaction['amount'] ) ? $get_transaction['amount'] : 0;
-		$get_paid_amount   = ( $get_paid_amount / 100 );
-		$get_paid_currency = isset( $get_transaction['currency'] ) ? $get_transaction['currency'] : '';
-		$get_customer_id   = isset( $get_transaction['customer'] ) ? $get_transaction['customer'] : '';
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_paid_amount   = isset( $get_transaction['amount'] ) ? $get_transaction['amount'] : 0;
+			$get_paid_amount   = ( $get_paid_amount / 100 );
+			$get_paid_currency = isset( $get_transaction['currency'] ) ? $get_transaction['currency'] : '';
+			$get_customer_id   = isset( $get_transaction['customer'] ) ? $get_transaction['customer'] : '';
 
-		$customer_id                    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-		$stripe_customer_id             = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $customer_id, 'id' );
-		$transaction_data_before_update = $dbhandler->bm_fetch_data_from_transient( 'transaction_data_before_update_' . $booking_id );
-		$paid_currency_before_update    = $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id );
+			$customer_id                    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
+			$stripe_customer_id             = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $customer_id, 'id' );
+			$transaction_data_before_update = $dbhandler->bm_fetch_data_from_transient( 'transaction_data_before_update_' . $booking_id );
+			$paid_currency_before_update    = $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id );
 
-		if ( ! $get_transaction || ( $paid_amount_before_update != $get_paid_amount ) || ( $paid_currency_before_update != $get_paid_currency ) || ( $stripe_customer_id != $get_customer_id ) ) {
-			$status = 2;
+			if ( ! $get_transaction || ( $paid_amount_before_update != $get_paid_amount ) || ( $paid_currency_before_update != $get_paid_currency ) || ( $stripe_customer_id != $get_customer_id ) ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12592,19 +12673,22 @@ class Booking_Management_Admin {
 		$bmrequests = new BM_Request();
 		$status     = 1;
 
-		$booking_id           = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
-		$is_frontend_booking  = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
-		$payment_processor    = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction      = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_payment_status   = isset( $get_transaction['status'] ) ? $get_transaction['status'] : '';
-		$paid_intent_statuses = apply_filters( 'flexibooking_paid_transaction_statuses', $bmrequests->bm_fetch_paid_transaction_statuses() );
+		$booking_id          = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
+		$is_frontend_booking = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
 		}
 
-		if ( ! in_array( $get_payment_status, $paid_intent_statuses ) ) {
-			$status = 2;
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor    = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction      = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_payment_status   = isset( $get_transaction['status'] ) ? $get_transaction['status'] : '';
+			$paid_intent_statuses = apply_filters( 'flexibooking_paid_transaction_statuses', $bmrequests->bm_fetch_paid_transaction_statuses() );
+
+			if ( ! in_array( $get_payment_status, $paid_intent_statuses ) ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12641,19 +12725,22 @@ class Booking_Management_Admin {
 		$bmrequests = new BM_Request();
 		$status     = 1;
 
-		$booking_id               = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
-		$is_frontend_booking      = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
-		$payment_processor        = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction_id       = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_payment_status       = isset( $get_transaction_id['status'] ) ? $get_transaction_id['status'] : '';
-		$pending_payment_Statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
+		$booking_id          = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
+		$is_frontend_booking = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
 		}
 
-		if ( ! in_array( $get_payment_status, $pending_payment_Statuses ) ) {
-			$status = 2;
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor        = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction_id       = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_payment_status       = isset( $get_transaction_id['status'] ) ? $get_transaction_id['status'] : '';
+			$pending_payment_Statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
+
+			if ( ! in_array( $get_payment_status, $pending_payment_Statuses ) ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12671,16 +12758,19 @@ class Booking_Management_Admin {
 
 		$booking_id          = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
 		$is_frontend_booking = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
-		$payment_processor   = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction     = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_cancel_status   = isset( $get_transaction['canceled_at'] ) ? $get_transaction['canceled_at'] : '';
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
 		}
 
-		if ( $get_cancel_status == null ) {
-			$status = 2;
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_cancel_status = isset( $get_transaction['canceled_at'] ) ? $get_transaction['canceled_at'] : '';
+
+			if ( $get_cancel_status == null ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12719,11 +12809,13 @@ class Booking_Management_Admin {
 	public function bm_flexibooking_verify_if_refunded_transaction_id( $refund_id ) {
 		$status = 1;
 
-		$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$refund            = $payment_processor->getRefund( $refund_id );
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$refund            = $payment_processor->getRefund( $refund_id );
 
-		if ( ! $refund ) {
-			$status = 4;
+			if ( ! $refund ) {
+				$status = 4;
+			}
 		}
 
 		return $status;
