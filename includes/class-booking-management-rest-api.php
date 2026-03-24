@@ -195,6 +195,7 @@ class Booking_Management_Rest_API {
 			return new WP_Error( 'db_error', esc_html__( 'Database tables not found.', 'service-booking' ), array( 'status' => 500 ) );
 		}
 
+		// Table names from get_db_table_name() are hardcoded in the activator class — not user input.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$slots = $wpdb->get_results(
 			$wpdb->prepare(
@@ -432,6 +433,7 @@ class Booking_Management_Rest_API {
 		$where_clause = implode( ' AND ', $where );
 		$offset       = ( $page - 1 ) * $per_page;
 
+		// Table names from get_db_table_name() are hardcoded in the activator class — not user input.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$total = (int) $wpdb->get_var(
 			empty( $values )

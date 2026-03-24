@@ -1,14 +1,15 @@
 <?php
 /**
- * Modular Licence Management System for SG Flexi Booking Pro.
+ * Modular License Management System for SG Flexi Booking Pro.
  *
- * Handles licence validation, activation, deactivation, and caching.
- * Abstracted for EDD/Freemius integration and future custom licence servers.
+ * Handles license validation, activation, deactivation, and caching.
+ * Abstracted for EDD/Freemius integration and future custom license servers.
  *
  * The Lite plugin ships this class but **never** returns true from the
- * central gatekeeper filter `sg_booking_is_pro_active`. The Pro add-on
- * hooks into this filter and returns true only when a valid licence is
- * detected.
+ * central gatekeeper filter `sg_booking_is_pro_active` (implemented in
+ * class-booking-management-feature-control.php and
+ * class-booking-management-limits.php, not here). The Pro add-on hooks
+ * that filter to return true only when a valid license is detected.
  *
  * @since      1.1.0
  * @package    Booking_Management
@@ -22,17 +23,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SG_License_Manager {
 
 	/**
-	 * WordPress option key for the stored licence key.
+	 * WordPress option key for the stored license key.
 	 */
 	const OPTION_LICENSE_KEY = 'sg_booking_license_key';
 
 	/**
-	 * WordPress option key for the stored licence status.
+	 * WordPress option key for the stored license status.
 	 */
 	const OPTION_LICENSE_STATUS = 'sg_booking_license_status';
 
 	/**
-	 * Transient key used to cache the licence validation result.
+	 * Transient key used to cache the license validation result.
 	 */
 	const TRANSIENT_KEY = 'sg_booking_license_cache';
 
@@ -71,11 +72,11 @@ class SG_License_Manager {
 	}
 
 	// ------------------------------------------------------------------
-	// Licence Validation
+	// License Validation
 	// ------------------------------------------------------------------
 
 	/**
-	 * Validate a licence key against the configured provider.
+	 * Validate a license key against the configured provider.
 	 *
 	 * Uses a filter `sg_license_validation_method` so the validation
 	 * backend (EDD, Freemius, or custom) can be swapped without
@@ -83,7 +84,7 @@ class SG_License_Manager {
 	 *
 	 * Results are cached for CACHE_DURATION seconds.
 	 *
-	 * @param string $license_key The licence key to validate.
+	 * @param string $license_key The license key to validate.
 	 * @param string $item_id     The EDD download / Freemius plan ID.
 	 * @return bool True if valid, false otherwise.
 	 */
@@ -99,7 +100,7 @@ class SG_License_Manager {
 		}
 
 		/**
-		 * Filters the licence validation result.
+		 * Filters the license validation result.
 		 *
 		 * Third-party providers (EDD, Freemius, custom server) hook here
 		 * and return true/false based on their own validation logic.
@@ -107,7 +108,7 @@ class SG_License_Manager {
 		 * @since 1.1.0
 		 *
 		 * @param bool   $is_valid   Default false.
-		 * @param string $license_key The licence key.
+		 * @param string $license_key The license key.
 		 * @param string $item_id     The product / plan ID.
 		 */
 		$is_valid = (bool) apply_filters( 'sg_license_validation_method', false, $license_key, $item_id );
@@ -123,7 +124,7 @@ class SG_License_Manager {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Activate a licence key.
+	 * Activate a license key.
 	 *
 	 * Stores the key, validates it, and updates the status option.
 	 *
@@ -145,7 +146,7 @@ class SG_License_Manager {
 	}
 
 	/**
-	 * Deactivate the current licence.
+	 * Deactivate the current license.
 	 *
 	 * Clears the stored key, status, and cached validation.
 	 *
@@ -162,7 +163,7 @@ class SG_License_Manager {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Get the stored licence key.
+	 * Get the stored license key.
 	 *
 	 * @return string
 	 */
@@ -171,7 +172,7 @@ class SG_License_Manager {
 	}
 
 	/**
-	 * Get the current licence status.
+	 * Get the current license status.
 	 *
 	 * @return string One of 'active', 'inactive', 'invalid', 'expired'.
 	 */
@@ -180,7 +181,7 @@ class SG_License_Manager {
 	}
 
 	/**
-	 * Whether the licence is currently active.
+	 * Whether the license is currently active.
 	 *
 	 * @return bool
 	 */
@@ -193,7 +194,7 @@ class SG_License_Manager {
 	// ------------------------------------------------------------------
 
 	/**
-	 * Register the licence settings page as a hidden sub-page under
+	 * Register the license settings page as a hidden sub-page under
 	 * the FlexiBooking admin menu.
 	 */
 	public function register_license_page() {
@@ -218,7 +219,7 @@ class SG_License_Manager {
 	}
 
 	/**
-	 * Render the licence settings page.
+	 * Render the license settings page.
 	 */
 	public function render_license_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -288,7 +289,7 @@ class SG_License_Manager {
 	}
 
 	/**
-	 * Show admin notice when the licence is invalid or expired.
+	 * Show admin notice when the license is invalid or expired.
 	 */
 	public function admin_notices() {
 		$status = $this->get_license_status();
@@ -307,8 +308,8 @@ class SG_License_Manager {
 			<p>
 				<?php
 				printf(
-					/* translators: %s: link to licence page */
-					esc_html__( 'SG Flexi Booking Pro: Your licence is %1$s. Please %2$senter a valid licence key%3$s to continue using Pro features.', 'service-booking' ),
+					/* translators: %s: link to license page */
+					esc_html__( 'SG Flexi Booking Pro: Your license is %1$s. Please %2$senter a valid license key%3$s to continue using Pro features.', 'service-booking' ),
 					'<strong>' . esc_html( $status ) . '</strong>',
 					'<a href="' . esc_url( admin_url( 'admin.php?page=sg_booking_license' ) ) . '">',
 					'</a>'
@@ -320,5 +321,5 @@ class SG_License_Manager {
 	}
 }
 
-// Initialize the licence manager.
+// Initialize the license manager.
 SG_License_Manager::get_instance();

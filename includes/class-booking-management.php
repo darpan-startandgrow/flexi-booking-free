@@ -169,9 +169,9 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-validation.php';
 
 		/**
-		 * Licence management — always loaded.
-		 * Provides the admin licence page and validation helpers.
-		 * The Pro plugin uses this to verify its licence status.
+		 * License management — always loaded.
+		 * Provides the admin license page and validation helpers.
+		 * The Pro plugin uses this to verify its license status.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-license-manager.php';
 
