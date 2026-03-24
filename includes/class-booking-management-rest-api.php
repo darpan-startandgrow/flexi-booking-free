@@ -505,6 +505,191 @@ class Booking_Management_Rest_API {
 				'permission_callback' => array( $this, 'check_admin_permission' ),
 			)
 		);
+
+		// --- Action endpoints (replacing AJAX handlers) ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/services/(?P<id>\d+)/visibility',
+			array(
+				'methods'             => 'PATCH',
+				'callback'            => array( $this, 'toggle_service_visibility' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'visible' => array(
+						'required'          => true,
+						'validate_callback' => function ( $param ) {
+							return in_array( (int) $param, array( 0, 1 ), true );
+						},
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/categories/(?P<id>\d+)/visibility',
+			array(
+				'methods'             => 'PATCH',
+				'callback'            => array( $this, 'toggle_category_visibility' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'visible' => array(
+						'required'          => true,
+						'validate_callback' => function ( $param ) {
+							return in_array( (int) $param, array( 0, 1 ), true );
+						},
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/categories',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_categories' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/categories/(?P<id>\d+)',
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( $this, 'delete_category' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/services/reorder',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'reorder_services' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/categories/reorder',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'reorder_categories' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/orders/(?P<id>\d+)/status',
+			array(
+				'methods'             => 'PATCH',
+				'callback'            => array( $this, 'update_order_status' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'status' => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/orders/(?P<id>\d+)/archive',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'archive_order' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/orders/(?P<id>\d+)',
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( $this, 'delete_order' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/templates/(?P<id>\d+)/visibility',
+			array(
+				'methods'             => 'PATCH',
+				'callback'            => array( $this, 'toggle_template_visibility' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'visible' => array(
+						'required'          => true,
+						'validate_callback' => function ( $param ) {
+							return in_array( (int) $param, array( 0, 1 ), true );
+						},
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/templates/(?P<id>\d+)',
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( $this, 'delete_template' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
 	}
 
 	// ------------------------------------------------------------------
