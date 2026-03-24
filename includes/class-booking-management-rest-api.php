@@ -1340,11 +1340,12 @@ class Booking_Management_Rest_API {
 	 */
 	public function get_vouchers( $request ) {
 		global $wpdb;
-		$activator = new Booking_Management_Activator();
-		$table     = $activator->get_db_table_name( 'VOUCHERS' );
-		$page      = max( 1, $request->get_param( 'page' ) );
-		$per_page  = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
-		$status    = $request->get_param( 'status' );
+		$activator     = new Booking_Management_Activator();
+		$table         = $activator->get_db_table_name( 'VOUCHERS' );
+		$booking_table = $activator->get_db_table_name( 'BOOKING' );
+		$page          = max( 1, $request->get_param( 'page' ) );
+		$per_page      = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
+		$status        = $request->get_param( 'status' );
 
 		if ( empty( $table ) ) {
 			return rest_ensure_response( array( 'vouchers' => array(), 'total' => 0 ) );
@@ -1354,30 +1355,33 @@ class Booking_Management_Rest_API {
 		$values = array();
 
 		if ( ! empty( $status ) ) {
-			$where[]  = 'status = %d';
+			$where[]  = 'v.status = %d';
 			$values[] = absint( $status );
 		}
 
 		$where_clause = implode( ' AND ', $where );
 		$offset       = ( $page - 1 ) * $per_page;
 
+		$select_cols = 'v.id, v.code, v.booking_id, v.status, v.created_at, b.service_name';
+		$join_sql    = "LEFT JOIN {$booking_table} b ON v.booking_id = b.id";
+
 		if ( ! empty( $values ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table names from get_db_table_name() are hardcoded
 			$total = (int) $wpdb->get_var(
-				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", $values )
+				$wpdb->prepare( "SELECT COUNT(*) FROM {$table} v {$join_sql} WHERE {$where_clause}", $values )
 			);
 			$values[] = $per_page;
 			$values[] = $offset;
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$rows = $wpdb->get_results(
-				$wpdb->prepare( "SELECT id, code, booking_id, status, created_at FROM {$table} WHERE {$where_clause} ORDER BY id DESC LIMIT %d OFFSET %d", $values )
+				$wpdb->prepare( "SELECT {$select_cols} FROM {$table} v {$join_sql} WHERE {$where_clause} ORDER BY v.id DESC LIMIT %d OFFSET %d", $values )
 			);
 		} else {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} v" );
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$rows = $wpdb->get_results(
-				$wpdb->prepare( "SELECT id, code, booking_id, status, created_at FROM {$table} ORDER BY id DESC LIMIT %d OFFSET %d", $per_page, $offset )
+				$wpdb->prepare( "SELECT {$select_cols} FROM {$table} v {$join_sql} ORDER BY v.id DESC LIMIT %d OFFSET %d", $per_page, $offset )
 			);
 		}
 

@@ -1328,7 +1328,11 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_voucher_redeem_page() {
-			ob_start();
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			return '<p>' . esc_html__( 'Voucher redemption is available in the Pro version.', 'service-booking' ) . '</p>';
+		}
+
+		ob_start();
 		include_once 'partials/booking-management-voucher-redeem.php';
 		$content = ob_get_contents();
 		ob_end_clean();
@@ -4954,7 +4958,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_check_if_valid_voucher() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			wp_send_json_error( __( 'Voucher redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );
@@ -4997,7 +5006,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_get_valid_available_voucher_timeslots() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			wp_send_json_error( __( 'Voucher redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );
@@ -5060,7 +5074,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_get_confirm_and_redeem_voucher() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			wp_send_json_error( __( 'Voucher redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );

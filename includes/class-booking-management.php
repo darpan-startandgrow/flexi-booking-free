@@ -465,12 +465,17 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_checkout_options', $plugin_public, 'bm_fetch_available_checkout_options' );
 		$this->loader->add_action( 'wp_ajax_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
-		$this->loader->add_action( 'wp_ajax_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-		$this->loader->add_action( 'wp_ajax_nopriv_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-		$this->loader->add_action( 'wp_ajax_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-		$this->loader->add_action( 'wp_ajax_nopriv_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-		$this->loader->add_action( 'wp_ajax_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
-		$this->loader->add_action( 'wp_ajax_nopriv_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
+
+		// Voucher redemption AJAX hooks — Pro only.
+		if ( Booking_Management_Limits::can_redeem_voucher() ) {
+			$this->loader->add_action( 'wp_ajax_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
+			$this->loader->add_action( 'wp_ajax_nopriv_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
+			$this->loader->add_action( 'wp_ajax_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
+			$this->loader->add_action( 'wp_ajax_nopriv_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
+			$this->loader->add_action( 'wp_ajax_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
+			$this->loader->add_action( 'wp_ajax_nopriv_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_public, 'bm_fetch_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_get_states', $plugin_public, 'bm_fetch_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_bm_filter_fullcalendar_events', $plugin_public, 'bm_filter_fullcalendar_events_callback' );

@@ -972,7 +972,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_voucher_records() {
-		$this->bm_pro_upsell_page();
+		include plugin_dir_path( __FILE__ ) . 'partials/booking-management-voucher-records.php';
 	}//end bm_voucher_records()
 
 
