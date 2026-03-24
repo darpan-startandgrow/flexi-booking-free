@@ -1,8 +1,5 @@
 <?php
 
-use MailPoetVendor\Doctrine\ORM\Query\Expr\Func;
-use WPForms\Vendor\Core\Logger\ConsoleLogger;
-
 if (! defined('ABSPATH')) exit;
 
 class Booking_API
@@ -40,6 +37,25 @@ class Booking_API
 
         add_action('rest_api_init', [$this, 'register_routes']);
     } //end __construct()
+
+    /**
+     * Permission callback for admin-only REST API endpoints.
+     *
+     * Checks that the current user has the `manage_options` capability.
+     *
+     * @since  1.1.0
+     * @return bool|WP_Error True if the user can manage options, WP_Error otherwise.
+     */
+    public function check_admin_permission() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return new WP_Error(
+                'rest_forbidden',
+                esc_html__( 'You do not have permission to access this endpoint.', 'service-booking' ),
+                array( 'status' => 403 )
+            );
+        }
+        return true;
+    }
 
     public function register_routes()
     {
@@ -559,7 +575,7 @@ class Booking_API
         register_rest_route('booking/v1', '/send-email', [
             'methods'  => 'POST',
             'callback' => [$this, 'sendemail'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [$this, 'check_admin_permission'],
             'args' => [
                 'email' => [
                     'required' => false,
