@@ -8928,6 +8928,10 @@ class BM_Request {
      * @author Darpan
      */
     public function bm_get_order_details_attachment( $booking_id, $is_customer = false, $pdfformat = true ) {
+        if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+            return '';
+        }
+
         $pdf_processor = new BM_PDF_Processor();
         $is_failed     = is_string( $booking_id );
 
@@ -8951,6 +8955,10 @@ class BM_Request {
 			return '';
         }
 
+        if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+            return '';
+        }
+
         $pdf_processor = new BM_PDF_Processor();
         return $pdf_processor->generate_voucher_pdf( $booking_id );
     } //end bm_add_voucher_pdf_to_recipient()
@@ -8966,6 +8974,10 @@ class BM_Request {
 			return '';
         }
 
+        if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+            return '';
+        }
+
         $pdf_processor = new BM_PDF_Processor();
         return $pdf_processor->generate_customer_info_pdf( $booking_id );
     } //end bm_send_cutomer_data_to_admin_for_orders_with_order_id()
@@ -8978,6 +8990,10 @@ class BM_Request {
      */
     public function bm_send_cutomer_data_to_admin_for_orders_with_no_order_id( $booking_key = '' ) {
         if ( empty( $booking_key ) ) {
+            return '';
+        }
+
+        if ( ! class_exists( 'BM_PDF_Processor' ) ) {
             return '';
         }
 
@@ -12798,7 +12814,7 @@ class BM_Request {
 		$customerID       = '';
 		$default_address  = array();
 
-		if ( ! empty( $customer_details ) ) {
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) && ! empty( $customer_details ) ) {
 			$payment = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 			$default_address['line1']       = 'Unknown';
@@ -12874,7 +12890,7 @@ class BM_Request {
                 $currency    = !empty( $booked_product ) && isset( $booked_product['currency'] ) ? $booked_product['currency'] : '';
                 $description = !empty( $booked_product ) && isset( $booked_product['description'] ) ? $booked_product['description'] : '';
 
-				if ( ( $amount > 0 ) && ! empty( $currency ) && ! empty( $description ) ) {
+				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) && ( $amount > 0 ) && ! empty( $currency ) && ! empty( $description ) ) {
 					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 					if ( $request_type == 'on_request' ) {
@@ -12945,6 +12961,9 @@ class BM_Request {
      * @author Darpan
      */
     public function bm_save_payment_data( $booking_key, $checkout_key, $gift = false ) {
+        if ( ! class_exists( 'Booking_Management_Process_Payment' ) || ! defined( 'STRIPE_SECRET_KEY' ) ) {
+            return 'error';
+        }
          $dbhandler        = new BM_DBhandler();
         $payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
         $bookable_extra    = $this->bm_is_selected_extra_service_bookable( $booking_key );
@@ -13509,6 +13528,9 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_cancel_payment_intent_for_failed_payment( $booking_key, $checkout_key ) {
+		if ( ! class_exists( 'Booking_Management_Process_Payment' ) || ! defined( 'STRIPE_SECRET_KEY' ) ) {
+			return false;
+		}
 		$dbhandler         = new BM_DBhandler();
 		$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 		$intentStatuses    = array( 'requires_payment_method', 'requires_confirmation', 'requires_action', 'requires_capture' );
@@ -13876,7 +13898,7 @@ class BM_Request {
 			$paymentStatus   = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $booking_id, 'booking_id' );
 			$is_active       = $dbhandler->get_value( 'TRANSACTIONS', 'is_active', $booking_id, 'booking_id' );
 
-			if ( defined( 'STRIPE_SECRET_KEY' ) && ! empty( $paymentIntentId ) && ! empty( $capture_amount ) && ( $paymentStatus == 'requires_capture' ) && ( $is_active == 1 ) ) {
+			if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) && ! empty( $paymentIntentId ) && ! empty( $capture_amount ) && ( $paymentStatus == 'requires_capture' ) && ( $is_active == 1 ) ) {
 				$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 				$transaction_id    = $dbhandler->get_value( 'TRANSACTIONS', 'id', $booking_id, 'booking_id' );
 				$booking_is_active = $dbhandler->get_value( 'BOOKING', 'is_active', $booking_id, 'id' );

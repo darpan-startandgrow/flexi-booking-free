@@ -2691,7 +2691,7 @@ class Booking_Management_Public {
 								} else {
 									$data['data'] = '<div class="textcenter">' . esc_html__( 'WooCommerce plugin not activated !!', 'service-booking' ) . '</div>';
 								}
-							} elseif ( defined( 'STRIPE_SECRET_KEY' ) ) {
+							} elseif ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
 									$stripe_payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 								if ( $stripe_payment_processor->isConnected() ) {
@@ -2858,7 +2858,7 @@ class Booking_Management_Public {
 							$gift_key = base64_encode( $post['booking_data'] );
 							$dbhandler->bm_save_data_to_transient( $gift_key, $gift_data, 72 );
 
-							if ( defined( 'STRIPE_SECRET_KEY' ) ) {
+							if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
 								$stripe_payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 								if ( $stripe_payment_processor->isConnected() ) {
@@ -3160,7 +3160,7 @@ class Booking_Management_Public {
 			$method_id    = isset( $post['paymentMethod'] ) ? $post['paymentMethod'] : '';
 
 			if ( ! empty( $booking_key ) && ! empty( $checkout_key ) && ! empty( $method_id ) ) {
-				if ( defined( 'STRIPE_SECRET_KEY' ) ) {
+				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
 					$stripe_payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 					if ( $stripe_payment_processor->isConnected() ) {
@@ -3216,7 +3216,7 @@ class Booking_Management_Public {
 			$checkout_key = isset( $post['checkout'] ) ? $post['checkout'] : '';
 
 			if ( ! empty( $booking_key ) && ! empty( $checkout_key ) ) {
-				if ( defined( 'STRIPE_SECRET_KEY' ) ) {
+				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
 					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 					if ( $payment_processor->isConnected() ) {
