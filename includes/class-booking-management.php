@@ -128,6 +128,16 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-booking-management-admin.php';
 
 		/**
+		 * WP_List_Table implementations for admin listing pages.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-orders-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-services-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-categories-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-customers-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-vouchers-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-email-templates-list-table.php';
+
+		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
