@@ -126,12 +126,22 @@ if ( filter_input( INPUT_POST, 'save_pagination' ) || filter_input( INPUT_POST, 
                 </tr>
                 <tr>
                     <th scope="row"><label for="bm_coupon_per_page"><?php esc_html_e( 'Coupon records per page', 'service-booking' ); ?></label></th>
+                    <?php if ( Booking_Management_Limits::is_pro_active() ) : ?>
                     <td>
                         <input name="bm_coupon_per_page" type="number" step="1" min="1" max="100" id="bm_coupon_per_page" class="regular-text" value="<?php echo esc_attr( !empty( $dbhandler->get_global_option_value( 'bm_coupon_per_page' ) ) ? $dbhandler->get_global_option_value( 'bm_coupon_per_page' ) : 10 ); ?>">
                     </td>
                     <td>
                         <?php esc_html_e( 'Specify how many coupon records to be shown in a single page, Maximum-100', 'service-booking' ); ?>
                     </td>
+                    <?php else : ?>
+                    <td>
+                        <input type="number" class="regular-text" disabled value="10">
+                    </td>
+                    <td>
+                        <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
+                        <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+                    </td>
+                    <?php endif; ?>
                 </tr>
             </table>
             <div class="row">

@@ -790,12 +790,8 @@ class Booking_Management_Admin {
 			add_submenu_page( '', __( 'Add Process', 'service-booking' ), __( 'Add Process', 'service-booking' ), 'manage_options', 'bm_add_notification_process', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// Email Records: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records ★', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Email Records: Available in free (read-only listing) and pro (full with resend).
+		add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
 
 		// Vouchers: Available in free (listing only) and pro (full management + redemption).
 		add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );

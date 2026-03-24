@@ -236,7 +236,9 @@ class Booking_Management_Public {
 		}
 
 		wp_deregister_script( 'wc-checkout-block' );
-		wp_enqueue_script( 'custom-wc-checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-woo-coupon.js', array( 'wp-element', 'wp-i18n', 'wp-hooks', 'wp-data', 'wc-settings' ), time(), true );
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			wp_enqueue_script( 'custom-wc-checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-woo-coupon.js', array( 'wp-element', 'wp-i18n', 'wp-hooks', 'wp-data', 'wc-settings' ), time(), true );
+		}
 
 		if ( ! empty( $post_id ) && $original_title == 'Flexibooking Voucher Redeem' && Booking_Management_Limits::is_pro_active() ) {
 			wp_enqueue_script( 'voucher-redeem', plugin_dir_url( __FILE__ ) . 'js/booking-management-redeem-voucher.js', array( 'jquery' ), $this->version, true );
@@ -6762,7 +6764,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_coupon_page() {
-			$dbhandler   = new BM_DBhandler();
+		// Coupons are a Pro-only feature.
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			return '';
+		}
+
+		$dbhandler   = new BM_DBhandler();
 		$global_inactive = $dbhandler->get_global_option_value( 'bm_inactive_coupons', '0' );
 
 		$bmrequests         = new BM_Request();

@@ -494,6 +494,35 @@ class Booking_Management_Rest_API {
 			)
 		);
 
+		// --- Email Records REST Endpoint (simplified listing) ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/email-records',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_email_records' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'page'     => array(
+						'required'          => false,
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'required'          => false,
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+					'search'   => array(
+						'required'          => false,
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
 		// --- Dashboard REST Endpoint ---
 
 		register_rest_route(
@@ -1795,6 +1824,59 @@ class Booking_Management_Rest_API {
 
 		return rest_ensure_response( array(
 			'emails'   => $rows ? $rows : array(),
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $per_page,
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Email Records Handler (simplified read-only listing)
+	// ------------------------------------------------------------------
+
+	/**
+	 * GET /email-records — Retrieve simplified email records listing.
+	 *
+	 * Returns: Recipient, Subject, Date, Status.
+	 * No resend capability — that is Pro-only.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_email_records( $request ) {
+		global $wpdb;
+		$activator = new Booking_Management_Activator();
+		$table     = $activator->get_db_table_name( 'EMAILS' );
+		$page      = max( 1, $request->get_param( 'page' ) );
+		$per_page  = min( 100, max( 1, $request->get_param( 'per_page' ) ) );
+		$search    = $request->get_param( 'search' );
+
+		if ( empty( $table ) ) {
+			return rest_ensure_response( array( 'records' => array(), 'total' => 0 ) );
+		}
+
+		$offset = ( $page - 1 ) * $per_page;
+		$where  = '';
+
+		if ( ! empty( $search ) ) {
+			$like   = '%' . $wpdb->esc_like( $search ) . '%';
+			$where .= $wpdb->prepare( ' WHERE (mail_to LIKE %s OR mail_sub LIKE %s)', $like, $like );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}{$where}" );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, mail_to, mail_sub, created_at, status FROM {$table}{$where} ORDER BY id DESC LIMIT %d OFFSET %d",
+				$per_page,
+				$offset
+			)
+		);
+
+		return rest_ensure_response( array(
+			'records'  => $rows ? $rows : array(),
 			'total'    => $total,
 			'page'     => $page,
 			'per_page' => $per_page,
