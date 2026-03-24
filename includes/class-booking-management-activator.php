@@ -1821,6 +1821,7 @@ class Booking_Management_Activator {
 	private function create_default_billing_form() {
 		global $wpdb;
 		$table_name = $this->get_db_table_name( 'BILLING_FORMS' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
 		$exists     = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE is_default = %d", 1 ) );
 		if ( empty( $exists ) || intval( $exists ) === 0 ) {
 			$wpdb->insert(

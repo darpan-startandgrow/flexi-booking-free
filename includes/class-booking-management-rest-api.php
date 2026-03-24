@@ -827,7 +827,7 @@ class Booking_Management_Rest_API {
 	}
 
 	// ------------------------------------------------------------------
-	// Fields Management Handlers
+	// Service Management Handlers
 	// ------------------------------------------------------------------
 
 	/**
