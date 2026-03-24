@@ -11,16 +11,34 @@
  * @subpackage Booking_Management/admin
 */
 
-if ( !class_exists( '\Stripe\Stripe' ) ) {
-    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'src/stripe/init.php';
-}
+/**
+ * Stripe SDK is NOT bundled in the Lite version.
+ *
+ * The Pro add-on loads the SDK via `sg_booking_load_pro_libraries`.
+ * If the SDK is not available, all methods return graceful errors.
+ */
 
 class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
     private $stripe_secret_key;
 
     public function __construct( $secret_key ) {
         $this->stripe_secret_key = $secret_key;
-        \Stripe\Stripe::setApiKey( $this->stripe_secret_key );
+
+        if ( class_exists( '\Stripe\Stripe' ) ) {
+            \Stripe\Stripe::setApiKey( $this->stripe_secret_key );
+        }
+    }
+
+    /**
+     * Check if the Stripe SDK is available.
+     *
+     * The SDK is loaded by the Pro add-on. If it is missing, all
+     * payment methods will return an error.
+     *
+     * @return bool
+     */
+    private function is_stripe_loaded() {
+        return class_exists( '\Stripe\Stripe' );
     }
 
 
@@ -30,6 +48,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function is_connected() {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
 		try {
 			\Stripe\Account::retrieve();
 			return true;
@@ -45,6 +67,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function charge_customer( $amount, $currency, $token, $description, $customer_id ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $charge = \Stripe\Charge::create(
                 array(
@@ -73,6 +99,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_payment_intent( $amount, $currency, $description, $customerID, $paymentMethodId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $intent = \Stripe\PaymentIntent::create(
                 array(
@@ -103,6 +133,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function setup_payment_intent( $intentId, $paymentMethod ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $intent = \Stripe\PaymentIntent::update(
                 $intentId,
@@ -122,6 +156,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function save_customer( $name, $email, $description, $address, $phone, $shipping, $paymentMethodId = null ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $customer_details = array(
                 'name'        => $name,
@@ -152,6 +190,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function update_customer( $customerID, $name, $description, $address, $phone, $shipping ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $stripe   = new \Stripe\StripeClient( $this->stripe_secret_key );
             $customer = $stripe->customers->update(
@@ -179,6 +221,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_one_time_token( $token ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $token = \Stripe\Token::create(
                 array(
@@ -199,6 +245,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_one_time_payment_intent( $amount, $currency, $description, $customerID, $paymentMethodId, $booking_key, $checkout_key ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $intent = \Stripe\PaymentIntent::create(
                 array(
@@ -235,6 +285,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function capture_payment( $paymentIntentId, $amount ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $paymentIntent = \Stripe\PaymentIntent::retrieve( $paymentIntentId );
             $paymentIntent->capture( array( 'amount_to_capture' => $amount ) );
@@ -252,6 +306,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function cancel_payment_intent( $paymentIntentId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $paymentIntent = \Stripe\PaymentIntent::retrieve( $paymentIntentId );
             $paymentIntent->cancel();
@@ -269,6 +327,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function refund_charge( $chargeId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $charge = \Stripe\Charge::retrieve( $chargeId );
             $refund = $charge->refund();
@@ -286,6 +348,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_refund( $chargeId, $amount ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $refund = \Stripe\Refund::create(
                 array(
@@ -308,6 +374,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function refund_payment_intent( $paymentIntentId, $amount ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $refund = \Stripe\Refund::create(
                 array(
@@ -330,6 +400,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function is_refund_possible( $chargeId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $charge = \Stripe\Charge::retrieve( $chargeId );
 
@@ -346,6 +420,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_refund( $refundId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $stripe = new \Stripe\StripeClient( $this->stripe_secret_key );
             $refund = $stripe->refunds->retrieve( $refundId, array() );
@@ -362,6 +440,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function pre_authorize_amount( $amount, $currency, $description, $customerID, $paymentMethodId, $booking_key, $checkout_key ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $stripe = new \Stripe\StripeClient( $this->stripe_secret_key );
 
@@ -400,6 +482,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_payment_session( $amount, $currency, $description ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $checkout_session = \Stripe\Checkout\Session::create(
                 array(
@@ -435,6 +521,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_customer( $customerId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $customer = \Stripe\Customer::retrieve( $customerId );
             return $customer;
@@ -450,6 +540,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function attach_payment_method_to_customer( $paymentMethodId, $customerID ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $stripe = new \Stripe\StripeClient( $this->stripe_secret_key );
             $method = $stripe->paymentMethods->attach(
@@ -470,6 +564,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function remove_customer( $customerId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $customer = \Stripe\Customer::delete( $customerId );
             return true;
@@ -485,6 +583,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_payment_intent( $paymentIntentId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $paymentIntent = \Stripe\PaymentIntent::retrieve( $paymentIntentId );
             return $paymentIntent;
@@ -500,6 +602,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function update_payment_intent( $paymentIntentId, $params ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $paymentIntent = \Stripe\PaymentIntent::update( $paymentIntentId, $params );
             return $paymentIntent;
@@ -516,6 +622,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function confirm_payment_intent( $paymentIntentId, $paymentMethodId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $stripe = new \Stripe\StripeClient( $this->stripe_secret_key );
             $intent = $stripe->paymentIntents->confirm(
@@ -536,6 +646,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function update_charge( $chargeId, $params ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $charge = \Stripe\Charge::update( $chargeId, $params );
             return $charge;
@@ -552,6 +666,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_payment_method( $type, $cardNumber, $expMonth, $expYear, $cvc ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $paymentMethod = \Stripe\PaymentMethod::create(
                 array(
@@ -579,6 +697,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_product( $name, $description, $price, $currency ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $product = \Stripe\Product::create(
                 array(
@@ -606,6 +728,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_coupon( $name, $percentOff, $duration, $durationInMonths ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $coupon = \Stripe\Coupon::create(
                 array(
@@ -631,6 +757,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_discount( $customerId, $couponId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $customer = \Stripe\Customer::retrieve( $customerId );
 
@@ -650,6 +780,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_tax_rate( $displayName, $percentage, $description, $jurisdiction ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $taxRate = \Stripe\TaxRate::create(
                 array(
@@ -675,6 +809,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_shipping_rate( $name, $amount, $currency ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $shippingRate = \Stripe\ShippingRate::create(
                 array(
@@ -699,6 +837,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_invoice( $customerId, $items ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $invoice = \Stripe\Invoice::create(
                 array(
@@ -733,6 +875,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_customer_account_balance( $customerId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $customer = \Stripe\Customer::retrieve( $customerId );
             $balance  = $customer->balance;
@@ -750,6 +896,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_invoice( $invoiceId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $invoice = \Stripe\Invoice::retrieve( $invoiceId );
             return $invoice;
@@ -766,6 +916,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function create_price( $currency, $unitAmount, $product ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $price = \Stripe\Price::create(
                 array(
@@ -789,6 +943,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_price( $priceId ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $price = \Stripe\Price::retrieve( $priceId );
             return $price;
@@ -805,6 +963,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
      */
     protected function get_token( $token ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $token = \Stripe\Token::retrieve( $token );
             return $token;
@@ -821,6 +983,10 @@ class Booking_Management_Stripes extends Booking_Management_Payment_Gateway {
      * @author Darpan
     */
     protected function create_payment_link( $amount, $currency, $description ) {
+        if ( ! $this->is_stripe_loaded() ) {
+            return false;
+        }
+
         try {
             $paymentLink = \Stripe\PaymentLink::create(
                 array(
