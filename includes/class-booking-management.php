@@ -136,6 +136,8 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-customers-list-table.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-vouchers-list-table.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-email-templates-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-checkins-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-pdf-templates-list-table.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing

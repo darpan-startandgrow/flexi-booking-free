@@ -1861,6 +1861,285 @@ class Booking_Management_Rest_API {
 	}
 
 	// ------------------------------------------------------------------
+	// Action Endpoint Handlers
+	// ------------------------------------------------------------------
+
+	/**
+	 * PATCH /services/{id}/visibility — Toggle service frontend visibility.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function toggle_service_visibility( $request ) {
+		$id      = $request->get_param( 'id' );
+		$visible = $request->get_param( 'visible' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->update_row( 'SERVICE', array( 'is_service_front' => $visible ), array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'update_failed', esc_html__( 'Failed to update service visibility.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Service visibility updated.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * PATCH /categories/{id}/visibility — Toggle category frontend visibility.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function toggle_category_visibility( $request ) {
+		$id      = $request->get_param( 'id' );
+		$visible = $request->get_param( 'visible' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->update_row( 'CATEGORY', array( 'cat_in_front' => $visible ), array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'update_failed', esc_html__( 'Failed to update category visibility.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Category visibility updated.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * GET /categories — Retrieve categories listing.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_categories( $request ) {
+		$dbhandler  = new BM_DBhandler();
+		$categories = $dbhandler->get_all_result( 'CATEGORY', '*', 1, 'results', 0, false, 'cat_position', 'ASC' );
+
+		$data = array();
+		if ( ! empty( $categories ) ) {
+			foreach ( $categories as $cat ) {
+				$data[] = array(
+					'id'           => (int) $cat->id,
+					'cat_name'     => $cat->cat_name,
+					'cat_in_front' => (int) $cat->cat_in_front,
+					'cat_position' => (int) $cat->cat_position,
+				);
+			}
+		}
+
+		return rest_ensure_response( $data );
+	}
+
+	/**
+	 * DELETE /categories/{id} — Delete a category.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function delete_category( $request ) {
+		$id = $request->get_param( 'id' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->delete_row( 'CATEGORY', array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'delete_failed', esc_html__( 'Failed to delete category.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Category deleted.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * POST /services/reorder — Reorder services (drag-drop sort).
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function reorder_services( $request ) {
+		$items = $request->get_param( 'items' );
+
+		if ( empty( $items ) || ! is_array( $items ) ) {
+			return new WP_Error( 'invalid_data', esc_html__( 'No items provided.', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		$dbhandler = new BM_DBhandler();
+		foreach ( $items as $item ) {
+			$service_id = isset( $item['id'] ) ? absint( $item['id'] ) : 0;
+			$position   = isset( $item['position'] ) ? absint( $item['position'] ) : 0;
+			if ( $service_id > 0 ) {
+				$dbhandler->update_row( 'SERVICE', array( 'service_position' => $position ), array( 'id' => $service_id ) );
+			}
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Services reordered.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * POST /categories/reorder — Reorder categories (drag-drop sort).
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function reorder_categories( $request ) {
+		$items = $request->get_param( 'items' );
+
+		if ( empty( $items ) || ! is_array( $items ) ) {
+			return new WP_Error( 'invalid_data', esc_html__( 'No items provided.', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		$dbhandler = new BM_DBhandler();
+		foreach ( $items as $item ) {
+			$cat_id   = isset( $item['id'] ) ? absint( $item['id'] ) : 0;
+			$position = isset( $item['position'] ) ? absint( $item['position'] ) : 0;
+			if ( $cat_id > 0 ) {
+				$dbhandler->update_row( 'CATEGORY', array( 'cat_position' => $position ), array( 'id' => $cat_id ) );
+			}
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Categories reordered.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * PATCH /orders/{id}/status — Update order status.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function update_order_status( $request ) {
+		$id     = $request->get_param( 'id' );
+		$status = $request->get_param( 'status' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->update_row( 'BOOKING', array( 'order_status' => $status ), array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'update_failed', esc_html__( 'Failed to update order status.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Order status updated.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * POST /orders/{id}/archive — Archive an order.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function archive_order( $request ) {
+		global $wpdb;
+		$id        = $request->get_param( 'id' );
+		$activator = new Booking_Management_Activator();
+		$book_table    = $activator->get_db_table_name( 'BOOKING' );
+		$archive_table = $activator->get_db_table_name( 'BOOKING_ARCHIVE' );
+
+		if ( empty( $book_table ) || empty( $archive_table ) ) {
+			return new WP_Error( 'db_error', esc_html__( 'Database tables not found.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$order = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$book_table} WHERE id = %d", $id ), ARRAY_A );
+
+		if ( ! $order ) {
+			return new WP_Error( 'not_found', esc_html__( 'Order not found.', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		unset( $order['id'] );
+		$wpdb->insert( $archive_table, $order );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->delete( $book_table, array( 'id' => $id ) );
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Order archived.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * DELETE /orders/{id} — Delete an order permanently.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function delete_order( $request ) {
+		$id = $request->get_param( 'id' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->delete_row( 'BOOKING', array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'delete_failed', esc_html__( 'Failed to delete order.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Order deleted.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * PATCH /templates/{id}/visibility — Toggle email template status.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function toggle_template_visibility( $request ) {
+		$id      = $request->get_param( 'id' );
+		$visible = $request->get_param( 'visible' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->update_row( 'EMAIL_TMPL', array( 'status' => $visible ), array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'update_failed', esc_html__( 'Failed to update template visibility.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Template visibility updated.', 'service-booking' ),
+		) );
+	}
+
+	/**
+	 * DELETE /templates/{id} — Delete an email template.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function delete_template( $request ) {
+		$id = $request->get_param( 'id' );
+
+		$dbhandler = new BM_DBhandler();
+		$result    = $dbhandler->delete_row( 'EMAIL_TMPL', array( 'id' => $id ) );
+
+		if ( false === $result ) {
+			return new WP_Error( 'delete_failed', esc_html__( 'Failed to delete template.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'message' => esc_html__( 'Template deleted.', 'service-booking' ),
+		) );
+	}
+
+	// ------------------------------------------------------------------
 	// Cache helpers
 	// ------------------------------------------------------------------
 
