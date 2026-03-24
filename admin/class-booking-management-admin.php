@@ -808,12 +808,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_home() {
-		include 'partials/booking-management-dashboard.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_home()
 
     // Display analytics page
     public function bm_booking_analytics() {
-        include 'partials/booking-management-analytics.php';
+        $this->bm_pro_upsell_page();
     }
 
 
@@ -859,7 +859,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_customer_profile() {
-		include 'partials/booking-management-customer-profile.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_customer_profile()
 
 
@@ -869,12 +869,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_all_external_service_prices() {
-		include 'partials/booking-management-price-module-listing.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_all_external_service_prices()
 
 
 	public function bm_add_external_service_price() {
-		include 'partials/booking-management-add-service-price-module.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_external_service_price()
 
 
@@ -889,17 +889,17 @@ class Booking_Management_Admin {
 
 
 	public function bm_email_records() {
-		include 'partials/booking-management-email-records.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_email_records()
 
 
 	public function bm_voucher_records() {
-		include 'partials/booking-management-voucher-records.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_voucher_records()
 
 
 	public function bm_check_ins() {
-		include 'partials/booking-management-check_ins.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_check_ins()
 
 
@@ -924,12 +924,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_global_email_settings() {
-		include 'partials/booking-management-global-mail-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_email_settings()
 
 
 	public function bm_global_payment_settings() {
-		include 'partials/booking-management-global-payment-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_payment_settings()
 
 
@@ -954,8 +954,8 @@ class Booking_Management_Admin {
 
 
 	public function bm_upload_settings() {
-		include 'partials/booking-management-global-upload-settings.php';
-	} //end bm_uploa    } //end bm_global_coupon_settings()
+		$this->bm_pro_upsell_page();
+	} //end bm_upload_settings()
 
 
 	public function bm_global_language_settings() {
@@ -969,46 +969,46 @@ class Booking_Management_Admin {
 
 
 	public function bm_global_integration_settings() {
-		include 'partials/booking-management-global-integration-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_integration_settings()
 
 	public function bm_global_coupon_settings() {
-		include 'partials/booking-management-global-coupon-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_coupon_settings()
 
 
 	public function bm_fields() {
-		include 'partials/booking-management-field-listing.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_fields()
 
 	public function bm_email_templates() {
-		include 'partials/booking-management-email-template-listing.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_email_templates()
 
 
 	public function bm_add_template() {
-		include 'partials/booking-management-add-email-template.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_template()
 
 	public function bm_all_notification_processes() {
-		include 'partials/booking-management-notification-processes.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_all_notification_processes()
 
 
 	public function bm_add_notification_process() {
-		include 'partials/booking-management-add-notification-process.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_notification_process()
 
 	public function bm_all_coupons() {
-		include 'partials/booking-management-coupon-listing.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_all_coupons
 
 	public function bm_add_coupon() {
-		include 'partials/booking-management-add-coupon.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_add_coupon
 
     public function bm_pdf_customization() {
-        include 'partials/booking-management-pdf-customization.php';
+        $this->bm_pro_upsell_page();
 	} //end bm_pdf_customization();
 
 
@@ -5269,7 +5269,13 @@ class Booking_Management_Admin {
             return;
         }
 
-        $type          = sanitize_text_field( filter_input( INPUT_POST, 'type' ) ?? 'booking' );
+        $type = sanitize_text_field( filter_input( INPUT_POST, 'type' ) ?? 'booking' );
+
+        if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+            wp_send_json_error( __( 'PDF processing is not available.', 'service-booking' ) );
+            return;
+        }
+
         $pdf_processor = new BM_PDF_Processor();
         $html          = $pdf_processor->bm_get_template_pdf_content( $type, 'dummy' );
 
@@ -5293,6 +5299,10 @@ class Booking_Management_Admin {
 
             if ( ! wp_verify_nonce( $nonce, 'test_pdf_action_' . $type . '_' . $booking_id_or_key ) ) {
                 wp_die( esc_html__( 'Security check failed', 'service-booking' ) );
+            }
+
+            if ( ! class_exists( 'BM_PDF_Processor' ) ) {
+                wp_die( esc_html__( 'PDF processing is not available.', 'service-booking' ) );
             }
 
             $pdf_processor = new BM_PDF_Processor();
@@ -11981,7 +11991,7 @@ class Booking_Management_Admin {
 			$transaction_id = $dbhandler->get_value( 'TRANSACTIONS', 'transaction_id', $booking_id, 'booking_id' );
 
 			if ( $transaction_id > 0 ) {
-				if ( defined( 'STRIPE_SECRET_KEY' ) ) {
+				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
 					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
 
 					if ( $payment_processor->isConnected() ) {
@@ -12573,20 +12583,22 @@ class Booking_Management_Admin {
 			return $status;
 		}
 
-		$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_paid_amount   = isset( $get_transaction['amount'] ) ? $get_transaction['amount'] : 0;
-		$get_paid_amount   = ( $get_paid_amount / 100 );
-		$get_paid_currency = isset( $get_transaction['currency'] ) ? $get_transaction['currency'] : '';
-		$get_customer_id   = isset( $get_transaction['customer'] ) ? $get_transaction['customer'] : '';
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_paid_amount   = isset( $get_transaction['amount'] ) ? $get_transaction['amount'] : 0;
+			$get_paid_amount   = ( $get_paid_amount / 100 );
+			$get_paid_currency = isset( $get_transaction['currency'] ) ? $get_transaction['currency'] : '';
+			$get_customer_id   = isset( $get_transaction['customer'] ) ? $get_transaction['customer'] : '';
 
-		$customer_id                    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-		$stripe_customer_id             = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $customer_id, 'id' );
-		$transaction_data_before_update = $dbhandler->bm_fetch_data_from_transient( 'transaction_data_before_update_' . $booking_id );
-		$paid_currency_before_update    = $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id );
+			$customer_id                    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
+			$stripe_customer_id             = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $customer_id, 'id' );
+			$transaction_data_before_update = $dbhandler->bm_fetch_data_from_transient( 'transaction_data_before_update_' . $booking_id );
+			$paid_currency_before_update    = $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id );
 
-		if ( ! $get_transaction || ( $paid_amount_before_update != $get_paid_amount ) || ( $paid_currency_before_update != $get_paid_currency ) || ( $stripe_customer_id != $get_customer_id ) ) {
-			$status = 2;
+			if ( ! $get_transaction || ( $paid_amount_before_update != $get_paid_amount ) || ( $paid_currency_before_update != $get_paid_currency ) || ( $stripe_customer_id != $get_customer_id ) ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12603,19 +12615,22 @@ class Booking_Management_Admin {
 		$bmrequests = new BM_Request();
 		$status     = 1;
 
-		$booking_id           = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
-		$is_frontend_booking  = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
-		$payment_processor    = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction      = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_payment_status   = isset( $get_transaction['status'] ) ? $get_transaction['status'] : '';
-		$paid_intent_statuses = apply_filters( 'flexibooking_paid_transaction_statuses', $bmrequests->bm_fetch_paid_transaction_statuses() );
+		$booking_id          = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
+		$is_frontend_booking = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
 		}
 
-		if ( ! in_array( $get_payment_status, $paid_intent_statuses ) ) {
-			$status = 2;
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor    = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction      = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_payment_status   = isset( $get_transaction['status'] ) ? $get_transaction['status'] : '';
+			$paid_intent_statuses = apply_filters( 'flexibooking_paid_transaction_statuses', $bmrequests->bm_fetch_paid_transaction_statuses() );
+
+			if ( ! in_array( $get_payment_status, $paid_intent_statuses ) ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12652,19 +12667,22 @@ class Booking_Management_Admin {
 		$bmrequests = new BM_Request();
 		$status     = 1;
 
-		$booking_id               = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
-		$is_frontend_booking      = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
-		$payment_processor        = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction_id       = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_payment_status       = isset( $get_transaction_id['status'] ) ? $get_transaction_id['status'] : '';
-		$pending_payment_Statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
+		$booking_id          = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
+		$is_frontend_booking = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
 		}
 
-		if ( ! in_array( $get_payment_status, $pending_payment_Statuses ) ) {
-			$status = 2;
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor        = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction_id       = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_payment_status       = isset( $get_transaction_id['status'] ) ? $get_transaction_id['status'] : '';
+			$pending_payment_Statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
+
+			if ( ! in_array( $get_payment_status, $pending_payment_Statuses ) ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12682,16 +12700,19 @@ class Booking_Management_Admin {
 
 		$booking_id          = $dbhandler->get_value( 'TRANSACTIONS', 'booking_id', $transaction_id, 'id' );
 		$is_frontend_booking = $dbhandler->bm_fetch_data_from_transient( 'is_frontend_booking_' . $booking_id );
-		$payment_processor   = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$get_transaction     = $payment_processor->getPaymentIntent( $transaction_id );
-		$get_cancel_status   = isset( $get_transaction['canceled_at'] ) ? $get_transaction['canceled_at'] : '';
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
 		}
 
-		if ( $get_cancel_status == null ) {
-			$status = 2;
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_cancel_status = isset( $get_transaction['canceled_at'] ) ? $get_transaction['canceled_at'] : '';
+
+			if ( $get_cancel_status == null ) {
+				$status = 2;
+			}
 		}
 
 		return $status;
@@ -12730,11 +12751,13 @@ class Booking_Management_Admin {
 	public function bm_flexibooking_verify_if_refunded_transaction_id( $refund_id ) {
 		$status = 1;
 
-		$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$refund            = $payment_processor->getRefund( $refund_id );
+		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
+			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$refund            = $payment_processor->getRefund( $refund_id );
 
-		if ( ! $refund ) {
-			$status = 4;
+			if ( ! $refund ) {
+				$status = 4;
+			}
 		}
 
 		return $status;
