@@ -1498,9 +1498,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$ids     = isset( $post['ids'] ) ? $post['ids'] : array();
 
 			if ( ! empty( $ids ) && $total_service_records > 0 ) {
@@ -1646,9 +1646,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			do_action( 'bm_flexibooking_service_id_before_service_removal', $id );
@@ -1770,9 +1770,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$language   = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 			$name_field = $language == 'it' ? 'tmpl_name_it' : 'tmpl_name_en';
@@ -1820,9 +1820,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
 			$num_of_pages               = isset( $limit ) ? ceil( $total_price_module_records / $limit ) : 1;
@@ -1860,9 +1860,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_processes_records        = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
 			$num_of_pages                   = isset( $limit ) ? ceil( $total_processes_records / $limit ) : 1;
@@ -1908,9 +1908,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			$language = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
@@ -2081,9 +2081,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			$process = $dbhandler->get_row( 'EVENTNOTIFICATION', $id );
@@ -2139,9 +2139,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$ids     = isset( $post['ids'] ) ? $post['ids'] : array();
 
 			do_action( 'bm_flexibooking_before_category_sort', $ids, $total_category_records );
@@ -2287,9 +2287,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id           = isset( $post['id'] ) ? $post['id'] : 0;
 			$service_rows = $dbhandler->get_all_result( 'SERVICE', '*', array( 'service_category' => $id ), 'results' );
 
@@ -2376,9 +2376,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			$service_linked = $dbhandler->get_all_result( 'SERVICE', '*', array( 'external_price_module' => $id ), 'results' );
@@ -5857,9 +5857,9 @@ class Booking_Management_Admin {
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$order_source = isset( $post['order_source'] ) ? sanitize_text_field( $post['order_source'] ) : '';
@@ -6132,9 +6132,9 @@ class Booking_Management_Admin {
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$order_source = isset( $post['order_source'] ) ? sanitize_text_field( $post['order_source'] ) : '';
@@ -6408,9 +6408,9 @@ class Booking_Management_Admin {
 			$service_ids  = isset( $post['service_ids'] ) ? array_map( 'intval', (array) $post['service_ids'] ) : array();
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 			$all_checkins = $bmrequests->bm_fetch_all_order_checkins();
 
@@ -6612,9 +6612,9 @@ class Booking_Management_Admin {
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$order_source = isset( $post['order_source'] ) ? sanitize_text_field( $post['order_source'] ) : '';
@@ -7717,9 +7717,9 @@ class Booking_Management_Admin {
 			$order_from   = isset( $post['order_from'] ) ? $post['order_from'] : '';
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 			$bookings     = $dbhandler->get_all_result( 'BOOKING', '*', 1, 'results', 0, false, 'booking_date', 'DESC' );
 			$dbhandler->update_global_option_value( 'bm_backend_dashboard_global_search_field', $search_term );
@@ -7917,9 +7917,9 @@ class Booking_Management_Admin {
 			$order_from   = isset( $post['order_from'] ) ? $post['order_from'] : '';
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$additional = "AND booking_date >= '$current_date'";
@@ -8060,9 +8060,9 @@ class Booking_Management_Admin {
 			$service_from = isset( $post['service_from'] ) ? $post['service_from'] : '';
 			$service_to   = isset( $post['service_to'] ) ? $post['service_to'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$bookings     = array();
 
 			if ( ! empty( $service_from ) && ! empty( $service_to ) ) {
@@ -8135,9 +8135,9 @@ class Booking_Management_Admin {
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$category_ids = isset( $post['categories'] ) ? $post['categories'] : array();
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$bookings     = array();
 			$additional   = '';
 
@@ -8224,9 +8224,9 @@ class Booking_Management_Admin {
 			$type        = isset( $post['type'] ) ? $post['type'] : '';
 			$services    = isset( $post['services'] ) ? $post['services'] : array();
 			$base        = isset( $post['base'] ) ? $post['base'] : '';
-			$limit       = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit       = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum     = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset      = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset      = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$additional  = "AND order_status not in('processing','pending', 'on_hold')";
 			$bookings    = $dbhandler->get_all_result( 'BOOKING', '*', array( 'is_active' => 1 ), 'results', 0, false, 'id', 'DESC', $additional );
 			$result      = array();
@@ -8315,9 +8315,9 @@ class Booking_Management_Admin {
 			$order_from    = isset( $post['order_from'] ) ? $post['order_from'] : '';
 			$order_to      = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$base          = isset( $post['base'] ) ? $post['base'] : '';
-			$limit         = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit         = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum       = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset        = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset        = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$additional    = "AND order_status not in('processing','pending', 'on_hold')";
 			$bookings      = $dbhandler->get_all_result( 'BOOKING', '*', array( 'is_active' => 1 ), 'results', 0, false, 'id', 'DESC', $additional );
 			$ordered_dates = array();
@@ -8422,9 +8422,9 @@ class Booking_Management_Admin {
 			$type          = isset( $post['type'] ) ? $post['type'] : '';
 			$search_string = isset( $post['search_string'] ) ? $post['search_string'] : '';
 			$base          = isset( $post['base'] ) ? $post['base'] : '';
-			$limit         = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit         = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum       = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset        = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset        = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$additional    = "AND order_status not in('processing','pending', 'on_hold')";
 			$bookings      = $dbhandler->get_all_result( 'BOOKING', '*', array( 'is_active' => 1 ), 'results', 0, false, 'id', 'DESC', $additional );
 			$customer_ids  = array();
@@ -15744,7 +15744,7 @@ class Booking_Management_Admin {
 			$type       = isset( $post['type'] ) ? $post['type'] : '';
 			$start_page = isset( $post['start_page'] ) ? $post['start_page'] : 0;
 			$end_page   = isset( $post['end_page'] ) ? $post['end_page'] : 0;
-			$limit      = isset( $post['limit'] ) ? $post['limit'] : 0;
+			$limit      = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$user_id    = get_current_user_id();
 
 			$order_column = isset( $post['order_column'] ) ? $post['order_column'] : 'id';
@@ -15947,7 +15947,7 @@ class Booking_Management_Admin {
 			$type       = isset( $post['type'] ) ? $post['type'] : '';
 			$start_page = isset( $post['start_page'] ) ? $post['start_page'] : 0;
 			$end_page   = isset( $post['end_page'] ) ? $post['end_page'] : 0;
-			$limit      = isset( $post['limit'] ) ? $post['limit'] : 0;
+			$limit      = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 
 			$order_column = isset( $post['order_column'] ) ? $post['order_column'] : 'id';
 			$order_dir    = isset( $post['order_dir'] ) ? $post['order_dir'] : 'DESC';
