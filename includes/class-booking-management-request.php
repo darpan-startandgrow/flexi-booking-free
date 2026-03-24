@@ -11,12 +11,6 @@
  *
  * @author Start and Grow <laravel6@startandgrow.in>
  */
-if ( ! class_exists( 'Dompdf\Dompdf' ) ) {
-	require_once plugin_dir_path( __DIR__ ) . 'src/dompdf/vendor/autoload.php';
-}
-
-use Dompdf\Dompdf;
-
 class BM_Request {
 
 	public function sanitize_request( $post, $identifier, $exclude = array() ) {
@@ -5043,9 +5037,9 @@ class BM_Request {
 				}
 			}
 		}
-                $price = apply_filters('bm_service_price_by_services_id_and_date', $price, $service, $date);
-		
-                if ( $type == 'global_format' ) {
+                $price = apply_filters( 'bm_service_price_by_services_id_and_date', $price, $service, $date );
+
+		if ( $type == 'global_format' ) {
 			if ( ! empty( $price ) && $price !== 'N/A' ) {
 				$price = $this->bm_fetch_price_in_global_settings_format( $price, true );
 			} elseif ( empty( $price ) ) {
@@ -12050,8 +12044,8 @@ class BM_Request {
 		} else {
 			$order_data = $dbhandler->bm_fetch_data_from_transient( $booking_key );
 		}
-                $order_data = apply_filters('bm_order_data_before_save_booking_data', $order_data, $booking_key, $checkout_key);
-        
+                $order_data = apply_filters( 'bm_order_data_before_save_booking_data', $order_data, $booking_key, $checkout_key );
+
 		/**$order_data = $dbhandler->bm_fetch_data_from_transient( $booking_key );*/
 		$checkout_data    = $dbhandler->bm_fetch_data_from_transient( $checkout_key );
 		$booking_type     = isset( $checkout_data['request_type'] ) ? $checkout_data['request_type'] : '';
@@ -12113,8 +12107,8 @@ class BM_Request {
 
 				$slot_info = $this->bm_fetch_slot_details( $service_id, $from, $date, $svc_total_time_slots, $total_service_booked, $is_variable_slot );
 
-                if ( !empty( $slot_info ) || (isset($checkout_data['checkout']['is_gift']) && $checkout_data['checkout']['is_gift'] == 1 ) ) {
-                    if ( (isset( $slot_info['slot_capacity_left_after_booking'] ) && isset( $slot_info['slot_min_cap'] ) && ( $slot_info['slot_capacity_left_after_booking'] >= 0 ) && ( $total_service_booked % $slot_info['slot_min_cap'] == 0 )) || (isset($checkout_data['checkout']['is_gift']) && $checkout_data['checkout']['is_gift'] == 1 ) ) {
+                if ( !empty( $slot_info ) || ( isset( $checkout_data['checkout']['is_gift'] ) && $checkout_data['checkout']['is_gift'] == 1 ) ) {
+                    if ( ( isset( $slot_info['slot_capacity_left_after_booking'] ) && isset( $slot_info['slot_min_cap'] ) && ( $slot_info['slot_capacity_left_after_booking'] >= 0 ) && ( $total_service_booked % $slot_info['slot_min_cap'] == 0 ) ) || ( isset( $checkout_data['checkout']['is_gift'] ) && $checkout_data['checkout']['is_gift'] == 1 ) ) {
                         if ( isset( $order_data['total_service_booking'] ) ) {
                             unset( $order_data['total_service_booking'] );
                         }
@@ -12172,8 +12166,8 @@ class BM_Request {
 							$booking_id = $dbhandler->insert_row( 'BOOKING', $finaldata );
 
 							if ( $booking_id ) {
-                                                                do_action('bm_order_data_after_save_booking_data', $booking_id, $finaldata, $booking_key, $checkout_key);
-                                
+                                                                do_action( 'bm_order_data_after_save_booking_data', $booking_id, $finaldata, $booking_key, $checkout_key );
+
 								$order_number    = $booking_id;
 								$slot_count_data = array(
 									'service_id'           => $service_id,
@@ -12882,7 +12876,7 @@ class BM_Request {
 		$request_type         = ! empty( $checkout_data ) && isset( $checkout_data['request_type'] ) ? $checkout_data['request_type'] : '';
 		$payment_intent       = '';
 
-        $gift = $checkout_data['checkout']['is_gift'] ?? 0;
+        $gift                 = $checkout_data['checkout']['is_gift'] ?? 0;
         $current_request_type = $gift ? 'direct' : $current_request_type;
         if ( ( $current_request_type == $request_type ) && !empty( $method_id ) ) {
             if ( !empty( $booked_product ) ) {
@@ -14071,7 +14065,7 @@ class BM_Request {
 
         /**$booking_fields = $dbhandler->bm_fetch_data_from_transient( $booking_key );*/
         $bookable = true;
-        if ($gift) {
+        if ( $gift ) {
             return $bookable;
         }
 
@@ -16932,18 +16926,18 @@ class BM_Request {
 		if ( $old_locale ) {
 			switch_to_locale( $old_locale );
 		}
-	}    
-	
+	}
+
 	/**
      * Check date availability
      *
      * @author Jyoti
      */
     public function bm_date_is_bookable( $date = '' ) {
-        $dbhandler  = new BM_DBhandler();
+        $dbhandler   = new BM_DBhandler();
         $is_bookable = true;
         if ( !empty( $date ) ) {
-            $services    = $dbhandler->get_all_result( 'SERVICE', '*', array('is_service_front' => 1));
+            $services = $dbhandler->get_all_result( 'SERVICE', '*', array( 'is_service_front' => 1 ) );
             if ( !empty( $services ) ) {
                 foreach ( $services as $service ) {
                     if ( $this->bm_service_is_bookable( $service->id, $date ) ) {
@@ -16966,32 +16960,39 @@ class BM_Request {
      * @author Jyoti
      */
 
-    public function bm_get_no_of_services_bookable_on_date($date)
-    {
-        $dbhandler  = new BM_DBhandler();
+    public function bm_get_no_of_services_bookable_on_date( $date ) {
+        $dbhandler               = new BM_DBhandler();
         $no_of_services_bookable = 0;
-        $priceArr = array();
-        if (!empty($date)) {
-            $services    = $dbhandler->get_all_result('SERVICE', '*', array('is_service_front' => 1));
-            $total_services = !empty($services) ? count($services) : 0;
-            if (!empty($services)) {
-                foreach ($services as $service) {
-                    $slotAvailable = empty($this->bm_fetch_service_time_slot_array_by_service_id(
-                        array(
-                            'id'   => $service->id,
-                            'date' => $date,
+        $priceArr                = array();
+        if ( !empty( $date ) ) {
+            $services       = $dbhandler->get_all_result( 'SERVICE', '*', array( 'is_service_front' => 1 ) );
+            $total_services = !empty( $services ) ? count( $services ) : 0;
+            if ( !empty( $services ) ) {
+                foreach ( $services as $service ) {
+                    $slotAvailable = empty(
+                        $this->bm_fetch_service_time_slot_array_by_service_id(
+                            array(
+								'id'   => $service->id,
+								'date' => $date,
+                            )
                         )
-                    )) ? false : true;
-                    if ($this->bm_service_is_bookable($service->id, $date) && $slotAvailable) {
+                    ) ? false : true;
+                    if ( $this->bm_service_is_bookable( $service->id, $date ) && $slotAvailable ) {
                         $no_of_services_bookable++;
-                        $svc_price  = $this->bm_fetch_service_price_by_service_id_and_date($service->id, $date, 'global_format');
+                        $svc_price  = $this->bm_fetch_service_price_by_service_id_and_date( $service->id, $date, 'global_format' );
                         $priceArr[] = $svc_price;
                     }
                 }
             }
         }
 
-        return array('date' => $date, 'is_bookable' => ($no_of_services_bookable > 0) ? true : false, 'total_service' => $no_of_services_bookable, 'price' => !empty($priceArr) ? min($priceArr) : 0, 'available_service_percentage' => ($total_services > 0) ? round(($no_of_services_bookable / $total_services) * 100) : 0);
+        return array(
+			'date'                         => $date,
+			'is_bookable'                  => ( $no_of_services_bookable > 0 ) ? true : false,
+			'total_service'                => $no_of_services_bookable,
+			'price'                        => !empty( $priceArr ) ? min( $priceArr ) : 0,
+			'available_service_percentage' => ( $total_services > 0 ) ? round( ( $no_of_services_bookable / $total_services ) * 100 ) : 0,
+		);
     } //end bm_get_no_of_services_bookable_on_date()
 
     /**
@@ -17000,22 +17001,30 @@ class BM_Request {
      * @author Jyoti
      */
 
-    public function bm_get_no_of_services_price_by_category($category_id)
-    {
-        $dbhandler  = new BM_DBhandler();
-        $priceArr = array();
-        $services    = $dbhandler->get_all_result('SERVICE', '*', array('is_service_front' => 1, 'service_category' => $category_id));
-        $total_services = !empty($services) ? count($services) : 0;
-        if (!empty($services)) {
-            foreach ($services as $service) {
-                $svc_default_price  = !empty($service) && isset($service->default_price) && !empty($service->default_price) ? esc_attr($service->default_price) : '';
-                $svc_default_price  = $this->bm_fetch_price_in_global_settings_format($svc_default_price, true);
-                $priceArr[] = $svc_default_price;
+    public function bm_get_no_of_services_price_by_category( $category_id ) {
+        $dbhandler      = new BM_DBhandler();
+        $priceArr       = array();
+        $services       = $dbhandler->get_all_result(
+            'SERVICE',
+            '*',
+            array(
+				'is_service_front' => 1,
+				'service_category' => $category_id,
+            )
+        );
+        $total_services = !empty( $services ) ? count( $services ) : 0;
+        if ( !empty( $services ) ) {
+            foreach ( $services as $service ) {
+                $svc_default_price = !empty( $service ) && isset( $service->default_price ) && !empty( $service->default_price ) ? esc_attr( $service->default_price ) : '';
+                $svc_default_price = $this->bm_fetch_price_in_global_settings_format( $svc_default_price, true );
+                $priceArr[]        = $svc_default_price;
             }
         }
 
-
-        return array('total_service' => $total_services, 'price' => !empty($priceArr) ? min($priceArr) : 0);
+        return array(
+			'total_service' => $total_services,
+			'price'         => !empty( $priceArr ) ? min( $priceArr ) : 0,
+		);
     } //end bm_get_no_of_services_price_by_category()
 
     /**
@@ -17023,176 +17032,175 @@ class BM_Request {
      *
      * @author Jyoti
      */
-    public function bm_fetch_service_time_slot_detail_by_service_id($data = array())
-    {
-        $dbhandler  = new BM_DBhandler();
-        $timezone    = $dbhandler->get_global_option_value('bm_booking_time_zone', 'Asia/Kolkata');
-        $slot_format = $dbhandler->get_global_option_value('bm_flexi_service_time_slot_format', '24');
-        $now         = new DateTime('now', new DateTimeZone($timezone));
+    public function bm_fetch_service_time_slot_detail_by_service_id( $data = array() ) {
+        $dbhandler   = new BM_DBhandler();
+        $timezone    = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
+        $slot_format = $dbhandler->get_global_option_value( 'bm_flexi_service_time_slot_format', '24' );
+        $now         = new DateTime( 'now', new DateTimeZone( $timezone ) );
 
         $response = array();
-        if (!empty($data)) {
-            $service_id             = isset($data['id']) ? $data['id'] : 0;
-            $date                   = isset($data['date']) ? $data['date'] : '';
-            $current_date           = $now->format('Y-m-d');
-            $current_time           = $now->format('H:i');
-            $stopsales              = 0;
-            $currentDateTime        = $current_date . ' ' . $current_time;
+        if ( !empty( $data ) ) {
+            $service_id      = isset( $data['id'] ) ? $data['id'] : 0;
+            $date            = isset( $data['date'] ) ? $data['date'] : '';
+            $current_date    = $now->format( 'Y-m-d' );
+            $current_time    = $now->format( 'H:i' );
+            $stopsales       = 0;
+            $currentDateTime = $current_date . ' ' . $current_time;
 
-            if (isset($service_id) && !empty($service_id) && isset($date) && !empty($date)) {
-                $service              = $dbhandler->get_row('SERVICE', $service_id);
-                $time_row             = $dbhandler->get_row('TIME', $service_id);
-                $stopsales            = $this->bm_fetch_service_stopsales_by_service_id($service_id, $date);
-                $global_show_to_slots = $dbhandler->get_global_option_value('bm_show_service_to_time_slot', 0);
-                if (!empty($stopsales)) {
-                    $stopSalesHours   = floor($stopsales);
-                    $stopSalesMinutes = ($stopsales - $stopSalesHours) * 60;
+            if ( isset( $service_id ) && !empty( $service_id ) && isset( $date ) && !empty( $date ) ) {
+                $service              = $dbhandler->get_row( 'SERVICE', $service_id );
+                $time_row             = $dbhandler->get_row( 'TIME', $service_id );
+                $stopsales            = $this->bm_fetch_service_stopsales_by_service_id( $service_id, $date );
+                $global_show_to_slots = $dbhandler->get_global_option_value( 'bm_show_service_to_time_slot', 0 );
+                if ( !empty( $stopsales ) ) {
+                    $stopSalesHours   = floor( $stopsales );
+                    $stopSalesMinutes = ( $stopsales - $stopSalesHours ) * 60;
 
-                    if ($this->bm_has_dynamic_stopsales_for_date($service_id, $date)) {
-                        $endDateTime = new DateTime($date . ' ' . $now->format('H:i'), new DateTimeZone($timezone));
+                    if ( $this->bm_has_dynamic_stopsales_for_date( $service_id, $date ) ) {
+                        $endDateTime = new DateTime( $date . ' ' . $now->format( 'H:i' ), new DateTimeZone( $timezone ) );
                     } else {
                         $endDateTime = clone $now;
                     }
 
-                    $endDateTime->add(new DateInterval("PT{$stopSalesHours}H{$stopSalesMinutes}M"));
-                    $endDateTime = $endDateTime->format('Y-m-d H:i');
+                    $endDateTime->add( new DateInterval( "PT{$stopSalesHours}H{$stopSalesMinutes}M" ) );
+                    $endDateTime = $endDateTime->format( 'Y-m-d H:i' );
                 }
             }
 
-            if (isset($time_row) && !empty($time_row) && isset($service) && !empty($service)) {
-                $total_slots         = isset($time_row->total_slots) ? $time_row->total_slots : 0;
-                $time_slots          = isset($time_row->time_slots) ? maybe_unserialize($time_row->time_slots) : array();
-                $variable_time_slots = isset($service->variable_time_slots) ? maybe_unserialize($service->variable_time_slots) : array();
-                $dates               = !empty($variable_time_slots) ? wp_list_pluck($variable_time_slots, 'date') : array();
-                $slotType = '';
-                if (!empty($variable_time_slots) && !empty($dates) && in_array($date, $dates, true)) {
-                    $index     = (int) array_search($date, $dates);
-                    $slot_data = $variable_time_slots[$index];
+            if ( isset( $time_row ) && !empty( $time_row ) && isset( $service ) && !empty( $service ) ) {
+                $total_slots         = isset( $time_row->total_slots ) ? $time_row->total_slots : 0;
+                $time_slots          = isset( $time_row->time_slots ) ? maybe_unserialize( $time_row->time_slots ) : array();
+                $variable_time_slots = isset( $service->variable_time_slots ) ? maybe_unserialize( $service->variable_time_slots ) : array();
+                $dates               = !empty( $variable_time_slots ) ? wp_list_pluck( $variable_time_slots, 'date' ) : array();
+                $slotType            = '';
+                if ( !empty( $variable_time_slots ) && !empty( $dates ) && in_array( $date, $dates, true ) ) {
+                    $index     = (int) array_search( $date, $dates );
+                    $slot_data = $variable_time_slots[ $index ];
 
-                    for ($i = 1; $i <= $slot_data['total_slots']; $i++) {
-                        $is_slot_disabled = isset($slot_data['disable'][$i]) ? $slot_data['disable'][$i] : 0;
+                    for ( $i = 1; $i <= $slot_data['total_slots']; $i++ ) {
+                        $is_slot_disabled = isset( $slot_data['disable'][ $i ] ) ? $slot_data['disable'][ $i ] : 0;
 
-                        if ($is_slot_disabled != 1) {
-                            $capacity_left = $this->bm_fetch_available_slot_capacity_by_service_and_slot_id($service_id, $i, $slot_data['from'][$i], $date, $slot_data['max_cap'][$i], 1);
+                        if ( $is_slot_disabled != 1 ) {
+                            $capacity_left = $this->bm_fetch_available_slot_capacity_by_service_and_slot_id( $service_id, $i, $slot_data['from'][ $i ], $date, $slot_data['max_cap'][ $i ], 1 );
 
-                            $startSlot = new DateTime($date . ' ' . $slot_data['from'][$i], new DateTimeZone($timezone));
-                            $startSlot = $startSlot->format('Y-m-d H:i');
+                            $startSlot = new DateTime( $date . ' ' . $slot_data['from'][ $i ], new DateTimeZone( $timezone ) );
+                            $startSlot = $startSlot->format( 'Y-m-d H:i' );
 
-                            if ((!empty($stopsales) && (strtotime($endDateTime) > strtotime($startSlot)))) {
+                            if ( ( !empty( $stopsales ) && ( strtotime( $endDateTime ) > strtotime( $startSlot ) ) ) ) {
                                 $slotType = 'readonly';
-                            } elseif ((empty($stopsales) && (strtotime($currentDateTime) > strtotime($startSlot)))) {
+                            } elseif ( ( empty( $stopsales ) && ( strtotime( $currentDateTime ) > strtotime( $startSlot ) ) ) ) {
                                 $slotType = 'readonly';
-                            } elseif ($capacity_left <= 0) {
+                            } elseif ( $capacity_left <= 0 ) {
                                 $slotType = 'readonly';
                             } else {
                                 $slotType = 'active';
                             }
 
                             $time_slots_html = '';
-                            if ($global_show_to_slots == 0) {
-                                if ($slot_format == '12') {
-                                    $time_slots_html .= isset($slot_data['from'][$i]) ? $this->bm_am_pm_format($slot_data['from'][$i]) : '';
+                            if ( $global_show_to_slots == 0 ) {
+                                if ( $slot_format == '12' ) {
+                                    $time_slots_html .= isset( $slot_data['from'][ $i ] ) ? $this->bm_am_pm_format( $slot_data['from'][ $i ] ) : '';
                                 } else {
-                                    $time_slots_html .= isset($slot_data['from'][$i]) ? $this->bm_twenty_fourhrs_format($slot_data['from'][$i]) : '';
+                                    $time_slots_html .= isset( $slot_data['from'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $slot_data['from'][ $i ] ) : '';
                                 }
                             } else {
-                                $is_slot_hidden = isset($slot_data['hide_to_slot'][$i]) ? $slot_data['hide_to_slot'][$i] : 0;
+                                $is_slot_hidden = isset( $slot_data['hide_to_slot'][ $i ] ) ? $slot_data['hide_to_slot'][ $i ] : 0;
 
-                                if ($is_slot_hidden != 1) {
-                                    if ($slot_format == '12') {
-                                        $time_slots_html .= isset($slot_data['from'][$i]) ? $this->bm_am_pm_format($slot_data['from'][$i]) : '';
+                                if ( $is_slot_hidden != 1 ) {
+                                    if ( $slot_format == '12' ) {
+                                        $time_slots_html .= isset( $slot_data['from'][ $i ] ) ? $this->bm_am_pm_format( $slot_data['from'][ $i ] ) : '';
                                         $time_slots_html .= ' - ';
-                                        $time_slots_html .= isset($slot_data['to'][$i]) ? $this->bm_am_pm_format($slot_data['to'][$i]) : '';
+                                        $time_slots_html .= isset( $slot_data['to'][ $i ] ) ? $this->bm_am_pm_format( $slot_data['to'][ $i ] ) : '';
                                     } else {
-                                        $time_slots_html .= isset($slot_data['from'][$i]) ? $this->bm_twenty_fourhrs_format($slot_data['from'][$i]) : '';
+                                        $time_slots_html .= isset( $slot_data['from'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $slot_data['from'][ $i ] ) : '';
                                         $time_slots_html .= ' - ';
-                                        $time_slots_html .= isset($slot_data['to'][$i]) ? $this->bm_twenty_fourhrs_format($slot_data['to'][$i]) : '';
+                                        $time_slots_html .= isset( $slot_data['to'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $slot_data['to'][ $i ] ) : '';
                                     }
-                                } elseif ($is_slot_hidden == 1) {
-                                    if ($slot_format == '12') {
-                                        $time_slots_html .= isset($slot_data['from'][$i]) ? $this->bm_am_pm_format($slot_data['from'][$i]) : '';
+                                } elseif ( $is_slot_hidden == 1 ) {
+                                    if ( $slot_format == '12' ) {
+                                        $time_slots_html .= isset( $slot_data['from'][ $i ] ) ? $this->bm_am_pm_format( $slot_data['from'][ $i ] ) : '';
                                     } else {
-                                        $time_slots_html .= isset($slot_data['from'][$i]) ? $this->bm_twenty_fourhrs_format($slot_data['from'][$i]) : '';
+                                        $time_slots_html .= isset( $slot_data['from'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $slot_data['from'][ $i ] ) : '';
                                     }
                                 }
                             }
-                            
-                            if ((!empty($stopsales) && (strtotime($endDateTime) <= strtotime($startSlot)))) {
-                                $slot_data['capacity_left'][$i] =  $capacity_left;
-                            } elseif (empty($stopsales) && (strtotime($currentDateTime) <= strtotime($startSlot))) {
-                                $slot_data['capacity_left'][$i] =  $capacity_left;
+
+                            if ( ( !empty( $stopsales ) && ( strtotime( $endDateTime ) <= strtotime( $startSlot ) ) ) ) {
+                                $slot_data['capacity_left'][ $i ] =  $capacity_left;
+                            } elseif ( empty( $stopsales ) && ( strtotime( $currentDateTime ) <= strtotime( $startSlot ) ) ) {
+                                $slot_data['capacity_left'][ $i ] =  $capacity_left;
                             }
                             $response[] = array(
-                                'slot_type'     => $slotType,
-                                'time_slot'     => $time_slots_html,
-                                'capacity_left' => $capacity_left,
-                                'capacity_left_percent' => !empty($slot_data['max_cap'][$i]) && $slot_data['max_cap'][$i] > 0 ? round(($capacity_left / $slot_data['max_cap'][$i]) * 100) : 0,
-                                'max_capacity'  => isset($slot_data['max_cap'][$i]) ? $slot_data['max_cap'][$i] : 0,
-                                'min_capacity'  => isset($slot_data['min_cap'][$i]) ? $slot_data['min_cap'][$i] : 0,
+                                'slot_type'             => $slotType,
+                                'time_slot'             => $time_slots_html,
+                                'capacity_left'         => $capacity_left,
+                                'capacity_left_percent' => !empty( $slot_data['max_cap'][ $i ] ) && $slot_data['max_cap'][ $i ] > 0 ? round( ( $capacity_left / $slot_data['max_cap'][ $i ] ) * 100 ) : 0,
+                                'max_capacity'          => isset( $slot_data['max_cap'][ $i ] ) ? $slot_data['max_cap'][ $i ] : 0,
+                                'min_capacity'          => isset( $slot_data['min_cap'][ $i ] ) ? $slot_data['min_cap'][ $i ] : 0,
                             );
                         } //end if
                     } //end for
                 } else {
-                    for ($i = 1; $i <= $total_slots; $i++) {
-                        $is_slot_disabled = isset($time_slots['disable'][$i]) ? $time_slots['disable'][$i] : 0;
+                    for ( $i = 1; $i <= $total_slots; $i++ ) {
+                        $is_slot_disabled = isset( $time_slots['disable'][ $i ] ) ? $time_slots['disable'][ $i ] : 0;
 
-                        if ($is_slot_disabled != 1) {
-                            $capacity_left = $this->bm_fetch_available_slot_capacity_by_service_and_slot_id($service_id, $i, $time_slots['from'][$i], $date, $time_slots['max_cap'][$i], 0);
+                        if ( $is_slot_disabled != 1 ) {
+                            $capacity_left = $this->bm_fetch_available_slot_capacity_by_service_and_slot_id( $service_id, $i, $time_slots['from'][ $i ], $date, $time_slots['max_cap'][ $i ], 0 );
 
-                            $startSlot = new DateTime($date . ' ' . $time_slots['from'][$i], new DateTimeZone($timezone));
-                            $startSlot = $startSlot->format('Y-m-d H:i');
+                            $startSlot = new DateTime( $date . ' ' . $time_slots['from'][ $i ], new DateTimeZone( $timezone ) );
+                            $startSlot = $startSlot->format( 'Y-m-d H:i' );
 
-                            if ((!empty($stopsales) && (strtotime($endDateTime) > strtotime($startSlot)))) {
+                            if ( ( !empty( $stopsales ) && ( strtotime( $endDateTime ) > strtotime( $startSlot ) ) ) ) {
                                 $slotType = 'readonly';
-                            } elseif ((empty($stopsales) && (strtotime($currentDateTime) > strtotime($startSlot)))) {
+                            } elseif ( ( empty( $stopsales ) && ( strtotime( $currentDateTime ) > strtotime( $startSlot ) ) ) ) {
                                 $slotType = 'readonly';
-                            } elseif ($capacity_left <= 0) {
+                            } elseif ( $capacity_left <= 0 ) {
                                 $slotType = 'readonly';
                             } else {
                                 $slotType = 'active';
                             }
                             $time_slots_html = '';
-                            if ($global_show_to_slots == 0) {
-                                if ($slot_format == '12') {
-                                    $time_slots_html .= isset($time_slots['from'][$i]) ? $this->bm_am_pm_format($time_slots['from'][$i]) : '';
+                            if ( $global_show_to_slots == 0 ) {
+                                if ( $slot_format == '12' ) {
+                                    $time_slots_html .= isset( $time_slots['from'][ $i ] ) ? $this->bm_am_pm_format( $time_slots['from'][ $i ] ) : '';
                                 } else {
-                                    $time_slots_html .= isset($time_slots['from'][$i]) ? $this->bm_twenty_fourhrs_format($time_slots['from'][$i]) : '';
+                                    $time_slots_html .= isset( $time_slots['from'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $time_slots['from'][ $i ] ) : '';
                                 }
                             } else {
-                                $is_slot_hidden = isset($time_slots['hide_to_slot'][$i]) ? $time_slots['hide_to_slot'][$i] : 0;
+                                $is_slot_hidden = isset( $time_slots['hide_to_slot'][ $i ] ) ? $time_slots['hide_to_slot'][ $i ] : 0;
 
-                                if ($is_slot_hidden != 1) {
-                                    if ($slot_format == '12') {
-                                        $time_slots_html .= isset($time_slots['from'][$i]) ? $this->bm_am_pm_format($time_slots['from'][$i]) : '';
+                                if ( $is_slot_hidden != 1 ) {
+                                    if ( $slot_format == '12' ) {
+                                        $time_slots_html .= isset( $time_slots['from'][ $i ] ) ? $this->bm_am_pm_format( $time_slots['from'][ $i ] ) : '';
                                         $time_slots_html .= ' - ';
-                                        $time_slots_html .= isset($time_slots['to'][$i]) ? $this->bm_am_pm_format($time_slots['to'][$i]) : '';
+                                        $time_slots_html .= isset( $time_slots['to'][ $i ] ) ? $this->bm_am_pm_format( $time_slots['to'][ $i ] ) : '';
                                     } else {
-                                        $time_slots_html .= isset($time_slots['from'][$i]) ? $this->bm_twenty_fourhrs_format($time_slots['from'][$i]) : '';
+                                        $time_slots_html .= isset( $time_slots['from'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $time_slots['from'][ $i ] ) : '';
                                         $time_slots_html .= ' - ';
-                                        $time_slots_html .= isset($time_slots['to'][$i]) ? $this->bm_twenty_fourhrs_format($time_slots['to'][$i]) : '';
+                                        $time_slots_html .= isset( $time_slots['to'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $time_slots['to'][ $i ] ) : '';
                                     }
-                                } elseif ($is_slot_hidden == 1) {
-                                    if ($slot_format == '12') {
-                                        $time_slots_html .= isset($time_slots['from'][$i]) ? $this->bm_am_pm_format($time_slots['from'][$i]) : '';
+                                } elseif ( $is_slot_hidden == 1 ) {
+                                    if ( $slot_format == '12' ) {
+                                        $time_slots_html .= isset( $time_slots['from'][ $i ] ) ? $this->bm_am_pm_format( $time_slots['from'][ $i ] ) : '';
                                     } else {
-                                        $time_slots_html .= isset($time_slots['from'][$i]) ? $this->bm_twenty_fourhrs_format($time_slots['from'][$i]) : '';
+                                        $time_slots_html .= isset( $time_slots['from'][ $i ] ) ? $this->bm_twenty_fourhrs_format( $time_slots['from'][ $i ] ) : '';
                                     }
                                 }
                             }
 
-                            if ((!empty($stopsales) && (strtotime($endDateTime) <= strtotime($startSlot)))) {
-                                $time_slots['capacity_left'][$i] =  $capacity_left;
-                            } elseif (empty($stopsales) && (strtotime($currentDateTime) <= strtotime($startSlot))) {
-                                $time_slots['capacity_left'][$i] =  $capacity_left;
+                            if ( ( !empty( $stopsales ) && ( strtotime( $endDateTime ) <= strtotime( $startSlot ) ) ) ) {
+                                $time_slots['capacity_left'][ $i ] =  $capacity_left;
+                            } elseif ( empty( $stopsales ) && ( strtotime( $currentDateTime ) <= strtotime( $startSlot ) ) ) {
+                                $time_slots['capacity_left'][ $i ] =  $capacity_left;
                             }
 
                             $response[] = array(
-                                'slot_type'     => $slotType,
-                                'time_slot'     => $time_slots_html,
-                                'capacity_left' => $capacity_left,
-                                'capacity_left_percent' => !empty($time_slots['max_cap'][$i]) && $time_slots['max_cap'][$i] > 0 ? round(($capacity_left / $time_slots['max_cap'][$i]) * 100) : 0,
-                                'max_capacity'  => isset($time_slots['max_cap'][$i]) ? $time_slots['max_cap'][$i] : 0,
-                                'min_capacity'  => isset($time_slots['min_cap'][$i]) ? $time_slots['min_cap'][$i] : 0,
+                                'slot_type'             => $slotType,
+                                'time_slot'             => $time_slots_html,
+                                'capacity_left'         => $capacity_left,
+                                'capacity_left_percent' => !empty( $time_slots['max_cap'][ $i ] ) && $time_slots['max_cap'][ $i ] > 0 ? round( ( $capacity_left / $time_slots['max_cap'][ $i ] ) * 100 ) : 0,
+                                'max_capacity'          => isset( $time_slots['max_cap'][ $i ] ) ? $time_slots['max_cap'][ $i ] : 0,
+                                'min_capacity'          => isset( $time_slots['min_cap'][ $i ] ) ? $time_slots['min_cap'][ $i ] : 0,
                             );
                         } //end if
                     } //end for
