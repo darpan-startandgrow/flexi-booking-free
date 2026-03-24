@@ -20,6 +20,11 @@ $upsell_url = Booking_Management_Limits::get_pro_upsell_url();
 $raw_page_slug = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
 $feature_map = array(
+	'bm_home'                       => array(
+		'title'       => __( 'Booking Dashboard', 'service-booking' ),
+		'description' => __( 'Unlock the full interactive dashboard with booking statistics, revenue overview, and real-time activity feed.', 'service-booking' ),
+		'icon'        => 'dashicons-dashboard',
+	),
 	'bm_booking_analytics'          => array(
 		'title'       => __( 'Advanced Analytics', 'service-booking' ),
 		'description' => __( 'Unlock the full dedicated Analytics page with detailed booking insights, revenue breakdowns, service performance metrics, and exportable reports.', 'service-booking' ),
@@ -53,6 +58,61 @@ $feature_map = array(
 	'bm_global_coupon_settings'     => array(
 		'title'       => __( 'Coupon Settings', 'service-booking' ),
 		'description' => __( 'Configure advanced coupon settings and defaults for your booking coupon system.', 'service-booking' ),
+		'icon'        => 'dashicons-admin-settings',
+	),
+	'bm_email_templates'            => array(
+		'title'       => __( 'Mail Templates', 'service-booking' ),
+		'description' => __( 'Design custom mail templates for booking confirmations, cancellations, reminders, and more.', 'service-booking' ),
+		'icon'        => 'dashicons-email',
+	),
+	'bm_fields'                     => array(
+		'title'       => __( 'Custom Fields', 'service-booking' ),
+		'description' => __( 'Create entirely new custom booking fields to collect additional information from your customers.', 'service-booking' ),
+		'icon'        => 'dashicons-forms',
+	),
+	'bm_all_notification_processes' => array(
+		'title'       => __( 'Notification Processes', 'service-booking' ),
+		'description' => __( 'Set up automated notification workflows with unlimited processes and templates.', 'service-booking' ),
+		'icon'        => 'dashicons-bell',
+	),
+	'bm_email_records'              => array(
+		'title'       => __( 'Email Records', 'service-booking' ),
+		'description' => __( 'View and manage all email communication records with detailed logs and resend capabilities.', 'service-booking' ),
+		'icon'        => 'dashicons-email-alt2',
+	),
+	'bm_voucher_records'            => array(
+		'title'       => __( 'Vouchers', 'service-booking' ),
+		'description' => __( 'Create, manage, and track booking vouchers with advanced redemption rules and PDF generation.', 'service-booking' ),
+		'icon'        => 'dashicons-tag',
+	),
+	'bm_check_ins'                  => array(
+		'title'       => __( 'Check-ins & QR Scanning', 'service-booking' ),
+		'description' => __( 'Manage customer check-ins with QR code scanning, manual check-in processing, and real-time attendance tracking.', 'service-booking' ),
+		'icon'        => 'dashicons-camera',
+	),
+	'bm_customer_profile'           => array(
+		'title'       => __( 'Customer Profiles', 'service-booking' ),
+		'description' => __( 'View detailed customer profiles with booking history, payment records, and customer analytics.', 'service-booking' ),
+		'icon'        => 'dashicons-admin-users',
+	),
+	'bm_global_email_settings'      => array(
+		'title'       => __( 'Email Settings', 'service-booking' ),
+		'description' => __( 'Configure custom SMTP, email sender details, and advanced email delivery settings.', 'service-booking' ),
+		'icon'        => 'dashicons-admin-settings',
+	),
+	'bm_global_payment_settings'    => array(
+		'title'       => __( 'Payment Settings', 'service-booking' ),
+		'description' => __( 'Configure Stripe, payment gateways, and advanced payment processing options.', 'service-booking' ),
+		'icon'        => 'dashicons-admin-settings',
+	),
+	'bm_upload_settings'            => array(
+		'title'       => __( 'Upload Settings', 'service-booking' ),
+		'description' => __( 'Configure file upload settings for service images and booking attachments.', 'service-booking' ),
+		'icon'        => 'dashicons-admin-settings',
+	),
+	'bm_global_integration_settings' => array(
+		'title'       => __( 'Integration Settings', 'service-booking' ),
+		'description' => __( 'Connect with third-party services and configure advanced integrations.', 'service-booking' ),
 		'icon'        => 'dashicons-admin-settings',
 	),
 );
