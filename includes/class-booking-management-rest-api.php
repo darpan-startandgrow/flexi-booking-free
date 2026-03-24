@@ -2023,6 +2023,11 @@ class Booking_Management_Rest_API {
 		$id     = $request->get_param( 'id' );
 		$status = $request->get_param( 'status' );
 
+		$allowed_statuses = array( 'booked', 'confirmed', 'completed', 'cancelled', 'pending', 'no_show' );
+		if ( ! in_array( $status, $allowed_statuses, true ) ) {
+			return new WP_Error( 'invalid_status', esc_html__( 'Invalid order status.', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
 		$dbhandler = new BM_DBhandler();
 		$result    = $dbhandler->update_row( 'BOOKING', array( 'order_status' => $status ), array( 'id' => $id ) );
 
