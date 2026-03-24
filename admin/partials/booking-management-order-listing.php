@@ -1,4 +1,5 @@
 <?php
+$is_pro                = Booking_Management_Limits::is_pro_active();
 $dbhandler             = new BM_DBhandler();
 $bmrequests            = new BM_Request();
 $woocommerceservice    = new WooCommerceService();
@@ -90,12 +91,14 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
                         <i class="fa fa-search order_listing_search_icon" id="order_listing_search_icon" data-title="<?php esc_html_e( 'Click to search', 'service-booking' ); ?>"></i>
                     </span>
                 </span>
+                <?php if ( $is_pro ) { ?>
                 <a href="javascript:void(0);" class="button button-primary edit_order_columns" title="<?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
                         <i class="fa fa-plus" aria-hidden="true" style="color:#fff;"></i>
                     </span>
                 </a>
+                <?php } ?>
                 <a href="javascript:void(0);" class="button button-primary export_order_records" title="<?php esc_html_e( 'Csv Export', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
@@ -191,7 +194,7 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
             <thead>
                 <tr>
 										<?php
-										if ( !empty( $column_values ) ) {
+										if ( $is_pro && !empty( $column_values ) ) {
 											foreach ( $column_values as $key => $column ) {
 												if ( isset( $active_columns ) && !in_array( $key, $active_columns ) ) {
 													continue;
@@ -225,20 +228,21 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
 												<?php
 											}
 										} else {
+											// Free version: hardcoded essential columns.
 											?>
-                        <th width="10%" style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Serial No', 'service-booking' ); ?></th>
+                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Order ID', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Ordered Service', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Ordered Date', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Service Date', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'First name', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Last name', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Contact number', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Email', 'service-booking' ); ?></th>
+                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Service Cost', 'service-booking' ); ?></th>
+                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Extra Service Cost', 'service-booking' ); ?></th>
+                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Discount', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Total Cost', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Customer Data', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Ordered From', 'service-booking' ); ?></th>
                         <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Order Status', 'service-booking' ); ?></th>
-                        <th width="25%" style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
+                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Payment Status', 'service-booking' ); ?></th>
+                        <th width="15%" style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
 											<?php
 										}//end if
 										?>
@@ -275,6 +279,7 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
     <ul id="attachments-list"></ul>
 </div>
 
+<?php if ( $is_pro ) { ?>
 <div id="order_columns_modal" class="modaloverlay">
     <div class="modal manageorderboxmodal animate__animated animate__flipInX">
         <span class="close" onclick="closeModal('order_columns_modal')">&times;</span>
@@ -288,6 +293,7 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
         <div class="column_errortext" style="display :none;"></div>
     </div>
 </div>
+<?php } ?>
 
 <div id="order_export_modal" class="modaloverlay2">
     <div class="modal animate__animated animate__flipInX">

@@ -2247,6 +2247,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_change_customer_visibility() {
+		if ( ! Booking_Management_Limits::can_create_customer() ) {
+			wp_send_json_error( __( 'Customer management is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -5805,6 +5810,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_fetch_columns_screen_options() {
+		if ( ! Booking_Management_Limits::can_manage_columns() ) {
+			wp_send_json_error( __( 'Manage Columns is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -5833,6 +5843,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_save_columns_screen_options() {
+		if ( ! Booking_Management_Limits::can_manage_columns() ) {
+			wp_send_json_error( __( 'Manage Columns is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -12383,6 +12398,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_cancel_book_on_request_order() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( __( 'Book on Request is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -12419,6 +12439,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_approve_book_on_request_order() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( __( 'Book on Request is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );

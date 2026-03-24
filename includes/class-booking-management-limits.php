@@ -62,7 +62,21 @@ class Booking_Management_Limits {
 	/**
 	 * Hardcoded order listing columns for the free version.
 	 */
-	const FREE_ORDER_COLUMNS = array( 'order_id', 'customer', 'service', 'date', 'status' );
+	const FREE_ORDER_COLUMNS = array(
+		'order_id',
+		'service_name',
+		'booking_created_at',
+		'booking_date',
+		'first_name',
+		'email',
+		'service_cost',
+		'extra_svc_cost',
+		'disount_amount',
+		'total_cost',
+		'order_status',
+		'payment_status',
+		'actions',
+	);
 
 	/**
 	 * Check if the Pro add-on is currently active.

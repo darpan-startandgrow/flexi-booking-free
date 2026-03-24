@@ -299,8 +299,13 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_price_for_backend_order', $plugin_admin, 'bm_fetch_service_price_for_backend_order' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status_to_complete_or_cancelled', $plugin_admin, 'bm_change_order_status_to_complete_or_cancelled' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status', $plugin_admin, 'bm_change_order_status' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_columns_screen_options', $plugin_admin, 'bm_fetch_columns_screen_options' );
-		$this->loader->add_action( 'wp_ajax_bm_save_columns_screen_options', $plugin_admin, 'bm_save_columns_screen_options' );
+
+		// Manage Columns — Pro only.
+		if ( Booking_Management_Limits::can_manage_columns() ) {
+			$this->loader->add_action( 'wp_ajax_bm_fetch_columns_screen_options', $plugin_admin, 'bm_fetch_columns_screen_options' );
+			$this->loader->add_action( 'wp_ajax_bm_save_columns_screen_options', $plugin_admin, 'bm_save_columns_screen_options' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_bm_fetch_order_as_per_search', $plugin_admin, 'bm_fetch_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_archived_order_as_per_search', $plugin_admin, 'bm_fetch_archived_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_failed_order_as_per_search', $plugin_admin, 'bm_fetch_failed_order_as_per_search' );
@@ -323,7 +328,12 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_change_service_visibility', $plugin_admin, 'bm_change_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
+
+		// Customer visibility toggle — Pro only (free shows read-only listing).
+		if ( Booking_Management_Limits::can_create_customer() ) {
+			$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
+		}
+
 		$this->loader->add_filter( 'flexibooking_cancel_booking', $plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_completed', $plugin_admin, 'bm_flexibooking_update_status_as_completed', 10, 1 );
@@ -337,8 +347,13 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_remove_process', $plugin_admin, 'bm_remove_notification_process' );
 		$this->loader->add_action( 'wp_ajax_bm_change_process_visibility', $plugin_admin, 'bm_change_notification_process_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_template_visibility', $plugin_admin, 'bm_change_email_template_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_cancel_bor_order', $plugin_admin, 'bm_cancel_book_on_request_order' );
-		$this->loader->add_action( 'wp_ajax_bm_approve_bor_order', $plugin_admin, 'bm_approve_book_on_request_order' );
+
+		// Book-on-request AJAX — Pro only (free version is direct booking only).
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$this->loader->add_action( 'wp_ajax_bm_cancel_bor_order', $plugin_admin, 'bm_cancel_book_on_request_order' );
+			$this->loader->add_action( 'wp_ajax_bm_approve_bor_order', $plugin_admin, 'bm_approve_book_on_request_order' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_bm_update_transaction', $plugin_admin, 'bm_update_order_transaction' );
 		$this->loader->add_action( 'wp_ajax_bm_save_order_transaction', $plugin_admin, 'bm_save_order_transaction' );
 		$this->loader->add_action( 'flexibooking_set_process_approved_order', $plugin_admin, 'bm_flexibooking_set_process_approved_order_callback', 10, 1 );

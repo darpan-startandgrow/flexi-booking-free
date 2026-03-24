@@ -779,6 +779,13 @@ class Booking_Management_Rest_API {
 			) );
 		}
 
+		// Free version: return only essential columns. Pro: return all.
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$select_cols = '*';
+		} else {
+			$select_cols = 'id, service_name, booking_created_at, booking_date, service_cost, extra_svc_cost, disount_amount, total_cost, order_status, booking_type, field_values';
+		}
+
 		$where  = array( '1=1' );
 		$values = array();
 
@@ -789,8 +796,7 @@ class Booking_Management_Rest_API {
 
 		if ( ! empty( $search ) ) {
 			$like     = '%' . $wpdb->esc_like( $search ) . '%';
-			$where[]  = '( first_name LIKE %s OR last_name LIKE %s OR email LIKE %s )';
-			$values[] = $like;
+			$where[]  = '( service_name LIKE %s OR order_status LIKE %s )';
 			$values[] = $like;
 			$values[] = $like;
 		}
@@ -813,7 +819,7 @@ class Booking_Management_Rest_API {
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$book_table} WHERE {$where_clause} ORDER BY id DESC LIMIT %d OFFSET %d",
+				"SELECT {$select_cols} FROM {$book_table} WHERE {$where_clause} ORDER BY id DESC LIMIT %d OFFSET %d",
 				$values
 			)
 		);
