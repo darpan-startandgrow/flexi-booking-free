@@ -78,8 +78,11 @@ class Booking_Management {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-		$this->define_smtp_connection();
-		$this->enable_stripes_connection();
+		/**
+		 * SMTP and Stripe are Pro-only features.
+		 * The Pro add-on initialises these via hooks.
+		 */
+		do_action( 'sg_booking_init_pro_connections' );
 
 		// ✅ Initialize the API
         $this->init_api();
@@ -133,22 +136,8 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-request.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-woocommerce.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-email.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-smtp.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-sanitized.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-payment-gateway.php';
-
-		/**
-		 * Stripe payment gateway — loaded conditionally.
-		 * In Lite, the file exists but the heavy Stripe SDK under src/stripe/
-		 * is NOT loaded. The Pro add-on will hook into `sg_booking_load_pro_libraries`
-		 * to require the Stripe SDK. The Lite gateway class gracefully handles
-		 * the missing SDK by checking class_exists() before usage.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-stripes.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-process-payment.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-voucher-base.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-voucher-redeem.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-coupon-validation.php';
 
 		/**
 		 * Freemium gatekeeper and feature control.
@@ -157,12 +146,14 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-limits.php';
 
 		/**
-		 * PDF Customizer — loaded conditionally.
-		 * The class file is always available for basic PDF generation using
-		 * default templates. The drag-and-drop builder UI and heavy DOMPDF
-		 * library are loaded by the Pro add-on via `sg_booking_load_pro_libraries`.
+		 * Fires before core dependencies are fully loaded.
+		 *
+		 * The Pro add-on hooks here to load its own class files:
+		 * Stripe gateway, SMTP, vouchers, coupons, PDF customizer, etc.
+		 *
+		 * @since 1.1.0
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-pdf-customizer.php';
+		do_action( 'sg_booking_load_pro_libraries' );
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-api.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-react-shortcodes.php';
@@ -256,14 +247,10 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_sort_service_listing', $plugin_admin, 'bm_sort_service_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_service', $plugin_admin, 'bm_remove_service' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_category', $plugin_admin, 'bm_remove_category' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_price_module_listing', $plugin_admin, 'bm_fetch_price_module_listing' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_price_module', $plugin_admin, 'bm_remove_price_module' );
 		$this->loader->add_action( 'wp_ajax_bm_sort_category_listing', $plugin_admin, 'bm_sort_category_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_get_service_prices', $plugin_admin, 'bm_get_service_prices' );
 		$this->loader->add_action( 'wp_ajax_bm_set_serice_price', $plugin_admin, 'bm_set_serice_price' );
-		$this->loader->add_action( 'wp_ajax_bm_set_serice_price_module', $plugin_admin, 'bm_set_serice_price_module' );
 		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price', $plugin_admin, 'bm_set_bulk_serice_price' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price_module', $plugin_admin, 'bm_set_bulk_serice_price_module' );
 		$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
 		$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
 		$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
@@ -332,10 +319,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_vocuher_booking_info', $plugin_admin, 'bm_fetch_vocuher_booking_info' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_vocuher_gifter_info', $plugin_admin, 'bm_fetch_vocuher_gifter_info' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_vocuher_recipient_info', $plugin_admin, 'bm_fetch_vocuher_recipient_info' );
-		$this->loader->add_action( 'wp_ajax_bm_change_voucher_status', $plugin_admin, 'bm_change_voucher_status' );
 		$this->loader->add_filter( 'flexibooking_cancel_booking', $plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_completed', $plugin_admin, 'bm_flexibooking_update_status_as_completed', 10, 1 );
@@ -363,17 +346,8 @@ class Booking_Management {
 		$this->loader->add_action( 'flexibooking_set_process_order_refund', $plugin_admin, 'bm_flexibooking_set_process_order_refund_callback', 10, 2 );
 		$this->loader->add_action( 'flexibooking_mail_order_refund', $plugin_admin, 'bm_flexibooking_mail_on_order_refund_callback', 10, 3 );
 		// $this->loader->add_filter( 'flexibooking_google_analytics_data', $plugin_admin, 'bm_prepare_ga_purchase_data', 10, 1 );
-		$this->loader->add_action( 'wp_ajax_bm_show_mail_details', $plugin_admin, 'bm_show_mail_details' );
-		$this->loader->add_action( 'wp_ajax_bm_show_email_body', $plugin_admin, 'bm_show_email_body' );
-		$this->loader->add_action( 'wp_ajax_bm_open_email_body', $plugin_admin, 'bm_open_email_body' );
-		$this->loader->add_action( 'wp_ajax_bm_resend_email', $plugin_admin, 'bm_resend_email' );
-		$this->loader->add_action( 'wp_ajax_bm_add_email_attachment', $plugin_admin, 'bm_add_email_attachment' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_email_attachment', $plugin_admin, 'bm_remove_email_attachment' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_temporary_email_attachment', $plugin_admin, 'bm_remove_temporary_email_attachment' );
-		$this->loader->add_action( 'wp_ajax_bm_check_admin_password', $plugin_admin, 'bm_check_admin_password' );
 		$this->loader->add_action( 'wp_ajax_bm_filter_service_planner_events', $plugin_admin, 'bm_filter_service_planner_events_callback' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_planner_dialog_content', $plugin_admin, 'bm_fetch_service_planner_dialog_content' );
-		$this->loader->add_action( 'wp_ajax_bm_resend_order_email', $plugin_admin, 'bm_resend_order_email' );
 
 		$this->loader->add_action( 'wp_ajax_bm_single_service_planner_events', $plugin_admin, 'bm_single_service_planner_events_callback' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_planner_time_slots', $plugin_admin, 'bm_fetch_service_planner_time_slots' );
@@ -383,24 +357,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_get_order_failed_transactions', $plugin_admin, 'bm_get_order_failed_transactions' );
 		$this->loader->add_action( 'wp_ajax_bm_get_order_products', $plugin_admin, 'bm_get_order_products' );
 		$this->loader->add_action( 'wp_ajax_bm_get_email_content', $plugin_admin, 'bm_get_email_content' );
-		$this->loader->add_action( 'wp_ajax_bm_retry_failed_payment', $plugin_admin, 'bm_retry_failed_payment' );
-		$this->loader->add_action( 'wp_ajax_qr_checkin_process', $plugin_admin, 'bm_qr_checkin_process' );
-
-		$this->loader->add_action( 'wp_ajax_bm_export_checkin_options_html', $plugin_admin, 'bm_export_checkin_options_html' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_export_checkin_records', $plugin_admin, 'bm_fetch_export_checkin_records_as_per_type' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_saved_checkin_search', $plugin_admin, 'bm_fetch_saved_checkin_search' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_checkin_as_per_search', $plugin_admin, 'bm_fetch_checkin_as_per_search' );
-		$this->loader->add_action( 'wp_ajax_verify_qr_code', $plugin_admin, 'bm_handle_qr_verification' );
-		$this->loader->add_action( 'wp_ajax_get_order_details', $plugin_admin, 'bm_get_order_detail_for_check_in' );
-		$this->loader->add_action( 'wp_ajax_update_checkin_status', $plugin_admin, 'bm_update_checkin_status' );
-		$this->loader->add_action( 'wp_ajax_manual_checkin_check', $plugin_admin, 'bm_manual_checkin_check' );
-		$this->loader->add_action( 'wp_ajax_manual_checkin_process', $plugin_admin, 'bm_manual_checkin_process' );
-		$this->loader->add_action( 'wp_ajax_manual_checkin_view_details', $plugin_admin, 'bm_manual_checkin_view_details' );
-		$this->loader->add_action( 'wp_ajax_view_pdf_content', $plugin_admin, 'bm_view_pdf_content' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_analytics_data', $plugin_admin, 'bm_fetch_analytics_data_callback' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_analytics_detail', $plugin_admin, 'bm_fetch_analytics_detail_callback' );
-		$this->loader->add_action( 'wp_ajax_bm_download_analytics_csv', $plugin_admin, 'bm_download_analytics_csv_callback' );
-		$this->loader->add_action( 'admin_init', $plugin_admin, 'bm_handle_pdf_test_downloads' );
 
 		$this->loader->add_filter( 'flexibooking_fetch_order_transaction_data', $plugin_admin, 'bm_flexibooking_fetch_order_transaction_data', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_fetch_html_with_transaction_data', $plugin_admin, 'bm_flexibooking_fetch_html_with_transaction_data', 10, 1 );
@@ -422,9 +378,6 @@ class Booking_Management {
 		$this->loader->add_filter( 'flexibooking_revert_transaction_update', $plugin_admin, 'bm_flexibooking_revert_transaction_update', 10, 1 );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_export_order_modal_html', $plugin_admin, 'bm_fetch_export_order_modal_options_html' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_export_order_records', $plugin_admin, 'bm_fetch_export_order_records_as_per_type' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_discount_module_for_backend_order', $plugin_admin, 'bm_fetch_price_discount_module_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_bm_check_backend_discount', $plugin_admin, 'bm_fetch_age_data_and_check_backend_discount' );
-		$this->loader->add_action( 'wp_ajax_bm_reset_backend_discount', $plugin_admin, 'bm_reset_backend_discounted_value' );
 		$this->loader->add_action( 'wp_ajax_bm_check_if_exisiting_customer', $plugin_admin, 'bm_check_if_exisiting_customer' );
 		$this->loader->add_action( 'woocommerce_admin_order_data_after_order_details', $plugin_admin, 'bm_display_service_date_in_admin', 10, 1 );
 		$this->loader->add_action( 'before_delete_post', $plugin_admin, 'bm_remove_flexi_order_if_woocommerce_order_is_permanently_deleted' );
@@ -434,8 +387,6 @@ class Booking_Management {
 		$this->loader->add_filter( 'woocommerce_hidden_order_itemmeta', $plugin_admin, 'bm_hide_flexi_order_itemmeta', 10, 1 );
 		$this->loader->add_action( 'pre_post_update', $plugin_admin, 'bm_prevent_expired_woocommerce_order_updates', 10, 2 );
 		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_flexi_admin_notice' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_value_for_coupon_type', $plugin_admin, 'bm_fetch_value_for_coupon_type' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_coupon', $plugin_admin, 'bm_remove_coupon_function' );
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_admin, 'bm_fetch_states_by_country' );
 
 	}
@@ -533,12 +484,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_price_for_backend_order', $plugin_public, 'bm_fetch_service_price_for_add_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_extras_for_backend_order', $plugin_public, 'bm_fetch_service_extras_for_backend_order' );
 		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_extras_for_backend_order', $plugin_public, 'bm_fetch_service_extras_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_discount_module_for_backend_order', $plugin_public, 'bm_fetch_price_discount_module_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_discount_module_for_backend_order', $plugin_public, 'bm_fetch_price_discount_module_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_qr_checkin_process', $plugin_public, 'bm_qr_checkin_process' );
-    	$this->loader->add_action( 'wp_ajax_nopriv_qr_checkin_process', $plugin_public, 'bm_qr_checkin_process' );
-		$this->loader->add_action( 'wp_ajax_verify_qr_code', $plugin_public, 'bm_handle_qr_verification' );
-		$this->loader->add_action( 'wp_ajax_nopriv_verify_qr_code', $plugin_public, 'bm_handle_qr_verification' );
 		$this->loader->add_action( 'flexibooking_set_process_new_order', $plugin_public, 'bm_flexibooking_set_process_new_order_callback', 10, 1 );
 		$this->loader->add_action( 'flexibooking_mail_new_order', $plugin_public, 'bm_flexibooking_mail_on_new_order_callback', 10, 3 );
 		$this->loader->add_action( 'flexibooking_set_process_voucher_redeem', $plugin_public, 'bm_flexibooking_set_process_voucher_redeem_callback', 10, 1 );
@@ -576,77 +521,16 @@ class Booking_Management {
 		/**$this->loader->add_action( 'woocommerce_payment_complete', $plugin_public, 'bm_mark_flexi_orders_paid', 10, 1 );
 		$this->loader->add_filter( 'woocommerce_is_sold_individually', $plugin_public, 'bm_disable_quantity_for_plugin_added_products', 10, 2 )
 		$this->loader->add_action('woocommerce_thankyou', $plugin_public, 'bm_redirect_after_order', 10, 1);*/
-		$this->loader->add_action( 'wp_ajax_validate_coupon', $plugin_public, 'bm_validate_coupon_code' );
-		$this->loader->add_action( 'wp_ajax_nopriv_validate_coupon', $plugin_public, 'bm_validate_coupon_code' );
-		$this->loader->add_action( 'wp_ajax_reset_coupon_data', $plugin_public, 'bm_reset_coupon_data' );
-		$this->loader->add_action( 'wp_ajax_nopriv_reset_coupon_data', $plugin_public, 'bm_reset_coupon_data' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_current_day_coupon_list', $plugin_public, 'bm_fetch_current_day_coupon_list' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_current_day_coupon_list', $plugin_public, 'bm_fetch_current_day_coupon_list' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_auto_apply_coupon', $plugin_public, 'bm_fetch_auto_apply_coupon' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_auto_apply_coupon', $plugin_public, 'bm_fetch_auto_apply_coupon' );
-		$this->loader->add_action( 'wp_ajax_coupon_removal', $plugin_public, 'bm_coupon_removal' );
-		$this->loader->add_action( 'wp_ajax_nopriv_coupon_removal', $plugin_public, 'bm_coupon_removal' );
 		$this->loader->add_action( 'bm_after_booking_saved', $plugin_public, 'bm_after_booking_saved_callback', 10, 2 );
-		$this->loader->add_filter( 'woocommerce_get_shop_coupon_data', $plugin_public, 'bm_apply_flexi_cpn_woo', 10, 2 );
-		$this->loader->add_filter( 'woocommerce_coupon_is_valid', $plugin_public, 'bm_validate_woo_checkout_cpn', 10, 3 );
-		$this->loader->add_action( 'woocommerce_applied_coupon', $plugin_public, 'bm_update_list_cpn' );
-        $this->loader->add_action( 'woocommerce_removed_coupon', $plugin_public, 'bm_remove_list_cpn' );
-		$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'bm_update_coupon_woo_checkout', 10, 1 );
-		$this->loader->add_action( 'woocommerce_thankyou', $plugin_public, 'bm_clear_woo_coupons_after_checkout', 20, 1 );
-		$this->loader->add_action( 'woocommerce_before_cart', $plugin_public, 'bm_refresh_cart_after_checkout' );
-		$this->loader->add_action( 'woocommerce_add_to_cart', $plugin_public, 'bm_refresh_cart_on_woo', 999 );
-		$this->loader->add_action( 'woocommerce_cart_emptied', $plugin_public, 'bm_refresh_cart_on_woo', 999 );
-		$this->loader->add_action( 'woocommerce_after_calculate_totals', $plugin_public, 'bm_update_discount_transient', 10, 1 );
-	}
 
-	/**
-	 * Establish smtp connection
-	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-	private function define_smtp_connection() {
-		$dbhandler   = new BM_DBhandler();
-		$plugin_smtp = new Booking_Management_SMTP( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'phpmailer_init', $plugin_smtp, 'bm_mail_connection' );
-	}
-
-
-	/**
-	 * Establish stripes connection
-	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 */
-	private function enable_stripes_connection() {
-		$dbhandler    = new BM_DBhandler();
-		$bmrequests   = new BM_Request();
-		$public_code  = $dbhandler->get_global_option_value( 'bm_flexi_stripe_public_code' );
-		$private_code = $dbhandler->get_global_option_value( 'bm_flexi_stripe_private_code' );
-
-		if ( !empty( $public_code ) & !empty( $private_code ) && ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) ) {
-			if ( ! defined( 'STRIPE_SECRET_KEY' ) ) {
-				define( 'STRIPE_SECRET_KEY', $bmrequests->decrypt_key( $private_code, 'flexibooking_private_stripe_code' ) );
-			}
-
-			if ( ! defined( 'STRIPE_PUBLISHABLE_KEY' ) ) {
-				define( 'STRIPE_PUBLISHABLE_KEY', $bmrequests->decrypt_key( $public_code, 'flexibooking_public_stripe_code' ) );
-			}
-		} else {
-			if ( defined( 'STRIPE_SECRET_KEY' ) ) {
-				runkit7_constant_remove( 'STRIPE_SECRET_KEY' );
-			}
-
-			if ( defined( 'STRIPE_PUBLISHABLE_KEY' ) ) {
-				runkit7_constant_remove( 'STRIPE_PUBLISHABLE_KEY' );
-			}
-
-			delete_option( 'bm_flexi_stripe_public_code' );
-			delete_option( 'bm_flexi_stripe_private_code' );
-		}
+		/**
+		 * Fires after the Lite public hooks are registered.
+		 * The Pro add-on registers its own coupon, voucher, Stripe,
+		 * QR check-in, and PDF hooks here.
+		 *
+		 * @since 1.1.0
+		 */
+		do_action( 'sg_booking_register_pro_public_hooks', $this->loader, $plugin_public );
 	}
 
 	/**
