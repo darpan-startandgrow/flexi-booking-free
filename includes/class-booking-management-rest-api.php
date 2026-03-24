@@ -744,6 +744,7 @@ class Booking_Management_Rest_API {
 			return rest_ensure_response( array( 'fields' => array() ) );
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
 		$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
 		$has_form_id = in_array( 'form_id', $columns, true );
 
@@ -853,7 +854,8 @@ class Booking_Management_Rest_API {
 		// Update visibility.
 		$visible = $request->get_param( 'visible' );
 		if ( null !== $visible ) {
-			$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
+		$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
 			if ( in_array( 'visible', $columns, true ) ) {
 				$update_data['visible'] = absint( $visible ) ? 1 : 0;
 				$update_format[]        = '%d';
@@ -956,6 +958,7 @@ class Booking_Management_Rest_API {
 			return rest_ensure_response( array( 'html' => '' ) );
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
 		$columns = $wpdb->get_col( "DESCRIBE {$table}", 0 );
 		$has_visible = in_array( 'visible', $columns, true );
 		$has_form_id = in_array( 'form_id', $columns, true );
@@ -1000,7 +1003,7 @@ class Booking_Management_Rest_API {
 						$html .= '<textarea placeholder="' . $placeholder . '" disabled></textarea>';
 						break;
 					case 'select':
-						$html .= '<select disabled><option>' . $placeholder . '</option></select>';
+						$html .= '<select disabled><option>' . esc_html( $placeholder ) . '</option></select>';
 						break;
 					case 'tel':
 						$html .= '<input type="tel" placeholder="' . $placeholder . '" disabled />';
@@ -1139,10 +1142,12 @@ class Booking_Management_Rest_API {
 		$where_clause = implode( ' AND ', $where );
 		$offset       = ( $page - 1 ) * $per_page;
 
-		// In free version, only show email column.
-		$select_cols = Booking_Management_Limits::is_pro_active()
-			? 'id, customer_name, customer_email, customer_created_at'
-			: 'id, customer_email';
+		// In free version, only show email column. Whitelisted static strings — no user input.
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$select_cols = 'id, customer_name, customer_email, customer_created_at';
+		} else {
+			$select_cols = 'id, customer_email';
+		}
 
 		if ( ! empty( $values ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared

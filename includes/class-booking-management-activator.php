@@ -1841,16 +1841,21 @@ class Booking_Management_Activator {
 	 */
 	private function add_form_id_and_visible_columns() {
 		global $wpdb;
+		// Table name from get_db_table_name() is hardcoded — not user input.
 		$table_name = $this->get_db_table_name( 'FIELDS' );
-		$columns    = $wpdb->get_col( "DESCRIBE $table_name", 0 );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+		$columns    = $wpdb->get_col( "DESCRIBE {$table_name}", 0 );
 
 		if ( ! in_array( 'form_id', $columns, true ) ) {
-			$wpdb->query( "ALTER TABLE $table_name ADD `form_id` int(11) NOT NULL DEFAULT 1 AFTER `id`" );
-			$wpdb->query( "ALTER TABLE $table_name ADD KEY `idx_fields_form_id` (`form_id`)" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+			$wpdb->query( "ALTER TABLE {$table_name} ADD `form_id` int(11) NOT NULL DEFAULT 1 AFTER `id`" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+			$wpdb->query( "ALTER TABLE {$table_name} ADD KEY `idx_fields_form_id` (`form_id`)" );
 		}
 
 		if ( ! in_array( 'visible', $columns, true ) ) {
-			$wpdb->query( "ALTER TABLE $table_name ADD `visible` int(11) NOT NULL DEFAULT 1 AFTER `is_editable`" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+			$wpdb->query( "ALTER TABLE {$table_name} ADD `visible` int(11) NOT NULL DEFAULT 1 AFTER `is_editable`" );
 		}
 	}
 
