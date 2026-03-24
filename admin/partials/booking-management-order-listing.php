@@ -1,39 +1,14 @@
 <?php
+$is_pro                = Booking_Management_Limits::is_pro_active();
 $dbhandler             = new BM_DBhandler();
 $bmrequests            = new BM_Request();
-$woocommerceservice    = new WooCommerceService();
-$pagenum               = filter_input( INPUT_GET, 'pagenum' );
-$pagenum               = isset( $pagenum ) ? absint( $pagenum ) : 1;
-$limit                 = !empty( $dbhandler->get_global_option_value( 'bm_orders_per_page' ) ) ? $dbhandler->get_global_option_value( 'bm_orders_per_page' ) : 10;
-$offset                = ( ( $pagenum - 1 ) * $limit );
-$i                     = ( 1 + $offset );
-$total                 = 0;
 $user_id               = get_current_user_id();
 $failed_order_option   = $dbhandler->get_global_option_value( "show_backend_order_page_failed_orders_$user_id", 0 );
 $archived_order_option = $dbhandler->get_global_option_value( "show_backend_order_page_archived_orders_$user_id", 0 );
 $booking_data          = $dbhandler->get_all_result( 'BOOKING', '*', 1, 'results' );
-$total                 = $dbhandler->bm_count( 'BOOKING' );
-
-if ( $failed_order_option == 1 ) {
-    $total = $dbhandler->bm_count( 'FAILED_TRANSACTIONS' );
-} elseif ( $archived_order_option == 1 ) {
-    $total = $dbhandler->bm_count( 'BOOKING_ARCHIVE' );
-}
-
-$num_of_pages   = ceil( $total / $limit );
-$pagination     = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmrequests->bm_get_page_url(), 'list' );
-$active_columns = $bmrequests->bm_fetch_active_columns( 'orders' );
-$column_values  = $bmrequests->bm_fetch_column_order_and_names( 'orders' );
-$plugin_path    = plugin_dir_url( __FILE__ );
-
-/**if ( $woocommerceservice->is_enabled() ) {
-    $order_statuses = wc_get_order_statuses();
-} else {
-    $order_statuses = $bmrequests->bm_fetch_order_status_key_value();
-}*/
-
-$order_statuses   = $bmrequests->bm_fetch_order_status_key_value();
-$payment_statuses = $bmrequests->bm_fetch_payment_statuses();
+$plugin_path           = plugin_dir_url( __FILE__ );
+$order_statuses        = $bmrequests->bm_fetch_order_status_key_value();
+$payment_statuses      = $bmrequests->bm_fetch_payment_statuses();
 
 $services = $dbhandler->get_results_with_join(
     array( 'SERVICE', 's' ),
@@ -55,9 +30,13 @@ $services = $dbhandler->get_results_with_join(
     'AND (c.cat_in_front = 1 OR s.service_category = 0)'
 );
 
-$categories = !empty( $services ) ? array_values( array_unique( array_column( $services, 'service_category' ) ) ) : array();
+$categories = ! empty( $services ) ? array_values( array_unique( array_column( $services, 'service_category' ) ) ) : array();
 
 unset( $order_statuses['failed'], $payment_statuses['failed'] );
+
+// WP_List_Table for server-side order rendering.
+$orders_table = new BM_Orders_List_Table();
+$orders_table->prepare_items();
 
 ?>
 
@@ -90,12 +69,14 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
                         <i class="fa fa-search order_listing_search_icon" id="order_listing_search_icon" data-title="<?php esc_html_e( 'Click to search', 'service-booking' ); ?>"></i>
                     </span>
                 </span>
+                <?php if ( $is_pro ) { ?>
                 <a href="javascript:void(0);" class="button button-primary edit_order_columns" title="<?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
                         <i class="fa fa-plus" aria-hidden="true" style="color:#fff;"></i>
                     </span>
                 </a>
+                <?php } ?>
                 <a href="javascript:void(0);" class="button button-primary export_order_records" title="<?php esc_html_e( 'Csv Export', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
@@ -187,70 +168,11 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
 
 									<?php if ( isset( $booking_data ) && !empty( $booking_data ) ) { ?>
         <div class="order_listing-details table-wrapper">
-        <table class="wp-list-table widefat striped booking-table" id="order_listing">
-            <thead>
-                <tr>
-										<?php
-										if ( !empty( $column_values ) ) {
-											foreach ( $column_values as $key => $column ) {
-												if ( isset( $active_columns ) && !in_array( $key, $active_columns ) ) {
-													continue;
-												}
-
-												$skip_sort  = in_array( $column['column'], array( 'actions', 'order_attachments', 'customer_data' ) );
-												$sort_class = '';
-												$sort_dir   = 'asc';
-
-												if ( !$skip_sort ) {
-													$sort_class = 'sortable';
-													if ( isset( $_GET['orderby'] ) && $_GET['orderby'] === $column['column'] ) {
-														$sort_class .= ' sorted';
-														$sort_dir    = isset( $_GET['order'] ) && $_GET['order'] === 'asc' ? 'desc' : 'asc';
-														$sort_class .= ' ' . $_GET['order'];
-													}
-												}
-												?>
-                <th class="<?php echo esc_attr( $sort_class ); ?>" 
-                    style="text-align: center;font-weight: 600;<?php echo !$skip_sort ? 'cursor: pointer;' : ''; ?>"
-												<?php if ( !$skip_sort ) : ?>
-                        data-column="<?php echo esc_attr( $column['column'] ); ?>"
-                        data-order="<?php echo esc_attr( $sort_dir ); ?>"
-                        onclick="bm_sort_orders('<?php echo esc_js( $column['column'] ); ?>', '<?php echo esc_js( $sort_dir ); ?>')"
-                    <?php endif; ?>>
-												<?php echo esc_html( $key ); ?>
-												<?php if ( !$skip_sort && isset( $_GET['orderby'] ) && $_GET['orderby'] === $column['column'] ) : ?>
-                        <span class="sorting-indicator"></span>
-                    <?php endif; ?>
-                </th>
-												<?php
-											}
-										} else {
-											?>
-                        <th width="10%" style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Serial No', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Ordered Service', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Ordered Date', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Service Date', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'First name', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Last name', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Contact number', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Email', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Total Cost', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Customer Data', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Ordered From', 'service-booking' ); ?></th>
-                        <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Order Status', 'service-booking' ); ?></th>
-                        <th width="25%" style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
-											<?php
-										}//end if
-										?>
-                </tr>
-             <thead>
-            <tbody class="order_records"></tbody>
-        </table>
+            <form method="get">
+                <input type="hidden" name="page" value="<?php echo esc_attr( isset( $_REQUEST['page'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['page'] ) ) : '' ); ?>" />
+                <?php $orders_table->display(); ?>
+            </form>
        </div>
-
-        <div id="order_pagination">
-										<?php echo !empty( $pagination ) ? wp_kses_post( $pagination ?? '' ) : ''; ?>
-        </div>
     <?php } else { ?>
         <div class="bm_no_records_message">
             <div class="Pointer">
@@ -262,9 +184,6 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
     ?>
 </div>
 
-<input type="hidden" name="pagenum" id="pagenum" value="<?php echo esc_attr( $pagenum ); ?>" />
-<input type="hidden" name="limit_count" id="limit_count" value="<?php echo esc_attr( $limit ); ?>" />
-<input type="hidden" id="total_pages" value="<?php echo esc_attr( $num_of_pages ); ?>" />
 <input type="hidden" id="user_id" value="<?php echo esc_attr( $user_id ); ?>" />
 
 <div id="customer-dialog" title="<?php esc_html_e( 'Customer Details', 'service-booking' ); ?>" style="display: none;">
@@ -275,6 +194,7 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
     <ul id="attachments-list"></ul>
 </div>
 
+<?php if ( $is_pro ) { ?>
 <div id="order_columns_modal" class="modaloverlay">
     <div class="modal manageorderboxmodal animate__animated animate__flipInX">
         <span class="close" onclick="closeModal('order_columns_modal')">&times;</span>
@@ -288,6 +208,7 @@ unset( $order_statuses['failed'], $payment_statuses['failed'] );
         <div class="column_errortext" style="display :none;"></div>
     </div>
 </div>
+<?php } ?>
 
 <div id="order_export_modal" class="modaloverlay2">
     <div class="modal animate__animated animate__flipInX">

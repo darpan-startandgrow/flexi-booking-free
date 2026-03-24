@@ -703,14 +703,14 @@ class Booking_Management_Admin {
     public function booking_admin_menu() {
 		$is_pro = Booking_Management_Limits::is_pro_active();
 
-		// Main menu page — Dashboard is Pro-only; free users see an overview.
+		// Main menu page — Dashboard.
 		add_menu_page( __( 'FlexiBooking', 'service-booking' ), __( 'FlexiBooking', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ), 'dashicons-groups', 26 );
 
-		// Dashboard: Pro-only full dashboard; free gets upsell.
+		// Dashboard: Available in both free (simple) and pro (advanced).
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
 		} else {
-			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard ★', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
+			add_submenu_page( 'bm_home', __( 'Booking Dashboard', 'service-booking' ), __( 'Dashboard', 'service-booking' ), 'manage_options', 'bm_home', array( $this, 'bm_home' ) );
 		}
 
 		// Analytics: Pro-only.
@@ -723,11 +723,29 @@ class Booking_Management_Admin {
 		// --- FREE menus (always available) ---
 		add_submenu_page( 'bm_home', __( 'Orders', 'service-booking' ), __( 'Orders', 'service-booking' ), 'manage_options', 'bm_all_orders', array( $this, 'bm_all_orders' ) );
 		add_submenu_page( '', __( 'Add Order', 'service-booking' ), __( 'Add Order', 'service-booking' ), 'manage_options', 'bm_add_order', array( $this, 'bm_add_order' ) );
-		add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_service_booking_planner' ) );
+
+		// Service Booking Planner: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_service_booking_planner' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Service Booking Planner', 'service-booking' ), __( 'Service Booking Planner ★', 'service-booking' ), 'manage_options', 'bm_service_booking_planner', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
 		add_submenu_page( '', __( 'Single Order Page', 'service-booking' ), __( 'Single Order Page', 'service-booking' ), 'manage_options', 'bm_single_order', array( $this, 'bm_single_order' ) );
-		add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_single_service_booking_planner' ) );
+
+		// Single Service Booking Planner: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_single_service_booking_planner' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner ★', 'service-booking' ), 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Customers: Available in free (email-only) and pro (full management).
 		add_submenu_page( 'bm_home', __( 'Customers', 'service-booking' ), __( 'Customers', 'service-booking' ), 'manage_options', 'bm_all_customers', array( $this, 'bm_all_customers' ) );
-		add_submenu_page( '', __( 'Add Customer', 'service-booking' ), __( 'Add Customer', 'service-booking' ), 'manage_options', 'bm_add_customer', array( $this, 'bm_add_customer' ) );
+		if ( $is_pro ) {
+			add_submenu_page( '', __( 'Add Customer', 'service-booking' ), __( 'Add Customer', 'service-booking' ), 'manage_options', 'bm_add_customer', array( $this, 'bm_add_customer' ) );
+		}
+
 		add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
 		add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
@@ -751,12 +769,8 @@ class Booking_Management_Admin {
 			add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// Fields: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields ★', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Fields: Available in free (default billing form only) and pro (advanced).
+		add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
 
 		// Price Modules: Pro-only.
 		if ( $is_pro ) {
@@ -776,48 +790,39 @@ class Booking_Management_Admin {
 			add_submenu_page( '', __( 'Add Process', 'service-booking' ), __( 'Add Process', 'service-booking' ), 'manage_options', 'bm_add_notification_process', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// Email Records: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records ★', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Email Records: Available in free (read-only listing) and pro (full with resend).
+		add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
 
-		// Vouchers: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers ★', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Vouchers: Available in free (listing only) and pro (full management + redemption).
+		add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
 
-		// Check ins: Pro-only.
-		if ( $is_pro ) {
-			add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins ★', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_pro_upsell_page' ) );
-		}
+		// Check ins: Available in free (manual only) and pro (scanner + resend).
+		add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
 
-		// PDF Customization: Pro-only.
+		// PDF Customization: Pro-only (free gets default non-customizable templates).
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'PDF Customization', 'service-booking' ), __( 'PDF Customization', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pdf_customization' ) );
 		} else {
-			add_submenu_page( 'bm_home', __( 'PDF Customization', 'service-booking' ), __( 'PDF Customization ★', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pro_upsell_page' ) );
+			add_submenu_page( 'bm_home', __( 'PDF Templates', 'service-booking' ), __( 'PDF Templates', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pdf_templates_page' ) );
 		}
 
-		// Email Logs and Payment Logs — free menus.
+		// Email Logs — available in free version.
 		add_submenu_page( 'bm_home', __( 'Email Logs', 'service-booking' ), __( 'Email Logs', 'service-booking' ), 'manage_options', 'bm_email_logs', array( $this, 'bm_email_logs' ) );
-		add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_payment_logs' ) );
 
-		// Coupons: Pro-only.
+		// Payment Logs: Pro-only.
+		if ( $is_pro ) {
+			add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_payment_logs' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs ★', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_pro_upsell_page' ) );
+		}
+
+		// Coupons: Pro-only — completely removed from free version.
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_all_coupons' ) );
 			add_submenu_page( '', __( 'Add Coupon', 'service-booking' ), __( 'Add Coupon', 'service-booking' ), 'manage_options', 'bm_add_coupon', array( $this, 'bm_add_coupon' ) );
-		} else {
-			add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons ★', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_pro_upsell_page' ) );
-			add_submenu_page( '', __( 'Add Coupon', 'service-booking' ), __( 'Add Coupon', 'service-booking' ), 'manage_options', 'bm_add_coupon', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// --- Global Settings (free) ---
+		// --- Global Settings ---
 		add_submenu_page( 'bm_home', __( 'Global Settings', 'service-booking' ), __( 'Global Settings', 'service-booking' ), 'manage_options', 'bm_global', array( $this, 'bm_global' ) );
 		add_submenu_page( '', __( 'Global General Settings', 'service-booking' ), __( 'Global General Settings', 'service-booking' ), 'manage_options', 'bm_global_general_settings', array( $this, 'bm_global_general_settings' ) );
 		add_submenu_page( '', __( 'Service and Booking Settings', 'service-booking' ), __( 'Service and Booking Settings', 'service-booking' ), 'manage_options', 'bm_svc_booking_settings', array( $this, 'bm_svc_booking_settings' ) );
@@ -827,17 +832,17 @@ class Booking_Management_Admin {
 		add_submenu_page( '', __( 'Language Settings', 'service-booking' ), __( 'Language Settings', 'service-booking' ), 'manage_options', 'bm_global_language_settings', array( $this, 'bm_global_language_settings' ) );
 		add_submenu_page( '', __( 'Format Settings', 'service-booking' ), __( 'Format Settings', 'service-booking' ), 'manage_options', 'bm_global_format_settings', array( $this, 'bm_global_format_settings' ) );
 
-		// Pro-only settings pages (hidden).
+		// Mail settings available in free (basic, no SMTP).
+		add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_global_email_settings' ) );
+		add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_upload_settings' ) );
+
+		// Pro-only settings pages.
 		if ( $is_pro ) {
-			add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_global_email_settings' ) );
 			add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_global_payment_settings' ) );
-			add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_upload_settings' ) );
 			add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_global_integration_settings' ) );
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_global_coupon_settings' ) );
 		} else {
-			add_submenu_page( '', __( 'Global Email Settings', 'service-booking' ), __( 'Global Email Settings', 'service-booking' ), 'manage_options', 'bm_global_email_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Global Payment Settings', 'service-booking' ), __( 'Global Payment Settings', 'service-booking' ), 'manage_options', 'bm_global_payment_settings', array( $this, 'bm_pro_upsell_page' ) );
-			add_submenu_page( '', __( 'Upload Settings', 'service-booking' ), __( 'Upload Settings', 'service-booking' ), 'manage_options', 'bm_upload_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Integration Settings', 'service-booking' ), __( 'Integration Settings', 'service-booking' ), 'manage_options', 'bm_global_integration_settings', array( $this, 'bm_pro_upsell_page' ) );
 			add_submenu_page( '', __( 'Coupon Settings', 'service-booking' ), __( 'Coupon Settings', 'service-booking' ), 'manage_options', 'bm_global_coupon_settings', array( $this, 'bm_pro_upsell_page' ) );
 		}
@@ -866,13 +871,20 @@ class Booking_Management_Admin {
 
 
 	public function bm_home() {
-		$this->bm_pro_upsell_page();
+		include 'partials/booking-management-dashboard.php';
 	}//end bm_home()
 
     // Display analytics page
     public function bm_booking_analytics() {
         $this->bm_pro_upsell_page();
     }
+
+	/**
+	 * PDF Templates page for free version — non-customizable defaults.
+	 */
+	public function bm_pdf_templates_page() {
+		include 'partials/booking-management-pdf-templates-free.php';
+	}
 
 
 	public function bm_all_orders() {
@@ -952,7 +964,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_voucher_records() {
-		$this->bm_pro_upsell_page();
+		include plugin_dir_path( __FILE__ ) . 'partials/booking-management-voucher-records.php';
 	}//end bm_voucher_records()
 
 
@@ -1498,9 +1510,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$ids     = isset( $post['ids'] ) ? $post['ids'] : array();
 
 			if ( ! empty( $ids ) && $total_service_records > 0 ) {
@@ -1646,9 +1658,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			do_action( 'bm_flexibooking_service_id_before_service_removal', $id );
@@ -1770,9 +1782,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$language   = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 			$name_field = $language == 'it' ? 'tmpl_name_it' : 'tmpl_name_en';
@@ -1820,9 +1832,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
 			$num_of_pages               = isset( $limit ) ? ceil( $total_price_module_records / $limit ) : 1;
@@ -1860,9 +1872,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_processes_records        = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
 			$num_of_pages                   = isset( $limit ) ? ceil( $total_processes_records / $limit ) : 1;
@@ -1908,9 +1920,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			$language = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
@@ -2081,9 +2093,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			$process = $dbhandler->get_row( 'EVENTNOTIFICATION', $id );
@@ -2139,9 +2151,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$ids     = isset( $post['ids'] ) ? $post['ids'] : array();
 
 			do_action( 'bm_flexibooking_before_category_sort', $ids, $total_category_records );
@@ -2231,6 +2243,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_change_customer_visibility() {
+		if ( ! Booking_Management_Limits::can_create_customer() ) {
+			wp_send_json_error( __( 'Customer management is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2287,9 +2304,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id           = isset( $post['id'] ) ? $post['id'] : 0;
 			$service_rows = $dbhandler->get_all_result( 'SERVICE', '*', array( 'service_category' => $id ), 'results' );
 
@@ -2376,9 +2393,9 @@ class Booking_Management_Admin {
 
 		if ( $post != false && $post != null ) {
 			$base    = isset( $post['base'] ) ? $post['base'] : '';
-			$limit   = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit   = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset  = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
 			$service_linked = $dbhandler->get_all_result( 'SERVICE', '*', array( 'external_price_module' => $id ), 'results' );
@@ -2462,6 +2479,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_serice_stopsales() {
+		if ( ! Booking_Management_Limits::can_use_stop_sales() ) {
+			wp_send_json_error( esc_html__( 'Stop-sales is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2497,6 +2518,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_service_saleswitch() {
+		if ( ! Booking_Management_Limits::can_use_saleswitch() ) {
+			wp_send_json_error( esc_html__( 'Saleswitch is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2532,6 +2557,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_service_max_cap() {
+		if ( ! Booking_Management_Limits::can_edit_max_capacity() ) {
+			wp_send_json_error( esc_html__( 'Max capacity management is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2567,6 +2596,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_service_time_slots() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2600,6 +2633,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_get_specific_time_slot() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2739,6 +2776,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_remove_variable_time_slot() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -2825,6 +2866,17 @@ class Booking_Management_Admin {
 		$data      = array( 'status' => '' );
 
 		if ( $id != false && $id != null ) {
+			// In free version, check if this is a default field that cannot be deleted.
+			if ( ! Booking_Management_Limits::is_pro_active() ) {
+				$field = $dbhandler->get_row( 'FIELDS', $id, 'id' );
+				if ( $field && ! empty( $field->field_name ) && ! Booking_Management_Limits::can_delete_field( $field->field_name ) ) {
+					$data['status'] = 'error';
+					$data['message'] = esc_html__( 'Default fields cannot be deleted in the free version. Upgrade to Pro for full field management.', 'service-booking' );
+					echo wp_json_encode( $data );
+					die;
+				}
+			}
+
 			$field_deleted = $dbhandler->remove_row( 'FIELDS', 'id', $id, '%d' );
 			$fields        = $dbhandler->get_all_result( 'FIELDS', '*', 1, 'results' );
 
@@ -3715,6 +3767,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_serice_stopsales() {
+		if ( ! Booking_Management_Limits::can_use_stop_sales() ) {
+			wp_send_json_error( esc_html__( 'Stop-sales is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -3848,6 +3904,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_service_saleswitch() {
+		if ( ! Booking_Management_Limits::can_use_saleswitch() ) {
+			wp_send_json_error( esc_html__( 'Saleswitch is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -3981,6 +4041,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_bulk_serice_stopsales() {
+		if ( ! Booking_Management_Limits::can_use_stop_sales() ) {
+			wp_send_json_error( esc_html__( 'Stop-sales is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4140,6 +4204,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_bulk_service_saleswitch() {
+		if ( ! Booking_Management_Limits::can_use_saleswitch() ) {
+			wp_send_json_error( esc_html__( 'Saleswitch is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4299,6 +4367,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_serice_max_cap() {
+		if ( ! Booking_Management_Limits::can_edit_max_capacity() ) {
+			wp_send_json_error( esc_html__( 'Max capacity management is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4420,6 +4492,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_bulk_serice_max_cap() {
+		if ( ! Booking_Management_Limits::can_edit_max_capacity() ) {
+			wp_send_json_error( esc_html__( 'Max capacity management is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -4563,6 +4639,10 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_set_variable_time_slot() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( esc_html__( 'Variable time slots is a Pro feature.', 'service-booking' ) );
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -5726,6 +5806,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_fetch_columns_screen_options() {
+		if ( ! Booking_Management_Limits::can_manage_columns() ) {
+			wp_send_json_error( __( 'Manage Columns is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -5754,6 +5839,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_save_columns_screen_options() {
+		if ( ! Booking_Management_Limits::can_manage_columns() ) {
+			wp_send_json_error( __( 'Manage Columns is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -5857,9 +5947,9 @@ class Booking_Management_Admin {
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$order_source = isset( $post['order_source'] ) ? sanitize_text_field( $post['order_source'] ) : '';
@@ -6132,9 +6222,9 @@ class Booking_Management_Admin {
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$order_source = isset( $post['order_source'] ) ? sanitize_text_field( $post['order_source'] ) : '';
@@ -6408,9 +6498,9 @@ class Booking_Management_Admin {
 			$service_ids  = isset( $post['service_ids'] ) ? array_map( 'intval', (array) $post['service_ids'] ) : array();
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 			$all_checkins = $bmrequests->bm_fetch_all_order_checkins();
 
@@ -6612,9 +6702,9 @@ class Booking_Management_Admin {
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$order_source = isset( $post['order_source'] ) ? sanitize_text_field( $post['order_source'] ) : '';
@@ -7717,9 +7807,9 @@ class Booking_Management_Admin {
 			$order_from   = isset( $post['order_from'] ) ? $post['order_from'] : '';
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 			$bookings     = $dbhandler->get_all_result( 'BOOKING', '*', 1, 'results', 0, false, 'booking_date', 'DESC' );
 			$dbhandler->update_global_option_value( 'bm_backend_dashboard_global_search_field', $search_term );
@@ -7917,9 +8007,9 @@ class Booking_Management_Admin {
 			$order_from   = isset( $post['order_from'] ) ? $post['order_from'] : '';
 			$order_to     = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$user_id      = get_current_user_id();
 
 			$additional = "AND booking_date >= '$current_date'";
@@ -8060,9 +8150,9 @@ class Booking_Management_Admin {
 			$service_from = isset( $post['service_from'] ) ? $post['service_from'] : '';
 			$service_to   = isset( $post['service_to'] ) ? $post['service_to'] : '';
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$bookings     = array();
 
 			if ( ! empty( $service_from ) && ! empty( $service_to ) ) {
@@ -8135,9 +8225,9 @@ class Booking_Management_Admin {
 			$type         = isset( $post['type'] ) ? $post['type'] : '';
 			$category_ids = isset( $post['categories'] ) ? $post['categories'] : array();
 			$base         = isset( $post['base'] ) ? $post['base'] : '';
-			$limit        = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit        = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum      = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset       = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset       = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$bookings     = array();
 			$additional   = '';
 
@@ -8224,9 +8314,9 @@ class Booking_Management_Admin {
 			$type        = isset( $post['type'] ) ? $post['type'] : '';
 			$services    = isset( $post['services'] ) ? $post['services'] : array();
 			$base        = isset( $post['base'] ) ? $post['base'] : '';
-			$limit       = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit       = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum     = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset      = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset      = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$additional  = "AND order_status not in('processing','pending', 'on_hold')";
 			$bookings    = $dbhandler->get_all_result( 'BOOKING', '*', array( 'is_active' => 1 ), 'results', 0, false, 'id', 'DESC', $additional );
 			$result      = array();
@@ -8315,9 +8405,9 @@ class Booking_Management_Admin {
 			$order_from    = isset( $post['order_from'] ) ? $post['order_from'] : '';
 			$order_to      = isset( $post['order_to'] ) ? $post['order_to'] : '';
 			$base          = isset( $post['base'] ) ? $post['base'] : '';
-			$limit         = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit         = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum       = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset        = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset        = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$additional    = "AND order_status not in('processing','pending', 'on_hold')";
 			$bookings      = $dbhandler->get_all_result( 'BOOKING', '*', array( 'is_active' => 1 ), 'results', 0, false, 'id', 'DESC', $additional );
 			$ordered_dates = array();
@@ -8422,9 +8512,9 @@ class Booking_Management_Admin {
 			$type          = isset( $post['type'] ) ? $post['type'] : '';
 			$search_string = isset( $post['search_string'] ) ? $post['search_string'] : '';
 			$base          = isset( $post['base'] ) ? $post['base'] : '';
-			$limit         = isset( $post['limit'] ) ? $post['limit'] : false;
+			$limit         = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$pagenum       = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
-			$offset        = isset( $post['limit'] ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
+			$offset        = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$additional    = "AND order_status not in('processing','pending', 'on_hold')";
 			$bookings      = $dbhandler->get_all_result( 'BOOKING', '*', array( 'is_active' => 1 ), 'results', 0, false, 'id', 'DESC', $additional );
 			$customer_ids  = array();
@@ -12304,6 +12394,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_cancel_book_on_request_order() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( __( 'Book on Request is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -12340,6 +12435,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_approve_book_on_request_order() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( __( 'Book on Request is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -15744,7 +15844,7 @@ class Booking_Management_Admin {
 			$type       = isset( $post['type'] ) ? $post['type'] : '';
 			$start_page = isset( $post['start_page'] ) ? $post['start_page'] : 0;
 			$end_page   = isset( $post['end_page'] ) ? $post['end_page'] : 0;
-			$limit      = isset( $post['limit'] ) ? $post['limit'] : 0;
+			$limit      = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 			$user_id    = get_current_user_id();
 
 			$order_column = isset( $post['order_column'] ) ? $post['order_column'] : 'id';
@@ -15947,7 +16047,7 @@ class Booking_Management_Admin {
 			$type       = isset( $post['type'] ) ? $post['type'] : '';
 			$start_page = isset( $post['start_page'] ) ? $post['start_page'] : 0;
 			$end_page   = isset( $post['end_page'] ) ? $post['end_page'] : 0;
-			$limit      = isset( $post['limit'] ) ? $post['limit'] : 0;
+			$limit      = isset( $post['limit'] ) ? absint( $post['limit'] ) : 0;
 
 			$order_column = isset( $post['order_column'] ) ? $post['order_column'] : 'id';
 			$order_dir    = isset( $post['order_dir'] ) ? $post['order_dir'] : 'DESC';

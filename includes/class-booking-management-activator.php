@@ -145,9 +145,23 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
+		$table_name = $this->get_db_table_name( 'BILLING_FORMS' );
+		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`form_name` varchar(255) NOT NULL,
+		`form_description` varchar(500) DEFAULT NULL,
+		`is_default` int(11) NOT NULL DEFAULT 0,
+		`is_active` int(11) NOT NULL DEFAULT 1,
+		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		`updated_at` datetime DEFAULT NULL,
+		PRIMARY KEY (`id`)
+		)$charset_collate;";
+		dbDelta( $sql );
+
 		$table_name = $this->get_db_table_name( 'FIELDS' );
 		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
         `id` int(11) NOT NULL AUTO_INCREMENT,
+		`form_id` int(11) NOT NULL DEFAULT 1,
 		`field_type` varchar(255) NOT NULL,
 		`field_label` varchar(255) NOT NULL,
         `field_name` varchar(255) NOT NULL,
@@ -155,11 +169,13 @@ class Booking_Management_Activator {
         `field_options` longtext DEFAULT NULL,
         `is_required` int(11) DEFAULT NULL,
         `is_editable` int(11) DEFAULT NULL,
+		`visible` int(11) NOT NULL DEFAULT 1,
         `ordering` int(11) NOT NULL,
 		`woocommerce_field` varchar(255) DEFAULT NULL,
         `field_key` varchar(255) NOT NULL,
 		`field_position` int(11) NOT NULL DEFAULT '0',
-        PRIMARY KEY (`id`)
+        PRIMARY KEY (`id`),
+		KEY `idx_fields_form_id` (`form_id`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -559,6 +575,9 @@ class Booking_Management_Activator {
 			case 'FIELDS':
 				$table_name = $plugin_prefix . 'fields';
 				break;
+			case 'BILLING_FORMS':
+				$table_name = $plugin_prefix . 'billing_forms';
+				break;
 			case 'TIME':
 				$table_name = $plugin_prefix . 'time_slots';
 				break;
@@ -645,6 +664,9 @@ class Booking_Management_Activator {
 				$unique_field_name = 'id';
 				break;
 			case 'FIELDS':
+				$unique_field_name = 'id';
+				break;
+			case 'BILLING_FORMS':
 				$unique_field_name = 'id';
 				break;
 			case 'TIME':
@@ -1786,9 +1808,57 @@ class Booking_Management_Activator {
 		$is_created = $dbhandler->get_global_option_value( 'bm_booking_form_fields_created', '0' );
 		$resutls    = $dbhandler->get_all_result( 'FIELDS', '*', 1, 'results' );
 		if ( $is_created == '0' || empty( $resutls ) ) {
+			$this->create_default_billing_form();
 			$bmrequest->bm_create_default_booking_form_fields();
 		}
+		$this->add_form_id_and_visible_columns();
 	} //end create_default_form_fields()
+
+
+	/**
+	 * Create the default billing form on activation.
+	 */
+	private function create_default_billing_form() {
+		global $wpdb;
+		$table_name = $this->get_db_table_name( 'BILLING_FORMS' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
+		$exists     = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE is_default = %d", 1 ) );
+		if ( empty( $exists ) || intval( $exists ) === 0 ) {
+			$wpdb->insert(
+				$table_name,
+				array(
+					'form_name'        => 'Billing Form',
+					'form_description' => 'Default billing form with essential checkout fields.',
+					'is_default'       => 1,
+					'is_active'        => 1,
+				),
+				array( '%s', '%s', '%d', '%d' )
+			);
+		}
+	}
+
+	/**
+	 * Add form_id and visible columns to existing FIELDS table if missing.
+	 */
+	private function add_form_id_and_visible_columns() {
+		global $wpdb;
+		// Table name from get_db_table_name() is hardcoded — not user input.
+		$table_name = $this->get_db_table_name( 'FIELDS' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+		$columns    = $wpdb->get_col( "DESCRIBE {$table_name}", 0 );
+
+		if ( ! in_array( 'form_id', $columns, true ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+			$wpdb->query( "ALTER TABLE {$table_name} ADD `form_id` int(11) NOT NULL DEFAULT 1 AFTER `id`" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+			$wpdb->query( "ALTER TABLE {$table_name} ADD KEY `idx_fields_form_id` (`form_id`)" );
+		}
+
+		if ( ! in_array( 'visible', $columns, true ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
+			$wpdb->query( "ALTER TABLE {$table_name} ADD `visible` int(11) NOT NULL DEFAULT 1 AFTER `is_editable`" );
+		}
+	}
 
 
 	public function create_default_email_templates() {

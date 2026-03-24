@@ -236,7 +236,9 @@ class Booking_Management_Public {
 		}
 
 		wp_deregister_script( 'wc-checkout-block' );
-		wp_enqueue_script( 'custom-wc-checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-woo-coupon.js', array( 'wp-element', 'wp-i18n', 'wp-hooks', 'wp-data', 'wc-settings' ), time(), true );
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			wp_enqueue_script( 'custom-wc-checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-woo-coupon.js', array( 'wp-element', 'wp-i18n', 'wp-hooks', 'wp-data', 'wc-settings' ), time(), true );
+		}
 
 		if ( ! empty( $post_id ) && $original_title == 'Flexibooking Voucher Redeem' && Booking_Management_Limits::is_pro_active() ) {
 			wp_enqueue_script( 'voucher-redeem', plugin_dir_url( __FILE__ ) . 'js/booking-management-redeem-voucher.js', array( 'jquery' ), $this->version, true );
@@ -1328,7 +1330,11 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_voucher_redeem_page() {
-			ob_start();
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			return '<p>' . esc_html__( 'Voucher redemption is available in the Pro version.', 'service-booking' ) . '</p>';
+		}
+
+		ob_start();
 		include_once 'partials/booking-management-voucher-redeem.php';
 		$content = ob_get_contents();
 		ob_end_clean();
@@ -4954,7 +4960,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_check_if_valid_voucher() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			wp_send_json_error( __( 'Voucher redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );
@@ -4997,7 +5008,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_get_valid_available_voucher_timeslots() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			wp_send_json_error( __( 'Voucher redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );
@@ -5060,7 +5076,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_get_confirm_and_redeem_voucher() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
+			wp_send_json_error( __( 'Voucher redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );
@@ -6743,7 +6764,12 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_coupon_page() {
-			$dbhandler   = new BM_DBhandler();
+		// Coupons are a Pro-only feature.
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			return '';
+		}
+
+		$dbhandler   = new BM_DBhandler();
 		$global_inactive = $dbhandler->get_global_option_value( 'bm_inactive_coupons', '0' );
 
 		$bmrequests         = new BM_Request();

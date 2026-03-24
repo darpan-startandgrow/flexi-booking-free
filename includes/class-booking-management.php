@@ -128,6 +128,19 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-booking-management-admin.php';
 
 		/**
+		 * WP_List_Table implementations for admin listing pages.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-orders-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-services-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-categories-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-customers-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-vouchers-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-email-templates-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-checkins-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-pdf-templates-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-email-records-list-table.php';
+
+		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
@@ -251,19 +264,24 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_get_service_prices', $plugin_admin, 'bm_get_service_prices' );
 		$this->loader->add_action( 'wp_ajax_bm_set_serice_price', $plugin_admin, 'bm_set_serice_price' );
 		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price', $plugin_admin, 'bm_set_bulk_serice_price' );
-		$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
-		$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
-		$this->loader->add_action( 'wp_ajax_bm_set_service_saleswitch', $plugin_admin, 'bm_set_service_saleswitch' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_stopsales', $plugin_admin, 'bm_set_bulk_serice_stopsales' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_service_saleswitch', $plugin_admin, 'bm_set_bulk_service_saleswitch' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_max_cap', $plugin_admin, 'bm_get_service_max_cap' );
-		$this->loader->add_action( 'wp_ajax_bm_set_serice_max_cap', $plugin_admin, 'bm_set_serice_max_cap' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_max_cap', $plugin_admin, 'bm_set_bulk_serice_max_cap' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_time_slots', $plugin_admin, 'bm_get_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_bm_get_specific_time_slot', $plugin_admin, 'bm_get_specific_time_slot' );
-		$this->loader->add_action( 'wp_ajax_bm_set_variable_time_slot', $plugin_admin, 'bm_set_variable_time_slot' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_variable_time_slot', $plugin_admin, 'bm_remove_variable_time_slot' );
+
+		// Pro-only service management AJAX hooks: stopsales, saleswitch, max capacity, variable time slots.
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
+			$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
+			$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
+			$this->loader->add_action( 'wp_ajax_bm_set_service_saleswitch', $plugin_admin, 'bm_set_service_saleswitch' );
+			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_stopsales', $plugin_admin, 'bm_set_bulk_serice_stopsales' );
+			$this->loader->add_action( 'wp_ajax_bm_set_bulk_service_saleswitch', $plugin_admin, 'bm_set_bulk_service_saleswitch' );
+			$this->loader->add_action( 'wp_ajax_bm_get_service_max_cap', $plugin_admin, 'bm_get_service_max_cap' );
+			$this->loader->add_action( 'wp_ajax_bm_set_serice_max_cap', $plugin_admin, 'bm_set_serice_max_cap' );
+			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_max_cap', $plugin_admin, 'bm_set_bulk_serice_max_cap' );
+			$this->loader->add_action( 'wp_ajax_bm_get_service_time_slots', $plugin_admin, 'bm_get_service_time_slots' );
+			$this->loader->add_action( 'wp_ajax_bm_get_specific_time_slot', $plugin_admin, 'bm_get_specific_time_slot' );
+			$this->loader->add_action( 'wp_ajax_bm_set_variable_time_slot', $plugin_admin, 'bm_set_variable_time_slot' );
+			$this->loader->add_action( 'wp_ajax_bm_remove_variable_time_slot', $plugin_admin, 'bm_remove_variable_time_slot' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_bm_save_field_and_setting', $plugin_admin, 'bm_save_field_and_setting' );
 		$this->loader->add_action( 'wp_ajax_bm_get_all_field_labels', $plugin_admin, 'bm_get_all_field_labels' );
 		$this->loader->add_action( 'wp_ajax_bm_get_field_settings', $plugin_admin, 'bm_get_field_settings' );
@@ -294,8 +312,13 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_price_for_backend_order', $plugin_admin, 'bm_fetch_service_price_for_backend_order' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status_to_complete_or_cancelled', $plugin_admin, 'bm_change_order_status_to_complete_or_cancelled' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status', $plugin_admin, 'bm_change_order_status' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_columns_screen_options', $plugin_admin, 'bm_fetch_columns_screen_options' );
-		$this->loader->add_action( 'wp_ajax_bm_save_columns_screen_options', $plugin_admin, 'bm_save_columns_screen_options' );
+
+		// Manage Columns — Pro only.
+		if ( Booking_Management_Limits::can_manage_columns() ) {
+			$this->loader->add_action( 'wp_ajax_bm_fetch_columns_screen_options', $plugin_admin, 'bm_fetch_columns_screen_options' );
+			$this->loader->add_action( 'wp_ajax_bm_save_columns_screen_options', $plugin_admin, 'bm_save_columns_screen_options' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_bm_fetch_order_as_per_search', $plugin_admin, 'bm_fetch_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_archived_order_as_per_search', $plugin_admin, 'bm_fetch_archived_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_failed_order_as_per_search', $plugin_admin, 'bm_fetch_failed_order_as_per_search' );
@@ -318,7 +341,12 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_change_service_visibility', $plugin_admin, 'bm_change_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
+
+		// Customer visibility toggle — Pro only (free shows read-only listing).
+		if ( Booking_Management_Limits::can_create_customer() ) {
+			$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
+		}
+
 		$this->loader->add_filter( 'flexibooking_cancel_booking', $plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_completed', $plugin_admin, 'bm_flexibooking_update_status_as_completed', 10, 1 );
@@ -332,8 +360,13 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_remove_process', $plugin_admin, 'bm_remove_notification_process' );
 		$this->loader->add_action( 'wp_ajax_bm_change_process_visibility', $plugin_admin, 'bm_change_notification_process_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_template_visibility', $plugin_admin, 'bm_change_email_template_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_cancel_bor_order', $plugin_admin, 'bm_cancel_book_on_request_order' );
-		$this->loader->add_action( 'wp_ajax_bm_approve_bor_order', $plugin_admin, 'bm_approve_book_on_request_order' );
+
+		// Book-on-request AJAX — Pro only (free version is direct booking only).
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$this->loader->add_action( 'wp_ajax_bm_cancel_bor_order', $plugin_admin, 'bm_cancel_book_on_request_order' );
+			$this->loader->add_action( 'wp_ajax_bm_approve_bor_order', $plugin_admin, 'bm_approve_book_on_request_order' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_bm_update_transaction', $plugin_admin, 'bm_update_order_transaction' );
 		$this->loader->add_action( 'wp_ajax_bm_save_order_transaction', $plugin_admin, 'bm_save_order_transaction' );
 		$this->loader->add_action( 'flexibooking_set_process_approved_order', $plugin_admin, 'bm_flexibooking_set_process_approved_order_callback', 10, 1 );
@@ -460,12 +493,17 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_checkout_options', $plugin_public, 'bm_fetch_available_checkout_options' );
 		$this->loader->add_action( 'wp_ajax_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
-		$this->loader->add_action( 'wp_ajax_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-		$this->loader->add_action( 'wp_ajax_nopriv_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-		$this->loader->add_action( 'wp_ajax_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-		$this->loader->add_action( 'wp_ajax_nopriv_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-		$this->loader->add_action( 'wp_ajax_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
-		$this->loader->add_action( 'wp_ajax_nopriv_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
+
+		// Voucher redemption AJAX hooks — Pro only.
+		if ( Booking_Management_Limits::can_redeem_voucher() ) {
+			$this->loader->add_action( 'wp_ajax_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
+			$this->loader->add_action( 'wp_ajax_nopriv_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
+			$this->loader->add_action( 'wp_ajax_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
+			$this->loader->add_action( 'wp_ajax_nopriv_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
+			$this->loader->add_action( 'wp_ajax_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
+			$this->loader->add_action( 'wp_ajax_nopriv_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
+		}
+
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_public, 'bm_fetch_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_get_states', $plugin_public, 'bm_fetch_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_bm_filter_fullcalendar_events', $plugin_public, 'bm_filter_fullcalendar_events_callback' );

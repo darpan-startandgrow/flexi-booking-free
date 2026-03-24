@@ -41,6 +41,44 @@ class Booking_Management_Limits {
 	const FREE_MAIL_TEMPLATE_TYPES = array( 'booking_confirmed', 'booking_cancelled' );
 
 	/**
+	 * Maximum number of gift orders in the free version.
+	 */
+	const FREE_GIFT_ORDER_LIMIT = 20;
+
+	/**
+	 * Default billing form fields for the free version.
+	 */
+	const FREE_DEFAULT_FIELD_NAMES = array(
+		'billing_first_name',
+		'billing_last_name',
+		'billing_email',
+		'billing_contact',
+		'billing_address',
+		'billing_state',
+		'billing_country',
+		'customer_order_note',
+	);
+
+	/**
+	 * Hardcoded order listing columns for the free version.
+	 */
+	const FREE_ORDER_COLUMNS = array(
+		'order_id',
+		'service_name',
+		'booking_created_at',
+		'booking_date',
+		'first_name',
+		'email',
+		'service_cost',
+		'extra_svc_cost',
+		'disount_amount',
+		'total_cost',
+		'order_status',
+		'payment_status',
+		'actions',
+	);
+
+	/**
 	 * Check if the Pro add-on is currently active.
 	 *
 	 * The Pro plugin hooks into this filter and returns true.
@@ -97,6 +135,34 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_add_custom_field() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if a default field can be deleted.
+	 *
+	 * Free version: default fields cannot be deleted.
+	 * Pro version: all fields can be deleted.
+	 *
+	 * @param string $field_name The field name to check.
+	 * @return bool
+	 */
+	public static function can_delete_field( $field_name = '' ) {
+		if ( self::is_pro_active() ) {
+			return true;
+		}
+		return ! in_array( $field_name, self::FREE_DEFAULT_FIELD_NAMES, true );
+	}
+
+	/**
+	 * Check if new forms can be created.
+	 *
+	 * Free version: only the default billing form is available.
+	 * Pro version: unlimited forms.
+	 *
+	 * @return bool
+	 */
+	public static function can_create_form() {
 		return self::is_pro_active();
 	}
 
@@ -218,7 +284,7 @@ class Booking_Management_Limits {
 	/**
 	 * Check if the custom Booking Coupons system is available.
 	 *
-	 * Free version: standard WooCommerce coupons only.
+	 * Free version: coupons are completely removed.
 	 * Pro version: custom Booking Coupons system.
 	 *
 	 * @return bool
@@ -276,6 +342,150 @@ class Booking_Management_Limits {
 	}
 
 	/**
+	 * Check if Stop-Sales feature is available.
+	 *
+	 * Free version: not available.
+	 * Pro version: full stop-sales functionality.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_stop_sales() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if Saleswitch feature is available.
+	 *
+	 * Free version: not available.
+	 * Pro version: full saleswitch functionality.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_saleswitch() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if Max Capacity management is available.
+	 *
+	 * Free version: not available.
+	 * Pro version: configurable max capacity per service.
+	 *
+	 * @return bool
+	 */
+	public static function can_edit_max_capacity() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if Age Settings (age-based pricing) is available.
+	 *
+	 * Free version: not available.
+	 * Pro version: age-based pricing rules.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_age_settings() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if new customers can be created from admin.
+	 *
+	 * Free version: customer creation is blocked, only email listing.
+	 * Pro version: full customer management.
+	 *
+	 * @return bool
+	 */
+	public static function can_create_customer() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if emails can be resent.
+	 *
+	 * Free version: no resend button.
+	 * Pro version: full email resend capability.
+	 *
+	 * @return bool
+	 */
+	public static function can_resend_email() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if ticket scanning is available.
+	 *
+	 * Free version: manual check-in only.
+	 * Pro version: ticket scanner + resend ticket.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_ticket_scanner() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if tickets can be resent.
+	 *
+	 * Free version: no resend ticket button.
+	 * Pro version: resend ticket capability.
+	 *
+	 * @return bool
+	 */
+	public static function can_resend_ticket() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if payment logs are available.
+	 *
+	 * Free version: payment logs not available.
+	 * Pro version: full payment logging.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_payment_logs() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if SMTP settings are available.
+	 *
+	 * Free version: basic mail settings only (no SMTP).
+	 * Pro version: full SMTP configuration.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_smtp() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if the advanced dashboard is available.
+	 *
+	 * Free version: simple dashboard with basic metrics.
+	 * Pro version: full analytics dashboard.
+	 *
+	 * @return bool
+	 */
+	public static function can_use_advanced_dashboard() {
+		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if voucher redemption is available.
+	 *
+	 * Free version: voucher listing only.
+	 * Pro version: full voucher redemption.
+	 *
+	 * @return bool
+	 */
+	public static function can_redeem_voucher() {
+		return self::is_pro_active();
+	}
+
+	/**
 	 * Get the upsell URL for the Pro version.
 	 *
 	 * @return string
@@ -311,9 +521,19 @@ class Booking_Management_Limits {
 			'qr_scanning'            => __( 'QR code scanning is a Pro feature. Manual check-ins are available in the free version.', 'service-booking' ),
 			'pdf_customizer'         => __( 'The PDF customization builder is a Pro feature. Standard PDF templates are available in the free version.', 'service-booking' ),
 			'price_modules'          => __( 'Price Modules (Dynamic/Conditional Pricing) are a Pro feature. Standard WooCommerce pricing is available.', 'service-booking' ),
-			'coupons'                => __( 'The Booking Coupons system is a Pro feature. Standard WooCommerce coupons are available.', 'service-booking' ),
+			'coupons'                => __( 'The Booking Coupons system is a Pro feature. Upgrade to Pro for coupon support.', 'service-booking' ),
 			'analytics'              => __( 'The full Analytics page is a Pro feature. A basic dashboard overview is available in the free version.', 'service-booking' ),
 			'manage_columns'         => __( 'Column visibility management is a Pro feature.', 'service-booking' ),
+			'stop_sales'             => __( 'Stop-Sales is a Pro feature. Upgrade to Pro to stop sales for specific services.', 'service-booking' ),
+			'saleswitch'             => __( 'Saleswitch is a Pro feature. Upgrade to Pro to switch between sales modes.', 'service-booking' ),
+			'max_capacity'           => __( 'Max Capacity management is a Pro feature. Upgrade to Pro for capacity control.', 'service-booking' ),
+			'age_settings'           => __( 'Age-based pricing is a Pro feature. Upgrade to Pro for age settings.', 'service-booking' ),
+			'customer_creation'      => __( 'Customer creation is a Pro feature. The free version shows customer email listings only.', 'service-booking' ),
+			'email_resend'           => __( 'Email resend is a Pro feature. Upgrade to Pro for email resend capability.', 'service-booking' ),
+			'ticket_scanner'         => __( 'Ticket scanning is a Pro feature. Manual check-ins are available in the free version.', 'service-booking' ),
+			'payment_logs'           => __( 'Payment logs are a Pro feature. Upgrade to Pro for payment logging.', 'service-booking' ),
+			'smtp'                   => __( 'SMTP configuration is a Pro feature. Basic mail settings are available in the free version.', 'service-booking' ),
+			'voucher_redemption'     => __( 'Voucher redemption is a Pro feature. The free version shows voucher listings only.', 'service-booking' ),
 		);
 
 		return isset( $messages[ $feature ] ) ? $messages[ $feature ] : __( 'This feature requires SG Flexi Booking Pro.', 'service-booking' );

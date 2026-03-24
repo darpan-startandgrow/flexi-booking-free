@@ -70,6 +70,66 @@ class Booking_Management_Feature_Control {
 
 		// 9. Add body class for free version CSS hooks.
 		add_filter( 'admin_body_class', array( $this, 'bm_add_free_body_class' ) );
+
+		// 10. Block stop-sales feature.
+		add_filter( 'bm_allow_stop_sales', '__return_false' );
+
+		// 11. Block saleswitch feature.
+		add_filter( 'bm_allow_saleswitch', '__return_false' );
+
+		// 12. Block max capacity editing.
+		add_filter( 'bm_allow_max_capacity', '__return_false' );
+
+		// 13. Block timeslot calendar.
+		add_filter( 'bm_allow_timeslot_calendar', '__return_false' );
+
+		// 14. Block age settings.
+		add_filter( 'bm_allow_age_settings', '__return_false' );
+
+		// 15. Block customer creation.
+		add_filter( 'bm_allow_customer_creation', '__return_false' );
+
+		// 16. Block email resend.
+		add_filter( 'bm_allow_email_resend', '__return_false' );
+
+		// 17. Block ticket scanner.
+		add_filter( 'bm_allow_ticket_scanner', '__return_false' );
+
+		// 18. Block ticket resend.
+		add_filter( 'bm_allow_ticket_resend', '__return_false' );
+
+		// 19. Block payment logs.
+		add_filter( 'bm_allow_payment_logs', '__return_false' );
+
+		// 20. Block SMTP.
+		add_filter( 'bm_allow_smtp', '__return_false' );
+
+		// 21. Block coupon feature.
+		add_filter( 'bm_allow_coupons', '__return_false' );
+
+		// 22. Block voucher redemption.
+		add_filter( 'bm_allow_voucher_redemption', '__return_false' );
+
+		// 23. Block manage columns.
+		add_filter( 'bm_allow_manage_columns', '__return_false' );
+
+		// 24. Block PDF customization.
+		add_filter( 'bm_allow_pdf_customization', '__return_false' );
+
+		// 25. Block price modules.
+		add_filter( 'bm_allow_price_modules', '__return_false' );
+
+		// 26. Block advanced dashboard.
+		add_filter( 'bm_allow_advanced_dashboard', '__return_false' );
+
+		// 27. Block custom field addition.
+		add_filter( 'bm_allow_custom_fields', '__return_false' );
+
+		// 28. Block field deletion for default fields.
+		add_filter( 'bm_allow_field_deletion', '__return_false' );
+
+		// 29. Block form creation.
+		add_filter( 'bm_allow_form_creation', '__return_false' );
 	}
 
 	/**
@@ -86,11 +146,13 @@ class Booking_Management_Feature_Control {
 	/**
 	 * Filter settings tabs for the free tier.
 	 *
+	 * Only allow: general, format, timezone, language, upload, fields, mail (basic).
+	 *
 	 * @param array $tabs Available settings tabs.
 	 * @return array Filtered tabs.
 	 */
 	public function bm_filter_free_tabs( $tabs ) {
-		$allowed = array( 'general', 'format', 'timezone', 'fields' );
+		$allowed = array( 'general', 'format', 'timezone', 'language', 'upload', 'fields', 'mail' );
 		return array_intersect_key( $tabs, array_flip( $allowed ) );
 	}
 
@@ -98,7 +160,8 @@ class Booking_Management_Feature_Control {
 	 * Add a CSS body class for the free version.
 	 *
 	 * This class is used by CSS to hide Pro-only UI elements like
-	 * the "Manage Columns" button and "Add New Field" button.
+	 * the "Manage Columns" button, "Add New Field" button, stop-sales,
+	 * saleswitch, max capacity, coupon, and other Pro features.
 	 *
 	 * @param string $classes Existing body classes.
 	 * @return string Modified body classes.

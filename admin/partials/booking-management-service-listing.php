@@ -1,16 +1,6 @@
 <?php
-$dbhandler    = new BM_DBhandler();
-$bmrequests   = new BM_Request();
-$pagenum      = filter_input( INPUT_GET, 'pagenum' );
-$pagenum      = isset( $pagenum ) ? absint( $pagenum ) : 1;
-$limit        = !empty( $dbhandler->get_global_option_value( 'bm_services_per_page' ) ) ? $dbhandler->get_global_option_value( 'bm_services_per_page' ) : 10;
-$offset       = ( ( $pagenum - 1 ) * $limit );
-$i            = ( 1 + $offset );
-$total        = $dbhandler->bm_count( 'SERVICE' );
-$services     = $dbhandler->get_all_result( 'SERVICE', '*', 1, 'results', $offset, $limit, 'service_position', false );
-$num_of_pages = ceil( $total / $limit );
-$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmrequests->bm_get_page_url(), 'list' );
-
+$services_table = new BM_Services_List_Table();
+$services_table->prepare_items();
 ?>
 
 <!-- Services -->
@@ -23,66 +13,11 @@ $pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmreque
         <?php else : ?>
             <button class="button" disabled title="Upgrade to Pro for unlimited services"><?php esc_html_e( 'Add Service (Limit Reached)', 'service-booking' ); ?></button>
         <?php endif; ?>
-        <!-- <a href="admin.php?page=bm_add_service" class="button button-primary" style="margin-bottom:10px;" title="<?php esc_html_e( 'Add Service', 'service-booking' ); ?>"><?php esc_html_e( 'Add Service', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></a> -->
     </div>
-    <?php if ( isset( $services ) && !empty( $services ) ) { ?>
-        <input type="hidden" name="pagenum" value="<?php echo esc_attr( $pagenum ); ?>" />
-        <table class="wp-list-table widefat striped">
-            <thead>
-                <tr>
-                    <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Serial No', 'service-booking' ); ?></th>
-                    <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Name', 'service-booking' ); ?></th>
-                    <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Category', 'service-booking' ); ?></th>
-                    <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Show in frontend', 'service-booking' ); ?></th>
-                    <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Service Shortcodes', 'service-booking' ); ?></th>
-                    <th style="text-align: center;font-weight: 600;"><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
-                </tr>
-            </thead>
-            <tbody class="service_records">
-                <?php
-                foreach ( $services as $service ) {
-                    ?>
-                    <tr class="single_service_record">
-                        <form role="form" method="post">
-                            <td style="text-align: center;cursor:move;" data-id="<?php echo esc_attr( $service->id ); ?>" data-order="<?php echo esc_attr( $i ); ?>" class="service_listing_number"><?php echo esc_attr( $i ); ?></td>
-                            <td style="text-align: center;cursor:move;" title="<?php echo isset( $service->service_name ) ? esc_html( $service->service_name ) : ''; ?>"><?php echo isset( $service->service_name ) ? esc_html( mb_strimwidth( $service->service_name, 0, 40, '...' ) ) : ''; ?></td>
-                            <td style="text-align: center;" title="<?php echo esc_html( $bmrequests->bm_fetch_category_name_by_service_id( $service->id ) ); ?>"><?php echo esc_html( mb_strimwidth( $bmrequests->bm_fetch_category_name_by_service_id( $service->id ), 0, 40, '...' ) ); ?></td>
-                            <td style="text-align: center;" class="bm-checkbox-td">
-                                <input name="bm_show_service_in_front" type="checkbox" id="bm_show_service_in_front_<?php echo esc_attr( $service->id ); ?>" class="regular-text auto-checkbox bm_toggle" <?php checked( esc_attr( $service->is_service_front ), '1' ); ?> onchange="bm_change_service_visibility(this)">
-                                <label for="bm_show_service_in_front_<?php echo esc_attr( $service->id ); ?>"></label>
-                            </td>
-                            <td style="text-align: center;">
-                                <div class="copyMessagetooltip" style="margin-bottom: 5px;">
-                                    <input class="copytextTooltip" value="<?php echo esc_attr( '[sgbm_single_service id="' . $service->id . '"]' ); ?>" onclick="bm_copy_text(this)" onmouseout="bm_copy_message(this)" readonly>
-                                    <span class="tooltiptext"><?php esc_html_e( 'Copy to clipboard', 'service-booking' ); ?></span>
-                                    <button type="button" class="bm-info-button" data-shortcode="sgbm_single_service" title="<?php esc_html_e( 'Shortcode Info', 'service-booking' ); ?>">i</button>
-                                </div>
-                                <div class="copyMessagetooltip">
-                                    <input class="copytextTooltip" value="<?php echo esc_attr( '[sgbm_single_service_calendar id="' . $service->id . '"]' ); ?>" onclick="bm_copy_text(this)" onmouseout="bm_copy_message(this)" readonly>
-                                    <span class="tooltiptext"><?php esc_html_e( 'Copy to clipboard', 'service-booking' ); ?></span>
-                                    <button type="button" class="bm-info-button" data-shortcode="sgbm_single_service_calendar" title="<?php esc_html_e( 'Shortcode Info', 'service-booking' ); ?>">i</button>
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <button type="button" name="editsvc" class="edit-button" id="editsvc" title="<?php esc_html_e( 'Edit', 'service-booking' ); ?>" value="<?php echo isset( $service->id ) ? esc_attr( $service->id ) : ''; ?>"><i class="fa fa-edit" aria-hidden="true"></i></button>
-                                <button type="button" name="delsvc" class="delete-button" id="delsvc" title="<?php esc_html_e( 'Delete', 'service-booking' ); ?>" value="<?php echo isset( $service->id ) ? esc_attr( $service->id ) : ''; ?>"><i class="fa fa-trash" aria-hidden="true" style="color:red"></i></button>
-                            </td>
-                        </form>
-                    </tr>
-                    <?php
-                    $i++;
-                }
-                ?>
-            </tbody>
-        </table>
-        <div class="service_pagination"><?php echo !empty( $pagination ) ? wp_kses_post( $pagination ) : ''; ?></div>
-    <?php } else { ?>
-        <div class="bm_no_records_message">
-            <div class="Pointer">
-                <p class="message"><?php esc_html_e( 'No Services Found', 'service-booking' ); ?></p>
-            </div>
-        </div>
-    <?php } ?>
+    <form method="get">
+        <input type="hidden" name="page" value="<?php echo esc_attr( isset( $_REQUEST['page'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['page'] ) ) : '' ); ?>" />
+        <?php $services_table->display(); ?>
+    </form>
     
     <!-- Global Shortcodes Section -->
     <h2 class="title" style="font-weight: bold; margin-top: 30px;"><?php esc_html_e( 'Global Shortcodes', 'service-booking' ); ?></h2>

@@ -1,5 +1,7 @@
 <?php
 
+$is_pro = Booking_Management_Limits::is_pro_active();
+
 // Check if user is allowed to add more services
 $can_add = apply_filters( 'booking_management_can_add_service', true );
 
@@ -521,10 +523,12 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 <button type="button" class="tablinks" id="gallery_button" onclick="openSection(event, 'service_gallery')"><?php esc_html_e( 'Gallery', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) != 0 ? 'active' : ''; ?>" id="extra_button" onclick="openSection(event, 'service_extra')"><?php esc_html_e( 'Extra', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="price_calendar_button" onclick="openSection(event, 'price_calendar')"><?php esc_html_e( 'Prices', 'service-booking' ); ?></button>
+                <?php if ( $is_pro ) : ?>
                 <button type="button" class="tablinks" id="stopsales_calendar_button" onclick="openSection(event, 'stopsales_calendar')"><?php esc_html_e( 'Stopsales', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="saleswitch_calendar_button" onclick="openSection(event, 'saleswitch_calendar')"><?php esc_html_e( 'Saleswitch', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="capacity_calendar_button" onclick="openSection(event, 'capacity_calendar')"><?php esc_html_e( 'Default Max Capacity', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="time_slot_button" onclick="openSection(event, 'time_slots_calendar')"><?php esc_html_e( 'Time Slots', 'service-booking' ); ?></button>
+                <?php endif; ?>
                 <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Unavailability and other settings', 'service-booking' ); ?></button>
             </div>
 
@@ -1437,6 +1441,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 </div>
 
 
+                <?php if ( $is_pro ) : ?>
                 <div id="stopsales_calendar" class="tabcontent">
                     <table class="form-table" role="presentation">
                         <tr>
@@ -1949,6 +1954,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                         </tr>
                     </table>
                 </div>
+                <?php endif; // end $is_pro check for stopsales, saleswitch, max capacity, time slots ?>
 
                 <div id="svc_settings_section" class="tabcontent">
                     <table class="form-table" role="presentation">
@@ -2130,6 +2136,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                     </tr>
                 </table>
                 </br>
+                <?php if ( $is_pro ) : ?>
                 <div class="greybox_external_price">
                     <table class="form-table" role="presentation">
                     <h2><?php esc_html_e( 'External Price Module Age Settings (optional)', 'service-booking' ); ?></h2>
@@ -2207,6 +2214,16 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                     </tr>
                     </table>
                 </div>
+                <?php else : ?>
+                <div class="sg-pro-upsell-notice" style="padding: 15px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 3px; margin-top: 15px;">
+                    <p style="margin: 0;">
+                        <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
+                        <strong><?php esc_html_e( 'External Price Module Age Settings', 'service-booking' ); ?></strong>
+                        <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span><br/>
+                        <small><?php esc_html_e( 'Upgrade to Pro to configure age-based pricing for infant, children, adult, and senior groups.', 'service-booking' ); ?></small>
+                    </p>
+                </div>
+                <?php endif; // end $is_pro check for age settings ?>
             </div>
 
             <div class="row">
