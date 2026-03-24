@@ -1,6 +1,7 @@
 <?php
 $dbhandler = new BM_DBhandler();
 $path      = plugin_dir_url( __FILE__ );
+$is_pro    = Booking_Management_Limits::is_pro_active();
 $fields    = array(
     'text',
     'email',
@@ -32,7 +33,12 @@ $fields    = array(
 <!-- Services Listing-->
 <div class="wrap" id="user_form" style="display:flex;">
     <div style="flex:1;margin-right :20px" id="field_section">
+        <?php if ( $is_pro ) : ?>
         <h2 class="title" style="font-weight: bold;text-align: center;margin-bottom: 40px;"><?php esc_html_e( 'Field Types & Settings', 'service-booking' ); ?></h2>
+        <?php else : ?>
+        <h2 class="title" style="font-weight: bold;text-align: center;margin-bottom: 20px;"><?php esc_html_e( 'Default Billing Form', 'service-booking' ); ?></h2>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;"><?php esc_html_e( 'Edit field labels, placeholders, visibility, and required status. Fields cannot be added or deleted in the free version.', 'service-booking' ); ?></p>
+        <?php endif; ?>
         <div class="field_tab">
             <button class="field_tablinks active" id="listing_button" onclick="fieldTabs(event, 'field_listing')"><?php esc_html_e( 'Fields', 'service-booking' ); ?></button>
             <button class="field_tablinks" id="settings_button" onclick="fieldTabs(event, 'field_settings')"><?php esc_html_e( 'Settings', 'service-booking' ); ?></button>
@@ -40,6 +46,7 @@ $fields    = array(
 
         <!-- Tab content -->
         <div id="field_listing" class="field_tabcontent">
+            <?php if ( $is_pro ) : ?>
             <ul class="button_gp">
                 <?php
                 $i = 1;
@@ -58,6 +65,17 @@ $fields    = array(
                 endforeach;
                 ?>
             </ul>
+            <?php else : ?>
+            <div class="sg-pro-upsell-notice" style="padding: 12px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 3px; margin-bottom: 15px;">
+                <p style="margin: 0;">
+                    <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
+                    <strong><?php esc_html_e( 'Add Custom Fields', 'service-booking' ); ?></strong>
+                    <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span><br/>
+                    <small><?php esc_html_e( 'Upgrade to Pro to add custom fields, drag-and-drop reordering, conditional fields, multi-step forms, and more.', 'service-booking' ); ?></small>
+                    <a href="<?php echo esc_url( Booking_Management_Limits::get_pro_upsell_url() ); ?>" target="_blank" style="font-size: 12px;"><?php esc_html_e( 'Upgrade to Pro →', 'service-booking' ); ?></a>
+                </p>
+            </div>
+            <?php endif; ?>
         </div>
 
         <div id="field_settings" class="field_tabcontent">

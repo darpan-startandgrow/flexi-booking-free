@@ -2845,6 +2845,17 @@ class Booking_Management_Admin {
 		$data      = array( 'status' => '' );
 
 		if ( $id != false && $id != null ) {
+			// In free version, check if this is a default field that cannot be deleted.
+			if ( ! Booking_Management_Limits::is_pro_active() ) {
+				$field = $dbhandler->get_row( 'FIELDS', $id, 'id' );
+				if ( $field && isset( $field->field_name ) && ! Booking_Management_Limits::can_delete_field( $field->field_name ) ) {
+					$data['status'] = 'error';
+					$data['message'] = esc_html__( 'Default fields cannot be deleted in the free version. Upgrade to Pro for full field management.', 'service-booking' );
+					echo wp_json_encode( $data );
+					die;
+				}
+			}
+
 			$field_deleted = $dbhandler->remove_row( 'FIELDS', 'id', $id, '%d' );
 			$fields        = $dbhandler->get_all_result( 'FIELDS', '*', 1, 'results' );
 

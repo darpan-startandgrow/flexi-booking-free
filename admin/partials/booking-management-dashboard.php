@@ -2,6 +2,7 @@
 $dbhandler          = new BM_DBhandler();
 $bmrequests         = new BM_Request();
 $woocommerceservice = new WooCommerceService();
+$is_pro             = Booking_Management_Limits::is_pro_active();
 $limit              = 10;
 $total              = $dbhandler->bm_count( 'BOOKING' );
 $today              = gmdate( 'Y-m-d' );
@@ -191,6 +192,7 @@ $months         = array(
                 </div>
             </div>
         </div>
+        <?php if ( $is_pro ) : // Advanced analytics — Pro only ?>
         <div class="searchpage">
             <div class="mainpage " id="leftbar">
 
@@ -645,6 +647,22 @@ $months         = array(
         </div>
     </div>
 </div>
+<?php else : // Free version — show simplified analytics notice ?>
+        <div class="searchpage" style="margin-top: 20px;">
+            <div class="sg-pro-upsell-notice" style="padding: 20px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 3px;">
+                <p>
+                    <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
+                    <strong><?php esc_html_e( 'Advanced Analytics & Charts', 'service-booking' ); ?></strong><br/>
+                    <?php esc_html_e( 'Upgrade to Pro for detailed booking status charts, category-wise analytics, service-wise revenue, date-wise reports, customer-wise revenue, and booking overviews.', 'service-booking' ); ?>
+                    <a href="<?php echo esc_url( Booking_Management_Limits::get_pro_upsell_url() ); ?>" class="button button-primary" style="margin-left: 10px;" target="_blank">
+                        <?php esc_html_e( 'Upgrade to Pro', 'service-booking' ); ?>
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; // end Pro analytics check ?>
 
 
 <input type="hidden" id="all_orders_pagenum" value="<?php echo esc_attr( 1 ); ?>" />
