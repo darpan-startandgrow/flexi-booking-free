@@ -337,7 +337,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 					esc_attr__( 'Edit', 'service-booking' )
 				);
 				$view = sprintf(
-					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button" title="%s" style="margin-left:6px;"><i class="fa fa-eye" aria-hidden="true"></i></a>',
+					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button bm-action-view" title="%s"><i class="fa fa-eye" aria-hidden="true"></i></a>',
 					esc_attr( $item['id'] ),
 					esc_attr__( 'View', 'service-booking' )
 				);

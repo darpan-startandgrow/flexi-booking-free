@@ -84,7 +84,7 @@ $orders_table->prepare_items();
                     </span>
                 </a>
                 <?php } else { ?>
-                <button class="button" disabled aria-disabled="true" title="<?php esc_attr_e( 'Manage Columns — Pro Feature', 'service-booking' ); ?>">
+                <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Manage Columns — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Manage Columns — Pro Feature', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
                         <i class="fa fa-plus" aria-hidden="true"></i>
@@ -100,7 +100,7 @@ $orders_table->prepare_items();
                     </span>
                 </a>
                 <?php } else { ?>
-                <button class="button" disabled aria-disabled="true" title="<?php esc_attr_e( 'Csv Export — Pro Feature', 'service-booking' ); ?>">
+                <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Csv Export — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Csv Export — Pro Feature', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
                         <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>

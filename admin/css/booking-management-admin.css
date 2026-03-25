@@ -4124,3 +4124,8 @@ pre {
     background: #ffebee;
     color: #b71c1c;
 }
+
+/* ===== Order Actions Column Spacing ===== */
+.bm-action-view {
+    margin-left: 6px;
+}
