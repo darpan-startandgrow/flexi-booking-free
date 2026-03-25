@@ -78,7 +78,11 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 						echo ( '</div>' );
 					}
 				}
-			} elseif ( $current_status == 1 && $active_type ) {
+			} elseif ( ! Booking_Management_Limits::can_create_mail_template() ) {
+					echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
+					echo esc_html__( 'Template limit reached. You cannot add more templates.', 'service-booking' );
+					echo ( '</div>' );
+		} elseif ( $current_status == 1 && $active_type ) {
 					echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
 					echo esc_html__( 'There is already an active template for this type, please deactivate the existing template.', 'service-booking' );
 					echo ( '</div>' );

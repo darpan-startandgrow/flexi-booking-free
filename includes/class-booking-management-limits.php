@@ -31,14 +31,12 @@ class Booking_Management_Limits {
 	const FREE_NOTIFICATION_PROCESS_LIMIT = 2;
 
 	/**
-	 * Maximum number of active mail templates in the free version.
+	 * Maximum number of mail templates in the free version.
+	 *
+	 * Default templates: New Order (admin + customer), Failed Order (admin + customer),
+	 * Cancelled Order (admin + customer), and Voucher Redemption.
 	 */
-	const FREE_MAIL_TEMPLATE_LIMIT = 2;
-
-	/**
-	 * Allowed mail template types in the free version.
-	 */
-	const FREE_MAIL_TEMPLATE_TYPES = array( 'booking_confirmed', 'booking_cancelled' );
+	const FREE_MAIL_TEMPLATE_LIMIT = 7;
 
 	/**
 	 * Maximum number of gift orders in the free version.
@@ -205,21 +203,15 @@ class Booking_Management_Limits {
 	/**
 	 * Check if a new mail template can be created.
 	 *
-	 * Free version: limited to FREE_MAIL_TEMPLATE_LIMIT templates
-	 * and only basic default types.
+	 * Free version: limited to FREE_MAIL_TEMPLATE_LIMIT templates total.
 	 * Pro version: unlimited templates of all types.
 	 *
-	 * @param string $template_type Optional. The type of template being created.
+	 * @param string $template_type Optional. Unused — kept for backward compatibility.
 	 * @return bool
 	 */
 	public static function can_create_mail_template( $template_type = '' ) {
 		if ( self::is_pro_active() ) {
 			return true;
-		}
-
-		// Check template type restriction.
-		if ( ! empty( $template_type ) && ! in_array( $template_type, self::FREE_MAIL_TEMPLATE_TYPES, true ) ) {
-			return false;
 		}
 
 		$dbhandler = new BM_DBhandler();

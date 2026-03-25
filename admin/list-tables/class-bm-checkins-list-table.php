@@ -65,6 +65,7 @@ class BM_Checkins_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
+			'cb'             => '<input type="checkbox" />',
 			'serial'         => esc_html__( '#', 'service-booking' ),
 			'service_name'   => esc_html__( 'Ordered Service', 'service-booking' ),
 			'booking_date'   => esc_html__( 'Service Date', 'service-booking' ),
@@ -72,12 +73,72 @@ class BM_Checkins_List_Table extends WP_List_Table {
 			'last_name'      => esc_html__( 'Attendee Last Name', 'service-booking' ),
 			'email'          => esc_html__( 'Attendee Email', 'service-booking' ),
 			'checkin_time'   => esc_html__( 'Check-in Time', 'service-booking' ),
-			'checkin_status' => esc_html__( 'Check-in Status', 'service-booking' ),
 			'total_cost'     => esc_html__( 'Order Cost', 'service-booking' ),
 			'actions'        => esc_html__( 'Actions', 'service-booking' ),
 		);
 
 		return $columns;
+	}
+
+	/**
+	 * Checkbox column for bulk actions.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_cb( $item ) {
+		return sprintf(
+			'<input type="checkbox" name="checkin_ids[]" value="%s" />',
+			esc_attr( $item['id'] )
+		);
+	}
+
+	/**
+	 * Bulk actions.
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		return array(
+			'bulk_checkin' => esc_html__( 'Mark as Checked In', 'service-booking' ),
+		);
+	}
+
+	/**
+	 * Process bulk actions.
+	 */
+	public function process_bulk_action() {
+		$action = $this->current_action();
+		if ( ! $action ) {
+			return;
+		}
+
+		$nonce = isset( $_REQUEST['_wpnonce'] ) ? wp_unslash( $_REQUEST['_wpnonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'bulk-checkins' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'service-booking' ) );
+		}
+
+		$checkin_ids = isset( $_REQUEST['checkin_ids'] ) ? array_map( 'absint', (array) $_REQUEST['checkin_ids'] ) : array();
+
+		if ( empty( $checkin_ids ) ) {
+			return;
+		}
+
+		if ( 'bulk_checkin' === $action ) {
+			foreach ( $checkin_ids as $checkin_id ) {
+				if ( $checkin_id > 0 ) {
+					$this->dbhandler->update_row(
+						'CHECKIN',
+						'id',
+						$checkin_id,
+						array(
+							'checkin_status' => 'checked_in',
+							'checkin_time'   => current_time( 'mysql' ),
+						)
+					);
+				}
+			}
+		}
 	}
 
 	/**
@@ -87,10 +148,9 @@ class BM_Checkins_List_Table extends WP_List_Table {
 	 */
 	public function get_sortable_columns() {
 		return array(
-			'service_name'   => array( 'service_name', false ),
-			'booking_date'   => array( 'booking_date', false ),
-			'checkin_time'   => array( 'checkin_time', true ),
-			'checkin_status' => array( 'checkin_status', false ),
+			'service_name' => array( 'service_name', false ),
+			'booking_date' => array( 'booking_date', false ),
+			'checkin_time' => array( 'checkin_time', true ),
 		);
 	}
 
@@ -98,6 +158,7 @@ class BM_Checkins_List_Table extends WP_List_Table {
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
+		$this->process_bulk_action();
 		$per_page = ! empty( $this->dbhandler->get_global_option_value( 'bm_checkins_per_page' ) )
 			? absint( $this->dbhandler->get_global_option_value( 'bm_checkins_per_page' ) )
 			: 10;
@@ -206,12 +267,6 @@ class BM_Checkins_List_Table extends WP_List_Table {
 				return ! empty( $item['checkin_time'] )
 					? esc_html( $this->bmrequests->bm_convert_date_format( $item['checkin_time'], 'Y-m-d H:i:s', 'd/m/Y H:i' ) )
 					: '—';
-
-			case 'checkin_status':
-				$status = $item['checkin_status'];
-				$label  = ucfirst( str_replace( '_', ' ', $status ) );
-				$class  = ( 'checked_in' === $status ) ? 'color: green;' : 'color: #999;';
-				return sprintf( '<span style="%s font-weight:600;">%s</span>', esc_attr( $class ), esc_html( $label ) );
 
 			case 'total_cost':
 				return esc_html( $item['total_cost'] );

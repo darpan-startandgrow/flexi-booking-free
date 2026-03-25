@@ -1,6 +1,7 @@
 <?php
 $templates_table = new BM_Email_Templates_List_Table();
 $templates_table->prepare_items();
+$can_add = Booking_Management_Limits::can_create_mail_template();
 ?>
 
 
@@ -10,7 +11,11 @@ $templates_table->prepare_items();
 	<div class="row">
 		<div style="float:left;">
 			<h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'Email Templates', 'service-booking' ); ?></h2>
-			<a href="admin.php?page=bm_add_template" class="button button-primary" style="margin-bottom:10px;" title="<?php esc_html_e( 'Add Template', 'service-booking' ); ?>"><?php esc_html_e( 'Add Template', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></a>
+			<?php if ( $can_add ) : ?>
+				<a href="admin.php?page=bm_add_template" class="button button-primary" style="margin-bottom:10px;" title="<?php esc_html_e( 'Add Template', 'service-booking' ); ?>"><?php esc_html_e( 'Add Template', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></a>
+			<?php else : ?>
+				<button class="button" disabled title="<?php esc_attr_e( 'Template limit reached', 'service-booking' ); ?>"><?php esc_html_e( 'Add Template (Limit Reached)', 'service-booking' ); ?></button>
+			<?php endif; ?>
 		</div>
 	</div>
 	<form method="get">

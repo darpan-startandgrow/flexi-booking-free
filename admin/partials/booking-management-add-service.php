@@ -172,8 +172,8 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
         'service_options'         => isset( $_POST['service_options'] ) && array_filter( filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) ) ? filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
         'default_max_cap'         => !empty( $_POST['default_max_cap'] ) ? filter_input( INPUT_POST, 'default_max_cap' ) : 1,
         'default_stopsales'       => isset( $_POST['default_stopsales'] ) ? filter_input( INPUT_POST, 'default_stopsales' ) : null,
-        'default_saleswitch'      => isset( $_POST['default_saleswitch'] ) ? filter_input( INPUT_POST, 'default_saleswitch' ) : null,
-        'is_only_book_on_request' => isset( $_POST['is_only_book_on_request'] ) ? 1 : 0,
+        'default_saleswitch'      => ( $is_pro && isset( $_POST['default_saleswitch'] ) ) ? filter_input( INPUT_POST, 'default_saleswitch' ) : null,
+        'is_only_book_on_request' => ( $is_pro && isset( $_POST['is_only_book_on_request'] ) ) ? 1 : 0,
         'is_service_front'        => isset( $_POST['is_service_front'] ) ? 1 : 0,
         'show_stopsales_data'     => isset( $_POST['show_stopsales_data'] ) ? 1 : 0,
         'service_short_desc'      => isset( $_POST['service_short_desc'] ) ? filter_input( INPUT_POST, 'service_short_desc' ) : null,
@@ -220,7 +220,7 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
         if ( isset( $_POST['variable_stopsales'] ) ) {
             $data['variable_stopsales'] = filter_input( INPUT_POST, 'variable_stopsales', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
         }
-        if ( isset( $_POST['variable_saleswitch'] ) ) {
+        if ( $is_pro && isset( $_POST['variable_saleswitch'] ) ) {
             $data['variable_saleswitch'] = filter_input( INPUT_POST, 'variable_saleswitch', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
         }
         if ( isset( $_POST['variable_max_cap'] ) ) {
@@ -310,7 +310,7 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 			if ( ( filter_input( INPUT_POST, 'default_stopsales' ) != filter_input( INPUT_POST, 'old_default_stopsales' ) ) ) {
 				$data['variable_stopsales'] = null;
 			}
-			if ( ( filter_input( INPUT_POST, 'default_saleswitch' ) != filter_input( INPUT_POST, 'old_default_saleswitch' ) ) ) {
+			if ( $is_pro && ( filter_input( INPUT_POST, 'default_saleswitch' ) != filter_input( INPUT_POST, 'old_default_saleswitch' ) ) ) {
 				$data['variable_saleswitch'] = null;
 			}
 			if ( ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) ) {
