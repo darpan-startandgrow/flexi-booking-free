@@ -244,17 +244,22 @@ class BM_Services_List_Table extends WP_List_Table {
 		// Category filter requires additional SQL since category is in a separate table.
 		$additional = '';
 		if ( '' !== $category_filter ) {
+			global $wpdb;
 			$cat_id     = absint( $category_filter );
 			$activator  = new Booking_Management_Activator();
 			$sc_table   = $activator->get_db_table_name( 'SERVICE_CATEGORY' );
-			$additional = "AND id IN (SELECT service_id FROM {$sc_table} WHERE category_id = {$cat_id})";
+			$additional = $wpdb->prepare( "AND id IN (SELECT service_id FROM {$sc_table} WHERE category_id = %d)", $cat_id );
 		}
 
 		$services = $this->dbhandler->get_all_result( 'SERVICE', '*', $where, 'results', $offset, $per_page, $orderby, $order, $additional );
 
-		// Count total with same filters (count all matching, not just current page).
-		$all_services = $this->dbhandler->get_all_result( 'SERVICE', 'id', $where, 'results', 0, false, $orderby, $order, $additional );
-		$total        = is_array( $all_services ) ? count( $all_services ) : 0;
+		// Count total: use bm_count when no category filter, otherwise count via query.
+		if ( '' === $category_filter ) {
+			$total = $this->dbhandler->bm_count( 'SERVICE', $where );
+		} else {
+			$count_result = $this->dbhandler->get_all_result( 'SERVICE', 'id', $where, 'results', 0, false, $orderby, $order, $additional );
+			$total        = is_array( $count_result ) ? count( $count_result ) : 0;
+		}
 
 		$this->items = array();
 		if ( ! empty( $services ) ) {
