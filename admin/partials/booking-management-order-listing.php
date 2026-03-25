@@ -83,13 +83,29 @@ $orders_table->prepare_items();
                         <i class="fa fa-plus" aria-hidden="true" style="color:#fff;"></i>
                     </span>
                 </a>
+                <?php } else { ?>
+                <button class="button" disabled aria-disabled="true" title="<?php esc_attr_e( 'Manage Columns — Pro Feature', 'service-booking' ); ?>">
+                    <span>
+                        <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
+                        <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+                    </span>
+                </button>
                 <?php } ?>
+                <?php if ( $is_pro ) { ?>
                 <a href="javascript:void(0);" class="button button-primary export_order_records" title="<?php esc_html_e( 'Csv Export', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
                         <img src="<?php echo esc_url( $plugin_path . 'images/export.png' ); ?>" class="options" alt="options" width="15px" height="15px" style="position:relative;top:3px;">
                     </span>
                 </a>
+                <?php } else { ?>
+                <button class="button" disabled aria-disabled="true" title="<?php esc_attr_e( 'Csv Export — Pro Feature', 'service-booking' ); ?>">
+                    <span>
+                        <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
+                        <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+                    </span>
+                </button>
+                <?php } ?>
             </div>
 
             <div class="order_advanced_search_box" id="order_advanced_search_box" style="display: none;">

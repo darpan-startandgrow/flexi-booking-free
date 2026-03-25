@@ -64,6 +64,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
+			'cb'                => '<input type="checkbox" />',
 			'order_id'          => esc_html__( 'Order ID', 'service-booking' ),
 			'service_name'      => esc_html__( 'Ordered Service', 'service-booking' ),
 			'booking_created_at' => esc_html__( 'Ordered Date', 'service-booking' ),
@@ -77,6 +78,30 @@ class BM_Orders_List_Table extends WP_List_Table {
 			'order_status'      => esc_html__( 'Order Status', 'service-booking' ),
 			'payment_status'    => esc_html__( 'Payment Status', 'service-booking' ),
 			'actions'           => esc_html__( 'Actions', 'service-booking' ),
+		);
+	}
+
+	/**
+	 * Checkbox column for bulk actions.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_cb( $item ) {
+		return sprintf(
+			'<input type="checkbox" name="order_ids[]" value="%s" />',
+			esc_attr( $item['id'] )
+		);
+	}
+
+	/**
+	 * Bulk actions.
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		return array(
+			'bulk_delete' => esc_html__( 'Delete', 'service-booking' ),
 		);
 	}
 
@@ -127,9 +152,36 @@ class BM_Orders_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Process bulk actions.
+	 */
+	public function process_bulk_action() {
+		if ( 'bulk_delete' !== $this->current_action() ) {
+			return;
+		}
+
+		$nonce = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'bulk-orders' ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'service-booking' ) );
+		}
+
+		$order_ids = isset( $_REQUEST['order_ids'] ) ? array_map( 'absint', (array) $_REQUEST['order_ids'] ) : array();
+
+		if ( empty( $order_ids ) ) {
+			return;
+		}
+
+		foreach ( $order_ids as $order_id ) {
+			if ( $order_id > 0 ) {
+				$this->dbhandler->remove_row( 'BOOKING', 'id', $order_id );
+			}
+		}
+	}
+
+	/**
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
+		$this->process_bulk_action();
 		$per_page = ! empty( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
 			? absint( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
 			: 10;
@@ -149,7 +201,18 @@ class BM_Orders_List_Table extends WP_List_Table {
 			$table_key = 'BOOKING_ARCHIVE';
 		}
 
-		$total = $this->dbhandler->bm_count( $table_key );
+		// Status filter from extra_tablenav.
+		$status_filter = '';
+		if ( ! empty( $_REQUEST['order_status_filter'] ) ) {
+			$status_filter = sanitize_text_field( wp_unslash( $_REQUEST['order_status_filter'] ) );
+		}
+
+		$where = 1;
+		if ( ! empty( $status_filter ) ) {
+			$where = array( 'order_status' => $status_filter );
+		}
+
+		$total = $this->dbhandler->bm_count( $table_key, $where );
 
 		// Sorting.
 		$orderby = 'id';
@@ -166,7 +229,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 			$order = ( 'asc' === strtolower( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) ) ) ? 'ASC' : 'DESC';
 		}
 
-		$orders = $this->dbhandler->get_all_result( $table_key, '*', 1, 'results', $offset, $per_page, $orderby, $order );
+		$orders = $this->dbhandler->get_all_result( $table_key, '*', $where, 'results', $offset, $per_page, $orderby, $order );
 
 		$this->items = array();
 		if ( ! empty( $orders ) ) {
@@ -282,12 +345,17 @@ class BM_Orders_List_Table extends WP_List_Table {
 				return esc_html( ucfirst( $item['payment_status'] ) );
 
 			case 'actions':
+				$edit = sprintf(
+					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button" title="%s"><i class="fa fa-pencil" aria-hidden="true"></i></a>',
+					esc_attr( $item['id'] ),
+					esc_attr__( 'Edit', 'service-booking' )
+				);
 				$view = sprintf(
-					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button" title="%s"><i class="fa fa-eye" aria-hidden="true"></i></a>',
+					'<a href="admin.php?page=bm_single_order&id=%s" class="view-button" title="%s"><i class="fa fa-eye" aria-hidden="true"></i></a>',
 					esc_attr( $item['id'] ),
 					esc_attr__( 'View', 'service-booking' )
 				);
-				return $view;
+				return $edit . '&nbsp;' . $view;
 
 			default:
 				return '';

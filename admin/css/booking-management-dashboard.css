@@ -1,18 +1,14 @@
-*,
-::after,
-::before {
+.bm-dashboard-container *,
+.bm-dashboard-container ::after,
+.bm-dashboard-container ::before {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0px;
-  padding: 0px;
+.bm-dashboard-container {
   font-family: 'Inter', sans-serif;
-  background: #F5F5F5;
 }
 
-a {
+.bm-dashboard-container a {
   text-decoration: none;
   color: inherit;
 }
@@ -91,7 +87,6 @@ a {
 
 .mainpage {
   width: 100%;
-  float: left;
   /* padding: 30px 33px; */
   min-height: 800px;
   border-radius: 8px;
@@ -141,7 +136,7 @@ a {
   float: left;
 }
 
-h2 {
+.bm-dashboard-container h2 {
   font-style: normal;
   font-weight: 600;
   font-size: 18px;
@@ -150,7 +145,7 @@ h2 {
   line-height: 1.8;
 }
 
-h2 span {
+.bm-dashboard-container h2 span {
   font-style: normal;
   font-weight: 400;
   font-size: 24px;
@@ -183,8 +178,8 @@ select.widgetselect:focus-visible {
   border-color: red
 }
 
-.container select,
-.container input {
+.bm-dashboard-container select,
+.bm-dashboard-container input {
   border: 1px solid #dedede;
   padding: 7px;
 }
