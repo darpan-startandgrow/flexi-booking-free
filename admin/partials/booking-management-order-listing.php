@@ -46,7 +46,14 @@ $orders_table->prepare_items();
     <div class="order_listing_top">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'All Orders', 'service-booking' ); ?></h2>
         <span style="float: left;">
-            <a href="admin.php?page=bm_add_order" class="button button-primary" title="<?php esc_html_e( 'Add Order', 'service-booking' ); ?>"><?php esc_html_e( 'Add Order', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></a>
+            <?php if ( $is_pro ) : ?>
+                <a href="admin.php?page=bm_add_order" class="button button-primary" title="<?php esc_html_e( 'Add Order', 'service-booking' ); ?>"><?php esc_html_e( 'Add Order', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></a>
+            <?php else : ?>
+                <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Add Order — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Add Order — Pro Feature', 'service-booking' ); ?>">
+                    <?php esc_html_e( 'Add Order', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i>
+                    <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+                </button>
+            <?php endif; ?>
         </span>
 
         <?php if ( !empty( $booking_data ) && is_array( $booking_data ) ) { ?>
@@ -166,22 +173,12 @@ $orders_table->prepare_items();
 		?>
     </div>
 
-									<?php if ( isset( $booking_data ) && !empty( $booking_data ) ) { ?>
-        <div class="order_listing-details table-wrapper">
+									<div class="order_listing-details table-wrapper">
             <form method="get">
                 <input type="hidden" name="page" value="<?php echo esc_attr( isset( $_REQUEST['page'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['page'] ) ) : '' ); ?>" />
                 <?php $orders_table->display(); ?>
             </form>
-       </div>
-    <?php } else { ?>
-        <div class="bm_no_records_message">
-            <div class="Pointer">
-                <p class="message"><?php esc_html_e( 'No Orders Found', 'service-booking' ); ?></p>
-            </div>
         </div>
-										<?php
-    }//end if
-    ?>
 </div>
 
 <input type="hidden" id="user_id" value="<?php echo esc_attr( $user_id ); ?>" />
