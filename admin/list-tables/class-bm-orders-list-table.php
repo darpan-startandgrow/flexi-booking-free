@@ -64,6 +64,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
+			'cb'                => '<input type="checkbox" />',
 			'order_id'          => esc_html__( 'Order ID', 'service-booking' ),
 			'service_name'      => esc_html__( 'Ordered Service', 'service-booking' ),
 			'booking_created_at' => esc_html__( 'Ordered Date', 'service-booking' ),
@@ -78,6 +79,52 @@ class BM_Orders_List_Table extends WP_List_Table {
 			'payment_status'    => esc_html__( 'Payment Status', 'service-booking' ),
 			'actions'           => esc_html__( 'Actions', 'service-booking' ),
 		);
+	}
+
+	/**
+	 * Checkbox column for bulk actions.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_cb( $item ) {
+		return sprintf( '<input type="checkbox" name="order_ids[]" value="%s" />', esc_attr( $item['id'] ) );
+	}
+
+	/**
+	 * Bulk actions available in the dropdown.
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		return array(
+			'bulk-delete' => esc_html__( 'Delete', 'service-booking' ),
+		);
+	}
+
+	/**
+	 * Process bulk actions.
+	 */
+	public function process_bulk_action() {
+		if ( 'bulk-delete' !== $this->current_action() ) {
+			return;
+		}
+
+		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'bulk-orders' ) ) {
+			return;
+		}
+
+		$order_ids = isset( $_REQUEST['order_ids'] ) ? array_map( 'absint', (array) $_REQUEST['order_ids'] ) : array();
+
+		if ( empty( $order_ids ) ) {
+			return;
+		}
+
+		foreach ( $order_ids as $id ) {
+			if ( $id > 0 ) {
+				$this->dbhandler->bm_delete( 'BOOKING', $id );
+			}
+		}
 	}
 
 	/**
@@ -130,6 +177,8 @@ class BM_Orders_List_Table extends WP_List_Table {
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
+		$this->process_bulk_action();
+
 		$per_page = ! empty( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
 			? absint( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
 			: 10;
@@ -282,12 +331,17 @@ class BM_Orders_List_Table extends WP_List_Table {
 				return esc_html( ucfirst( $item['payment_status'] ) );
 
 			case 'actions':
+				$edit = sprintf(
+					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button" title="%s"><i class="fa fa-pencil" aria-hidden="true"></i></a>',
+					esc_attr( $item['id'] ),
+					esc_attr__( 'Edit', 'service-booking' )
+				);
 				$view = sprintf(
-					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button" title="%s"><i class="fa fa-eye" aria-hidden="true"></i></a>',
+					'<a href="admin.php?page=bm_single_order&id=%s" class="edit-button bm-action-view" title="%s"><i class="fa fa-eye" aria-hidden="true"></i></a>',
 					esc_attr( $item['id'] ),
 					esc_attr__( 'View', 'service-booking' )
 				);
-				return $view;
+				return $edit . $view;
 
 			default:
 				return '';
