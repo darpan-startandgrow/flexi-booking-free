@@ -804,10 +804,12 @@ class Booking_Management_Admin {
 			add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs ★', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
-		// Coupons: Pro-only — completely removed from free version.
+		// Coupons: Pro-only.
 		if ( $is_pro ) {
 			add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_all_coupons' ) );
 			add_submenu_page( '', __( 'Add Coupon', 'service-booking' ), __( 'Add Coupon', 'service-booking' ), 'manage_options', 'bm_add_coupon', array( $this, 'bm_add_coupon' ) );
+		} else {
+			add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons ★', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_pro_upsell_page' ) );
 		}
 
 		// --- Global Settings ---

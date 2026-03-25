@@ -85,6 +85,47 @@ class BM_Email_Templates_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Extra filter controls above the table.
+	 *
+	 * @param string $which Top or bottom.
+	 */
+	protected function extra_tablenav( $which ) {
+		if ( 'top' !== $which ) {
+			return;
+		}
+
+		$current_type = isset( $_REQUEST['template_type'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['template_type'] ) ) : '';
+
+		$types = array(
+			'0'  => esc_html__( 'New order from frontend (notify customer)', 'service-booking' ),
+			'1'  => esc_html__( 'New order from backend (notify customer)', 'service-booking' ),
+			'3'  => esc_html__( 'Cancel order (notify customer)', 'service-booking' ),
+			'5'  => esc_html__( 'New order (notify admin)', 'service-booking' ),
+			'6'  => esc_html__( 'Cancel order (notify admin)', 'service-booking' ),
+			'9'  => esc_html__( 'Failed order (notify customer)', 'service-booking' ),
+			'10' => esc_html__( 'Failed order (notify admin)', 'service-booking' ),
+			'11' => esc_html__( 'Gift voucher (notify recipient)', 'service-booking' ),
+			'15' => esc_html__( 'Redeem voucher (notify admin)', 'service-booking' ),
+			'16' => esc_html__( 'Redeem voucher (notify customer)', 'service-booking' ),
+		);
+
+		echo '<div class="alignleft actions">';
+		echo '<select name="template_type">';
+		echo '<option value="">' . esc_html__( 'All Types', 'service-booking' ) . '</option>';
+		foreach ( $types as $type_val => $type_label ) {
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $type_val ),
+				selected( $current_type, $type_val, false ),
+				esc_html( $type_label )
+			);
+		}
+		echo '</select>';
+		submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false );
+		echo '</div>';
+	}
+
+	/**
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
