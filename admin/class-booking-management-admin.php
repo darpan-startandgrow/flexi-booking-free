@@ -107,9 +107,7 @@ class Booking_Management_Admin {
             if ( $screen->base == 'flexibooking_page_bm_booking_analytics' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'analytics', plugin_dir_url( __FILE__ ) . 'css/booking-management-analytics.css', array(), $this->version, 'all' );
             }
-            if ( ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) && Booking_Management_Limits::is_pro_active() ) {
-                wp_enqueue_style( 'coupon-module-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-coupon.css', array(), $this->version, 'all' );
-            }
+
 
 			if ( $screen->base == 'admin_page_bm_single_order' ) {
 				wp_enqueue_style( 'single-order-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-order.css', array(), $this->version, 'all' );
@@ -643,7 +641,6 @@ class Booking_Management_Admin {
 			}
 
 			if ( $screen->base == 'flexibooking_page_bm_check_ins' && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_script( 'admin-jsqr', plugin_dir_url( __FILE__ ) . 'js/booking-management-jsqr.js', array( 'jquery' ), $this->version, true );
 				wp_enqueue_script( 'check-in-script', plugin_dir_url( __FILE__ ) . 'js/booking-management-check-ins.js', array( 'jquery' ), $this->version, true );
 				// WPML compatibility for QR scanner page URL
 				$scanner_page_url = get_permalink( get_option( 'bm_qr_scanner_page_id' ) );
@@ -670,11 +667,7 @@ class Booking_Management_Admin {
 				);
 			}
 
-			if ( ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_script( 'coupon-module-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-coupon.js', array( 'jquery' ), $this->version, false );
-				wp_enqueue_script( 'country-state', plugin_dir_url( __FILE__ ) . 'js/country-states.js', array( 'jquery' ), $this->version, false );
-				wp_localize_script( 'coupon-module-js', 'bm_error_object', $error );
-			}
+
 
 			if ( $screen->base == 'admin_page_bm_single_order' ) {
 				wp_enqueue_script( 'single-order-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-single-order.js', array( 'jquery' ), $this->version, false );
@@ -4923,6 +4916,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_check_smtp_connection() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( 'Pro feature' );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -11689,7 +11687,7 @@ class Booking_Management_Admin {
 
 									$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-									if ( $voucher_code ) {
+									if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 										$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 										$redeemVoucher->markVoucherExpired();
 									}
@@ -12224,7 +12222,7 @@ class Booking_Management_Admin {
 
 									$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-									if ( $voucher_code ) {
+									if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 										$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 										$redeemVoucher->markVoucherExpired();
 									}
@@ -12283,7 +12281,7 @@ class Booking_Management_Admin {
 
 										$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-										if ( $voucher_code ) {
+										if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 											$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 											$redeemVoucher->markVoucherExpired();
 										}
@@ -12342,7 +12340,7 @@ class Booking_Management_Admin {
 
 										$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-										if ( $voucher_code ) {
+										if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 											$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 											$redeemVoucher->markVoucherExpired();
 										}
@@ -13399,6 +13397,11 @@ class Booking_Management_Admin {
 			return;
 		}
 
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Pro feature', 'service-booking' ) );
+			return;
+		}
+
 		$redeemVoucher = new FlexiVoucherRedeem( $code );
 
 		try {
@@ -13446,6 +13449,11 @@ class Booking_Management_Admin {
 
 		if ( empty( $code ) ) {
 			wp_send_json_error( __( 'Invalid request data', 'service-booking' ) );
+			return;
+		}
+
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Pro feature', 'service-booking' ) );
 			return;
 		}
 
@@ -16489,6 +16497,11 @@ class Booking_Management_Admin {
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
+		}
+
+		if ( ! class_exists( 'BM_Coupon_validation' ) ) {
+			echo wp_json_encode( array( 'status' => false ) );
+			die;
 		}
 
 		$coupon_validation = new BM_Coupon_validation();
