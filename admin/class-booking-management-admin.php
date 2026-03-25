@@ -1540,7 +1540,7 @@ class Booking_Management_Admin {
 
 			$category_name = apply_filters( 'bm_flexibooking_modify_category_names', $category_name, $services );
 
-			$num_of_pages               = isset( $limit ) ? ceil( $total_service_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_service_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -1737,7 +1737,7 @@ class Booking_Management_Admin {
 					}
 
 					$total_service_records      = $dbhandler->bm_count( 'SERVICE' );
-					$num_of_pages               = isset( $limit ) ? ceil( $total_service_records / $limit ) : 1;
+					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_service_records / $limit ) : 1;
 					$data['status']             = true;
 					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber'] = ( 1 + $offset );
@@ -1790,7 +1790,7 @@ class Booking_Management_Admin {
 			$name_field = $language == 'it' ? 'tmpl_name_it' : 'tmpl_name_en';
 
 			$total_template_records     = $dbhandler->bm_count( 'EMAIL_TMPL' );
-			$num_of_pages               = isset( $limit ) ? ceil( $total_template_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_template_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -1837,7 +1837,7 @@ class Booking_Management_Admin {
 			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-			$num_of_pages               = isset( $limit ) ? ceil( $total_price_module_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_price_module_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -1877,7 +1877,7 @@ class Booking_Management_Admin {
 			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_processes_records        = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
-			$num_of_pages                   = isset( $limit ) ? ceil( $total_processes_records / $limit ) : 1;
+			$num_of_pages                   = ( $limit > 0 ) ? ceil( $total_processes_records / $limit ) : 1;
 			$data['status']                 = true;
 			$data['pagination']             = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber']     = ( 1 + $offset );
@@ -1944,7 +1944,7 @@ class Booking_Management_Admin {
 					$name_field = $language == 'it' ? 'tmpl_name_it' : 'tmpl_name_en';
 
 					$total_template_records     = $dbhandler->bm_count( 'EMAIL_TMPL' );
-					$num_of_pages               = isset( $limit ) ? ceil( $total_template_records / $limit ) : 1;
+					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_template_records / $limit ) : 1;
 					$data['status']             = true;
 					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber'] = ( 1 + $offset );
@@ -2109,7 +2109,7 @@ class Booking_Management_Admin {
 
 				if ( $removed ) {
 					$total_processes_records        = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
-					$num_of_pages                   = isset( $limit ) ? ceil( $total_processes_records / $limit ) : 1;
+					$num_of_pages                   = ( $limit > 0 ) ? ceil( $total_processes_records / $limit ) : 1;
 					$data['status']                 = true;
 					$data['pagination']             = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber']     = ( 1 + $offset );
@@ -2178,7 +2178,7 @@ class Booking_Management_Admin {
 			$categories                 = $dbhandler->get_all_result( 'CATEGORY', array( 'id', 'cat_name', 'cat_in_front', 'cat_position' ), 1, 'results', $offset, $limit, 'cat_position', false );
 			$cat_ids                    = wp_list_pluck( $categories, 'id', 0 );
 			$cat_ids                    = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', $cat_ids ) : '';
-			$num_of_pages               = isset( $limit ) ? ceil( $total_category_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_category_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -2353,7 +2353,7 @@ class Booking_Management_Admin {
 				$categories                 = $dbhandler->get_all_result( 'CATEGORY', array( 'id', 'cat_name', 'cat_in_front', 'cat_position' ), 1, 'results', $offset, $limit, 'cat_position', false );
 				$cat_ids                    = wp_list_pluck( $categories, 'id', 0 );
 				$cat_ids                    = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', ( array_merge( array( 0 ), $cat_ids ) ) ) : '';
-				$num_of_pages               = isset( $limit ) ? ceil( $total_category_records / $limit ) : 1;
+				$num_of_pages               = ( $limit > 0 ) ? ceil( $total_category_records / $limit ) : 1;
 				$data['status']             = true;
 				$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 				$data['current_pagenumber'] = ( 1 + $offset );
@@ -2416,7 +2416,7 @@ class Booking_Management_Admin {
 
 				if ( $removed ) {
 					$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-					$num_of_pages               = isset( $limit ) ? ceil( $total_price_module_records / $limit ) : 1;
+					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_price_module_records / $limit ) : 1;
 					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber'] = ( 1 + $offset );
 					$data['price_modules']      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', array( 'id', 'module_name', 'status' ), 1, 'results', $offset, $limit );

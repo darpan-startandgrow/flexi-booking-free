@@ -1560,7 +1560,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']        = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -1798,7 +1798,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -1921,7 +1921,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -2038,7 +2038,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -2160,7 +2160,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
