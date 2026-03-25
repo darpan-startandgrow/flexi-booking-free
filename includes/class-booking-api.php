@@ -1531,6 +1531,14 @@ class Booking_API
         $params = $request->get_json_params();
         $voucher = $params['voucher'];
 
+        if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+            return rest_ensure_response([
+                'status' => 200,
+                'data'   => ['status' => false],
+                'message' => 'Voucher feature is not available.'
+            ]);
+        }
+
         $redeemVoucher = new FlexiVoucherRedeem($voucher);
         try {
             $validate = $redeemVoucher->validateVoucher();
@@ -1628,6 +1636,14 @@ class Booking_API
             $message = 'Date is invalid.';
         }
 
+        if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+            return rest_ensure_response([
+                'status' => 200,
+                'data'   => $data,
+                'message' => 'Voucher feature is not available.'
+            ]);
+        }
+
         $redeemVoucher = new FlexiVoucherRedeem($code);
 
         try {
@@ -1713,6 +1729,14 @@ class Booking_API
         $recipient = $params['recipient'];
         $message = '';
         $data = array('status' => false);
+
+        if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+            return rest_ensure_response([
+                'status' => 200,
+                'data'   => $data,
+                'message' => 'Voucher feature is not available.'
+            ]);
+        }
 
         $redeemVoucher = new FlexiVoucherRedeem($code);
         try {
@@ -1920,6 +1944,14 @@ class Booking_API
         $dbhandler = new BM_DBhandler();
         $params = $request->get_json_params();
         $redeemed = $params['redeem_code'];
+        if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+            return rest_ensure_response([
+                'status' => 200,
+                'data'   => array('status' => false),
+                'message' => 'Voucher feature is not available.'
+            ]);
+        }
+
         $redeemVoucher = new FlexiVoucherRedeem($redeemed);
         $validateVoucher = $redeemVoucher->validateIfRedeemed();
 
