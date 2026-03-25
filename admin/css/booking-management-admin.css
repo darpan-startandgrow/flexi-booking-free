@@ -4078,3 +4078,49 @@ pre {
 .pdf-test-buttons .dashicons {
     vertical-align: sub;
 }
+
+/* ===== Order Status Badges ===== */
+.sg-order-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    line-height: 1.4;
+}
+
+.sg-status-booked {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.sg-status-confirmed {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.sg-status-completed {
+    background: #e0f2f1;
+    color: #00695c;
+}
+
+.sg-status-cancelled {
+    background: #fce4ec;
+    color: #c62828;
+}
+
+.sg-status-pending {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.sg-status-no_show {
+    background: #f3e5f5;
+    color: #6a1b9a;
+}
+
+.sg-status-failed {
+    background: #ffebee;
+    color: #b71c1c;
+}

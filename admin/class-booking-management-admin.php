@@ -86,7 +86,7 @@ class Booking_Management_Admin {
 			wp_enqueue_style( 'flexi-daterangepicker', plugin_dir_url( __FILE__ ) . 'css/booking-management-daterangepicker.css', array(), $this->version, 'all' );
 			wp_enqueue_style( 'flexi-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-service-booking-planner.css', array(), $this->version, 'all' );
 			wp_enqueue_style( 'flexi-single-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-service-booking-planner.css', array(), $this->version, 'all' );
-            if ( $screen->base == 'toplevel_page_bm_home' && Booking_Management_Limits::is_pro_active() ) {
+            if ( $screen->base == 'toplevel_page_bm_home' ) {
                 wp_enqueue_style( 'dashboard-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-dashboard.css', array(), $this->version, 'all' );
             }
             if ( $screen->base == 'flexibooking_page_bm_email_records' && Booking_Management_Limits::is_pro_active() ) {
