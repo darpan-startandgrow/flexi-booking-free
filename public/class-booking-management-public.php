@@ -212,12 +212,7 @@ class Booking_Management_Public {
 		wp_enqueue_script( 'jquery-daterangepicker', plugin_dir_url( __FILE__ ) . 'js/booking-management-daterangepicker.js', array( 'jquery', 'jquery-fullcalendar', 'fullcalendar-moment', 'jquery-moment' ), $this->version, true );
 		wp_enqueue_script( 'jquery-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 		wp_enqueue_script( 'jquery-timeslot-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-timeslot-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_script( 'jquery-cropper', plugin_dir_url( __FILE__ ) . 'js/booking-management-cropper.js', array( 'jquery' ), $this->version, true );
-			wp_enqueue_script( 'jquery-pdf-cropper', plugin_dir_url( __FILE__ ) . 'js/booking-management-pdf-cropper.js', array( 'jquery' ), $this->version, true );
-		}
-
-		if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) {
+		if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 && Booking_Management_Limits::is_pro_active() ) {
 			wp_enqueue_script( 'stripes', 'https://js.stripe.com/v3/', array(), $this->version, false );
 		}
 
@@ -230,19 +225,7 @@ class Booking_Management_Public {
 			$original_title = get_the_title( $original_id );
 		}
 
-		if ( ! empty( $post_id ) && $original_title == 'Flexibooking Checkout' && Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_script( 'stripes_checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-stripes-payment.js', array( 'jquery' ), $this->version, true );
-			wp_enqueue_script( 'coupon_checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-public-coupon.js', array( 'jquery' ), $this->version, true );
-		}
-
 		wp_deregister_script( 'wc-checkout-block' );
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_script( 'custom-wc-checkout', plugin_dir_url( __FILE__ ) . 'js/booking-management-woo-coupon.js', array( 'wp-element', 'wp-i18n', 'wp-hooks', 'wp-data', 'wc-settings' ), time(), true );
-		}
-
-		if ( ! empty( $post_id ) && $original_title == 'Flexibooking Voucher Redeem' && Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_script( 'voucher-redeem', plugin_dir_url( __FILE__ ) . 'js/booking-management-redeem-voucher.js', array( 'jquery' ), $this->version, true );
-		}
 
 		$error   = array();
 		$success = array();
@@ -520,17 +503,7 @@ class Booking_Management_Public {
 			)
 		);
 
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_script(
-				'pdfjs-lib',
-				plugin_dir_url( __FILE__ ) . '../public/js/booking-management-pdf-cropper.worker.js',
-				array(),
-				'2.14.305',
-				true
-			);
 
-			wp_enqueue_script( 'public-jsqr', plugin_dir_url( __FILE__ ) . 'js/booking-management-jsqr.js', array( 'jquery' ), $this->version, true );
-		}
 
 		wp_localize_script(
 			'bm-qr-scanner',
@@ -1330,15 +1303,7 @@ class Booking_Management_Public {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_voucher_redeem_page() {
-		if ( ! Booking_Management_Limits::can_redeem_voucher() ) {
-			return '<p>' . esc_html__( 'Voucher redemption is available in the Pro version.', 'service-booking' ) . '</p>';
-		}
-
-		ob_start();
-		include_once 'partials/booking-management-voucher-redeem.php';
-		$content = ob_get_contents();
-		ob_end_clean();
-		return $content;
+		return '<div class="bm-pro-notice"><p>' . esc_html__( 'Voucher Redemption is a Pro feature. Please upgrade to Pro to use this feature.', 'service-booking' ) . '</p></div>';
 	}//end bm_flexibooking_voucher_redeem_page()
 
 
@@ -1560,7 +1525,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']        = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -1798,7 +1763,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -1921,7 +1886,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -2038,7 +2003,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -2160,7 +2125,7 @@ class Booking_Management_Public {
 					. '</div>';
 			}
 
-			$num_of_pages = $limit !== false ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit !== false && intval( $limit ) > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base );
 
 			$data['data']       = wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
@@ -4986,6 +4951,11 @@ class Booking_Management_Public {
 			return;
 		}
 
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Voucher Redemption is a Pro feature.', 'service-booking' ) );
+			return;
+		}
+
 		try {
 			$validate = ( new FlexiVoucherRedeem( $code ) )->validateVoucher();
 		} catch ( Exception $e ) {
@@ -5037,6 +5007,11 @@ class Booking_Management_Public {
 
 		if ( ! $date ) {
 			wp_send_json_error( __( 'Date is invalid.', 'service-booking' ) );
+			return;
+		}
+
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Voucher Redemption is a Pro feature.', 'service-booking' ) );
 			return;
 		}
 
@@ -5112,6 +5087,11 @@ class Booking_Management_Public {
 
 		if ( ! $slot ) {
 			wp_send_json_error( __( 'Slot is invalid.', 'service-booking' ) );
+			return;
+		}
+
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Voucher Redemption is a Pro feature.', 'service-booking' ) );
 			return;
 		}
 

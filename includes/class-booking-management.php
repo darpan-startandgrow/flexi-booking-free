@@ -290,7 +290,10 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_preview_form', $plugin_admin, 'bm_fetch_preview_form' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_template_listing', $plugin_admin, 'bm_fetch_template_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_template', $plugin_admin, 'bm_remove_template' );
-		$this->loader->add_action( 'wp_ajax_bm_test_smtp', $plugin_admin, 'bm_check_smtp_connection' );
+		// SMTP test — Pro only (SMTP class not present in Lite).
+		if ( Booking_Management_Limits::is_pro_active() ) {
+			$this->loader->add_action( 'wp_ajax_bm_test_smtp', $plugin_admin, 'bm_check_smtp_connection' );
+		}
 		$this->loader->add_action( 'wp_ajax_bm_fetch_timezone', $plugin_admin, 'bm_fetch_timezone' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_product_details', $plugin_admin, 'bm_fetch_ordered_product_details' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_service_details', $plugin_admin, 'bm_fetch_ordered_service_details' );

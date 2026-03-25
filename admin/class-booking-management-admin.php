@@ -107,9 +107,7 @@ class Booking_Management_Admin {
             if ( $screen->base == 'flexibooking_page_bm_booking_analytics' && Booking_Management_Limits::is_pro_active() ) {
                 wp_enqueue_style( 'analytics', plugin_dir_url( __FILE__ ) . 'css/booking-management-analytics.css', array(), $this->version, 'all' );
             }
-            if ( ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) && Booking_Management_Limits::is_pro_active() ) {
-                wp_enqueue_style( 'coupon-module-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-coupon.css', array(), $this->version, 'all' );
-            }
+
 
 			if ( $screen->base == 'admin_page_bm_single_order' ) {
 				wp_enqueue_style( 'single-order-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-order.css', array(), $this->version, 'all' );
@@ -643,7 +641,6 @@ class Booking_Management_Admin {
 			}
 
 			if ( $screen->base == 'flexibooking_page_bm_check_ins' && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_script( 'admin-jsqr', plugin_dir_url( __FILE__ ) . 'js/booking-management-jsqr.js', array( 'jquery' ), $this->version, true );
 				wp_enqueue_script( 'check-in-script', plugin_dir_url( __FILE__ ) . 'js/booking-management-check-ins.js', array( 'jquery' ), $this->version, true );
 				// WPML compatibility for QR scanner page URL
 				$scanner_page_url = get_permalink( get_option( 'bm_qr_scanner_page_id' ) );
@@ -670,11 +667,7 @@ class Booking_Management_Admin {
 				);
 			}
 
-			if ( ( $screen->base == 'admin_page_bm_add_coupon' || $screen->base == 'flexibooking_page_bm_all_coupons' ) && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_script( 'coupon-module-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-coupon.js', array( 'jquery' ), $this->version, false );
-				wp_enqueue_script( 'country-state', plugin_dir_url( __FILE__ ) . 'js/country-states.js', array( 'jquery' ), $this->version, false );
-				wp_localize_script( 'coupon-module-js', 'bm_error_object', $error );
-			}
+
 
 			if ( $screen->base == 'admin_page_bm_single_order' ) {
 				wp_enqueue_script( 'single-order-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-single-order.js', array( 'jquery' ), $this->version, false );
@@ -828,7 +821,6 @@ class Booking_Management_Admin {
 		add_submenu_page( '', __( 'Service and Booking Settings', 'service-booking' ), __( 'Service and Booking Settings', 'service-booking' ), 'manage_options', 'bm_svc_booking_settings', array( $this, 'bm_svc_booking_settings' ) );
 		add_submenu_page( '', __( 'CSS Settings', 'service-booking' ), __( 'CSS Settings', 'service-booking' ), 'manage_options', 'bm_global_css_settings', array( $this, 'bm_global_css_settings' ) );
 		add_submenu_page( '', __( 'Timezone And Country Settings', 'service-booking' ), __( 'Timezone And Country Settings', 'service-booking' ), 'manage_options', 'bm_global_timezone_country_settings', array( $this, 'bm_global_timezone_country_settings' ) );
-		add_submenu_page( '', __( 'Pagination Settings', 'service-booking' ), __( 'Pagination Settings', 'service-booking' ), 'manage_options', 'bm_pagination_settings', array( $this, 'bm_pagination_settings' ) );
 		add_submenu_page( '', __( 'Language Settings', 'service-booking' ), __( 'Language Settings', 'service-booking' ), 'manage_options', 'bm_global_language_settings', array( $this, 'bm_global_language_settings' ) );
 		add_submenu_page( '', __( 'Format Settings', 'service-booking' ), __( 'Format Settings', 'service-booking' ), 'manage_options', 'bm_global_format_settings', array( $this, 'bm_global_format_settings' ) );
 
@@ -1019,7 +1011,8 @@ class Booking_Management_Admin {
 
 
 	public function bm_pagination_settings() {
-		include 'partials/booking-management-global-pagination-settings.php';
+		wp_safe_redirect( admin_url( 'admin.php?page=bm_global' ) );
+		exit;
 	}//end bm_pagination_settings()
 
 
@@ -1540,7 +1533,7 @@ class Booking_Management_Admin {
 
 			$category_name = apply_filters( 'bm_flexibooking_modify_category_names', $category_name, $services );
 
-			$num_of_pages               = isset( $limit ) ? ceil( $total_service_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_service_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -1737,7 +1730,7 @@ class Booking_Management_Admin {
 					}
 
 					$total_service_records      = $dbhandler->bm_count( 'SERVICE' );
-					$num_of_pages               = isset( $limit ) ? ceil( $total_service_records / $limit ) : 1;
+					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_service_records / $limit ) : 1;
 					$data['status']             = true;
 					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber'] = ( 1 + $offset );
@@ -1790,7 +1783,7 @@ class Booking_Management_Admin {
 			$name_field = $language == 'it' ? 'tmpl_name_it' : 'tmpl_name_en';
 
 			$total_template_records     = $dbhandler->bm_count( 'EMAIL_TMPL' );
-			$num_of_pages               = isset( $limit ) ? ceil( $total_template_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_template_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -1837,7 +1830,7 @@ class Booking_Management_Admin {
 			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-			$num_of_pages               = isset( $limit ) ? ceil( $total_price_module_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_price_module_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -1877,7 +1870,7 @@ class Booking_Management_Admin {
 			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
 			$total_processes_records        = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
-			$num_of_pages                   = isset( $limit ) ? ceil( $total_processes_records / $limit ) : 1;
+			$num_of_pages                   = ( $limit > 0 ) ? ceil( $total_processes_records / $limit ) : 1;
 			$data['status']                 = true;
 			$data['pagination']             = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber']     = ( 1 + $offset );
@@ -1944,7 +1937,7 @@ class Booking_Management_Admin {
 					$name_field = $language == 'it' ? 'tmpl_name_it' : 'tmpl_name_en';
 
 					$total_template_records     = $dbhandler->bm_count( 'EMAIL_TMPL' );
-					$num_of_pages               = isset( $limit ) ? ceil( $total_template_records / $limit ) : 1;
+					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_template_records / $limit ) : 1;
 					$data['status']             = true;
 					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber'] = ( 1 + $offset );
@@ -2109,7 +2102,7 @@ class Booking_Management_Admin {
 
 				if ( $removed ) {
 					$total_processes_records        = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
-					$num_of_pages                   = isset( $limit ) ? ceil( $total_processes_records / $limit ) : 1;
+					$num_of_pages                   = ( $limit > 0 ) ? ceil( $total_processes_records / $limit ) : 1;
 					$data['status']                 = true;
 					$data['pagination']             = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber']     = ( 1 + $offset );
@@ -2178,7 +2171,7 @@ class Booking_Management_Admin {
 			$categories                 = $dbhandler->get_all_result( 'CATEGORY', array( 'id', 'cat_name', 'cat_in_front', 'cat_position' ), 1, 'results', $offset, $limit, 'cat_position', false );
 			$cat_ids                    = wp_list_pluck( $categories, 'id', 0 );
 			$cat_ids                    = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', $cat_ids ) : '';
-			$num_of_pages               = isset( $limit ) ? ceil( $total_category_records / $limit ) : 1;
+			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_category_records / $limit ) : 1;
 			$data['status']             = true;
 			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
@@ -2353,7 +2346,7 @@ class Booking_Management_Admin {
 				$categories                 = $dbhandler->get_all_result( 'CATEGORY', array( 'id', 'cat_name', 'cat_in_front', 'cat_position' ), 1, 'results', $offset, $limit, 'cat_position', false );
 				$cat_ids                    = wp_list_pluck( $categories, 'id', 0 );
 				$cat_ids                    = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', ( array_merge( array( 0 ), $cat_ids ) ) ) : '';
-				$num_of_pages               = isset( $limit ) ? ceil( $total_category_records / $limit ) : 1;
+				$num_of_pages               = ( $limit > 0 ) ? ceil( $total_category_records / $limit ) : 1;
 				$data['status']             = true;
 				$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 				$data['current_pagenumber'] = ( 1 + $offset );
@@ -2416,7 +2409,7 @@ class Booking_Management_Admin {
 
 				if ( $removed ) {
 					$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-					$num_of_pages               = isset( $limit ) ? ceil( $total_price_module_records / $limit ) : 1;
+					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_price_module_records / $limit ) : 1;
 					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 					$data['current_pagenumber'] = ( 1 + $offset );
 					$data['price_modules']      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', array( 'id', 'module_name', 'status' ), 1, 'results', $offset, $limit );
@@ -4923,6 +4916,11 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_check_smtp_connection() {
+		if ( ! Booking_Management_Limits::is_pro_active() ) {
+			wp_send_json_error( 'Pro feature' );
+			return;
+		}
+
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
@@ -6173,7 +6171,7 @@ class Booking_Management_Admin {
 			$column_values  = $bmrequests->bm_fetch_column_order_and_names( 'orders' );
 			$statuses       = $bmrequests->bm_fetch_order_status_key_value();
 
-			$num_of_pages = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -6448,7 +6446,7 @@ class Booking_Management_Admin {
 			$column_values  = $bmrequests->bm_fetch_column_order_and_names( 'orders' );
 			$statuses       = $bmrequests->bm_fetch_order_status_key_value();
 
-			$num_of_pages = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -6660,7 +6658,7 @@ class Booking_Management_Admin {
 			$column_values  = $bmrequests->bm_fetch_column_order_and_names( 'checkin' );
 			$statuses       = $bmrequests->bm_fetch_order_status_key_value();
 
-			$num_of_pages = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -6872,7 +6870,7 @@ class Booking_Management_Admin {
 			$column_values  = $bmrequests->bm_fetch_column_order_and_names( 'orders' );
 			$statuses       = $bmrequests->bm_fetch_order_status_key_value();
 
-			$num_of_pages = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -7962,7 +7960,7 @@ class Booking_Management_Admin {
 				$total_records = $dbhandler->bm_count( 'BOOKING' );
 			}
 
-			$num_of_pages = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -8111,7 +8109,7 @@ class Booking_Management_Admin {
 
 			$statuses      = $bmrequests->bm_fetch_order_status_key_value();
 			$total_records = $bookings != null && ! empty( $bookings ) ? count( $bookings ) : 0;
-			$num_of_pages  = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages  = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -8188,7 +8186,7 @@ class Booking_Management_Admin {
 				$total_records = $dbhandler->bm_count( 'BOOKING' );
 			}
 
-			$num_of_pages = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -8279,7 +8277,7 @@ class Booking_Management_Admin {
 			$statuses = $bmrequests->bm_fetch_order_status_key_value();
 
 			$total_records = $bookings != null && ! empty( $bookings ) ? count( $bookings ) : 0;
-			$num_of_pages  = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages  = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -8370,7 +8368,7 @@ class Booking_Management_Admin {
 			$final_bookings = $dbhandler->bm_apply_offset_limit_and_sort_existing_data( $result, $offset, $limit, true, 'total_cost', 'DESC' );
 
 			$total_records = ! empty( $result ) ? count( $result ) : 0;
-			$num_of_pages  = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages  = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -8478,7 +8476,7 @@ class Booking_Management_Admin {
 			}
 
 			$total_records = ! empty( $result ) ? count( $result ) : 0;
-			$num_of_pages  = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages  = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -8569,7 +8567,7 @@ class Booking_Management_Admin {
 			$final_bookings = $dbhandler->bm_apply_offset_limit_and_sort_existing_data( $result, $offset, $limit, true, 'total_cost', 'DESC' );
 
 			$total_records = ! empty( $result ) ? count( $result ) : 0;
-			$num_of_pages  = isset( $limit ) ? ceil( $total_records / $limit ) : 1;
+			$num_of_pages  = ( $limit > 0 ) ? ceil( $total_records / $limit ) : 1;
 			$pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' );
 
 			$data['status']             = true;
@@ -11689,7 +11687,7 @@ class Booking_Management_Admin {
 
 									$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-									if ( $voucher_code ) {
+									if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 										$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 										$redeemVoucher->markVoucherExpired();
 									}
@@ -12224,7 +12222,7 @@ class Booking_Management_Admin {
 
 									$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-									if ( $voucher_code ) {
+									if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 										$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 										$redeemVoucher->markVoucherExpired();
 									}
@@ -12283,7 +12281,7 @@ class Booking_Management_Admin {
 
 										$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-										if ( $voucher_code ) {
+										if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 											$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 											$redeemVoucher->markVoucherExpired();
 										}
@@ -12342,7 +12340,7 @@ class Booking_Management_Admin {
 
 										$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
 
-										if ( $voucher_code ) {
+										if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
 											$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
 											$redeemVoucher->markVoucherExpired();
 										}
@@ -13399,6 +13397,11 @@ class Booking_Management_Admin {
 			return;
 		}
 
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Pro feature', 'service-booking' ) );
+			return;
+		}
+
 		$redeemVoucher = new FlexiVoucherRedeem( $code );
 
 		try {
@@ -13446,6 +13449,11 @@ class Booking_Management_Admin {
 
 		if ( empty( $code ) ) {
 			wp_send_json_error( __( 'Invalid request data', 'service-booking' ) );
+			return;
+		}
+
+		if ( ! class_exists( 'FlexiVoucherRedeem' ) ) {
+			wp_send_json_error( __( 'Pro feature', 'service-booking' ) );
 			return;
 		}
 
@@ -16399,7 +16407,7 @@ class Booking_Management_Admin {
 	public function bm_disable_admin_notices_on_specific_pages() {
 		$screen = get_current_screen();
 
-		$pages_to_disable = array( 'toplevel_page_bm_home', 'flexibooking_page_bm_all_orders', 'admin_page_bm_add_order', 'flexibooking_page_bm_all_customers', 'admin_page_bm_add_customer', 'admin_page_bm_customer_profile', 'flexibooking_page_bm_all_services', 'admin_page_bm_add_service', 'flexibooking_page_bm_all_categories', 'admin_page_bm_add_category', 'flexibooking_page_bm_email_templates', 'admin_page_bm_add_template', 'flexibooking_page_bm_fields', 'flexibooking_page_bm_all_external_service_prices', 'flexibooking_page_bm_voucher_records', 'admin_page_bm_add_external_service_price', 'flexibooking_page_bm_all_notification_processes', 'admin_page_bm_add_notification_process', 'flexibooking_page_bm_email_records', 'flexibooking_page_bm_all_coupons', 'admin_page_bm_add_coupon', 'flexibooking_page_bm_global', 'admin_page_bm_global_general_settings', 'admin_page_bm_global_css_settings', 'admin_page_bm_global_timezone_country_settings', 'admin_page_bm_global_email_settings', 'admin_page_bm_global_payment_settings', 'admin_page_bm_svc_booking_settings', 'admin_page_bm_pagination_settings', 'admin_page_bm_upload_settings', 'admin_page_bm_global_language_settings', 'admin_page_bm_global_format_settings', 'admin_page_bm_global_integration_settings', 'admin_page_bm_global_coupon_settings', 'flexibooking_page_bm_service_booking_planner', 'flexibooking_page_bm_single_service_booking_planner', 'flexibooking_page_bm_check_ins' );
+		$pages_to_disable = array( 'toplevel_page_bm_home', 'flexibooking_page_bm_all_orders', 'admin_page_bm_add_order', 'flexibooking_page_bm_all_customers', 'admin_page_bm_add_customer', 'admin_page_bm_customer_profile', 'flexibooking_page_bm_all_services', 'admin_page_bm_add_service', 'flexibooking_page_bm_all_categories', 'admin_page_bm_add_category', 'flexibooking_page_bm_email_templates', 'admin_page_bm_add_template', 'flexibooking_page_bm_fields', 'flexibooking_page_bm_all_external_service_prices', 'flexibooking_page_bm_voucher_records', 'admin_page_bm_add_external_service_price', 'flexibooking_page_bm_all_notification_processes', 'admin_page_bm_add_notification_process', 'flexibooking_page_bm_email_records', 'flexibooking_page_bm_all_coupons', 'admin_page_bm_add_coupon', 'flexibooking_page_bm_global', 'admin_page_bm_global_general_settings', 'admin_page_bm_global_css_settings', 'admin_page_bm_global_timezone_country_settings', 'admin_page_bm_global_email_settings', 'admin_page_bm_global_payment_settings', 'admin_page_bm_svc_booking_settings', 'admin_page_bm_upload_settings', 'admin_page_bm_global_language_settings', 'admin_page_bm_global_format_settings', 'admin_page_bm_global_integration_settings', 'admin_page_bm_global_coupon_settings', 'flexibooking_page_bm_service_booking_planner', 'flexibooking_page_bm_single_service_booking_planner', 'flexibooking_page_bm_check_ins' );
 
 		if ( in_array( $screen->id, $pages_to_disable ) ) {
 			remove_all_actions( 'admin_notices' );
@@ -16489,6 +16497,11 @@ class Booking_Management_Admin {
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
+		}
+
+		if ( ! class_exists( 'BM_Coupon_validation' ) ) {
+			echo wp_json_encode( array( 'status' => false ) );
+			die;
 		}
 
 		$coupon_validation = new BM_Coupon_validation();
