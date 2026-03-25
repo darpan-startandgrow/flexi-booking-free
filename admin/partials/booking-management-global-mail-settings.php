@@ -8,6 +8,7 @@ $plugin_path = plugin_dir_url( __FILE__ );
 $dbhandler   = new BM_DBhandler();
 $bmrequests  = new BM_Request();
 $language    = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
+$is_pro      = Booking_Management_Limits::is_pro_active();
 
 if ( filter_input( INPUT_POST, 'save_email_global' ) || filter_input( INPUT_POST, 'resetdata' ) ) {
 
@@ -303,6 +304,7 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
                         </td>
                     </tr>
                 </table>
+                <?php if ( $is_pro ) : ?>
                 <table class="form-table" role="presentation">
                     <tr>
                         <th scope="row">
@@ -423,6 +425,24 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
                         </td>
                     </tr>
                 </table>
+                <?php else : ?>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row">
+                            <?php esc_html_e( 'Enable SMTP', 'service-booking' ); ?>
+                            <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
+                            <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+                        </th>
+                        <td class="bm-checkbox-td" style="width: 40%;">
+                            <input type="checkbox" disabled class="regular-text bm_toggle">
+                            <label></label>
+                        </td>
+                        <td style="vertical-align: top;">
+                            <?php esc_html_e( 'SMTP settings are available in the Pro version. Upgrade to configure dedicated email routing.', 'service-booking' ); ?>
+                        </td>
+                    </tr>
+                </table>
+                <?php endif; ?>
             </table>
             <div class="row">
                 <p class="submit">
