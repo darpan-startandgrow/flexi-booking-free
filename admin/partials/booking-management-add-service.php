@@ -528,6 +528,11 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 <button type="button" class="tablinks" id="saleswitch_calendar_button" onclick="openSection(event, 'saleswitch_calendar')"><?php esc_html_e( 'Saleswitch', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="capacity_calendar_button" onclick="openSection(event, 'capacity_calendar')"><?php esc_html_e( 'Default Max Capacity', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="time_slot_button" onclick="openSection(event, 'time_slots_calendar')"><?php esc_html_e( 'Time Slots', 'service-booking' ); ?></button>
+                <?php else : ?>
+                <button type="button" class="tablinks" disabled title="<?php esc_attr_e( 'Stopsales — Pro Feature', 'service-booking' ); ?>"><?php esc_html_e( 'Stopsales', 'service-booking' ); ?> <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span></button>
+                <button type="button" class="tablinks" disabled title="<?php esc_attr_e( 'Sale Switch — Pro Feature', 'service-booking' ); ?>"><?php esc_html_e( 'Sale Switch', 'service-booking' ); ?> <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span></button>
+                <button type="button" class="tablinks" disabled title="<?php esc_attr_e( 'Default Max Capacity — Pro Feature', 'service-booking' ); ?>"><?php esc_html_e( 'Default Max Capacity', 'service-booking' ); ?> <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span></button>
+                <button type="button" class="tablinks" disabled title="<?php esc_attr_e( 'Time Slots Calendar — Pro Feature', 'service-booking' ); ?>"><?php esc_html_e( 'Time Slots', 'service-booking' ); ?> <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span></button>
                 <?php endif; ?>
                 <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Unavailability and other settings', 'service-booking' ); ?></button>
             </div>
@@ -800,7 +805,9 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                         </td>
                     </tr>
                     <input type="hidden" name="old_default_stopsales" id="old_default_stopsales">
+                    <?php if ( $is_pro ) : ?>
                     <input type="hidden" name="old_default_saleswitch" id="old_default_saleswitch">
+                    <?php endif; ?>
                     <tr>
                         <th scope="row"><label for="default_stopsales"><?php esc_html_e( 'Default Stopsales (in hrs)', 'service-booking' ); ?></label></th>
                         <td>
@@ -815,6 +822,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                             </span>
                         </td>
                     </tr>
+                    <?php if ( $is_pro ) : ?>
                     <tr>
                         <th scope="row"><label for="default_saleswitch"><?php esc_html_e( 'Default Saleswitch (in hrs)', 'service-booking' ); ?></label></th>
                         <td>
@@ -837,6 +845,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                             <label for="is_only_book_on_request"></label>
                         </td>
                     </tr>
+                    <?php endif; ?>
 
                     <tr>
                         <th scope="row"><label for="service_short_desc"><?php esc_html_e( 'Short Description', 'service-booking' ); ?></label></th>

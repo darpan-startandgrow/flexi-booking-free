@@ -1,4 +1,5 @@
 <?php
+$is_pro = Booking_Management_Limits::is_pro_active();
 $services_table = new BM_Services_List_Table();
 $services_table->prepare_items();
 ?>
@@ -12,6 +13,16 @@ $services_table->prepare_items();
             <a href="admin.php?page=bm_add_service" class="button-primary"><?php esc_html_e( 'Add Service', 'service-booking' ); ?></a>
         <?php else : ?>
             <button class="button" disabled title="Upgrade to Pro for unlimited services"><?php esc_html_e( 'Add Service (Limit Reached)', 'service-booking' ); ?></button>
+        <?php endif; ?>
+        <?php if ( $is_pro ) : ?>
+            <a href="javascript:void(0);" class="button button-primary export_service_records" title="<?php esc_html_e( 'Csv Export', 'service-booking' ); ?>">
+                <span><?php esc_html_e( 'Csv Export', 'service-booking' ); ?></span>
+            </a>
+        <?php else : ?>
+            <button class="button" disabled aria-disabled="true" title="<?php esc_attr_e( 'Csv Export — Pro Feature', 'service-booking' ); ?>">
+                <span><?php esc_html_e( 'Csv Export', 'service-booking' ); ?></span>
+                <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+            </button>
         <?php endif; ?>
     </div>
     <form method="get">
