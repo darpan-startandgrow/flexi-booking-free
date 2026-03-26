@@ -362,6 +362,22 @@
 	height: 12px;
 }
 
+/* ===== Admin Menu Pro Badge ===== */
+#adminmenu .bm-menu-pro-badge {
+	display: inline-block;
+	background: linear-gradient(135deg, #6366f1, #8b5cf6);
+	color: #fff;
+	font-size: 9px;
+	font-weight: 600;
+	padding: 2px 6px;
+	border-radius: 100px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	vertical-align: middle;
+	margin-left: 4px;
+	line-height: 14px;
+}
+
 /* ===== Locked Feature Overlay ===== */
 .sg-free-version .sg-pro-locked {
 	position: relative;
