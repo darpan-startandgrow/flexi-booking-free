@@ -2052,88 +2052,99 @@ function variableAutoTime($this) {
 
 // Load Price Calendar
 jQuery(document).ready(function ($) {
-	if (getUrlParameter('id') != '') $('#old_default_price').val($('#default_price').val());
+	var serviceId = getUrlParameter('id');
+	var $defaultPrice = $('#default_price');
+	var $oldDefaultPrice = $('#old_default_price');
 
-	$("#price_datepicker").datepicker({
+	if (serviceId !== '') $oldDefaultPrice.val($defaultPrice.val());
+
+	var $priceCalendar = $("#price_datepicker");
+	var $variableDate = $('#variable_date');
+	var $variablePrice = $('#variable_price');
+	var $priceModule = $('#variable_external_price_module');
+	var $linkModule = $('#link_external_price_module');
+	var $upSvcPrice = $('#up_svc_price');
+	var $upSvcPriceModule = $('#up_svc_price_module');
+	var $svcPriceModal = $('#svc_price_modal');
+	var $cancelSvcPrice = $('#cancel_svc_price');
+	var $singlePriceChange = $('#single_price_change');
+	var $calendarBulkChange = $('#calendar_bulk_price_change');
+	var $fromBulk = $('#from_bulk_price_change');
+	var $toBulk = $('#to_bulk_price_change');
+	var $bulkPrice = $('#bulk_variable_price');
+	var $bulkCheck = $('#bulk_price_change');
+	var $calendarError = $('.calendar_errortext');
+	var $priceSuccess = $('.price_update_successtext');
+	var $priceError = $('.price_update_errortext');
+	var $variableError = $('.variable_errortext');
+	var $bulkError = $('.bulk_errortext');
+
+	$priceCalendar.datepicker({
 		dateFormat: 'yy-mm-dd',
 		showButtonPanel: true,
 		changeMonth: true,
 		changeYear: true,
-		//		numberOfMonths: 3,
 		minDate: 0,
-		beforeShow: getUrlParameter('id') != '' ? bm_get_service_price() : addPriceInfo(),
-		//---^----------- if closed by default (when you're using <input>)
-		beforeShowDay: function (date) {
-			var returnday = "weekday";
-			return [true, returnday];
+		beforeShow: serviceId !== '' ? bm_get_service_price() : addPriceInfo(),
+		beforeShowDay: function () {
+			return [true, "weekday"];
 		},
-		onChangeMonthYear: function () { getUrlParameter('id') != '' ? bm_get_service_price() : addPriceInfo('drawYear') },
+		onChangeMonthYear: function () { serviceId !== '' ? bm_get_service_price() : addPriceInfo('drawYear'); },
 		onSelect: function (date, inst) {
-			if (jQuery('#default_price').val() != '') {
-				jQuery('#variable_date').val(date);
+			if ($defaultPrice.val() !== '') {
+				$variableDate.val(date);
 
 				var currency_symbol = bm_normal_object.currency_symbol;
+				var selectedCell = $(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
+					return $(this).find('a').text() == inst.selectedDay;
+				}).find("a");
+				var text = selectedCell.attr('data-custom');
 
-				var text = jQuery(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
-					return jQuery(this).find('a').text() == inst.selectedDay;
-				}).find("a").attr('data-custom');
-
-				if (text.indexOf("#module") > -1) {
-					jQuery('select[name^="variable_external_price_module"] option:selected').attr("selected", null);
-					if (text.split('_')[1] != '' && text.split('_')[1] != 'undefined') {
-						jQuery('select[name^="variable_external_price_module"] option[value="' + text.split('_')[1] + '"]').attr("selected", "selected");
+				if (text && text.indexOf("#module") > -1) {
+					$('select[name^="variable_external_price_module"] option:selected').attr("selected", null);
+					var moduleId = text.split('_')[1];
+					if (moduleId && moduleId !== 'undefined') {
+						$('select[name^="variable_external_price_module"] option[value="' + moduleId + '"]').attr("selected", "selected");
 					}
-					jQuery('#variable_price').hide();
-					jQuery('#variable_external_price_module').show();
-					jQuery('#link_external_price_module').prop('checked', true);
-					jQuery('#up_svc_price').hide();
-					jQuery('#up_svc_price_module').show();
+					$variablePrice.hide();
+					$priceModule.show();
+					$linkModule.prop('checked', true);
+					$upSvcPrice.hide();
+					$upSvcPriceModule.show();
 				} else {
-					if (text.split(currency_symbol)[1] != '' && text.split(currency_symbol)[1] != 'undefined') {
-						jQuery('#variable_price').val(text.split(currency_symbol)[1]);
+					var priceValue = text ? text.split(currency_symbol)[1] : '';
+					if (priceValue && priceValue !== 'undefined') {
+						$variablePrice.val(priceValue);
 					}
-					jQuery('#variable_price').show();
-					jQuery('#variable_external_price_module').hide();
-					jQuery('#link_external_price_module').prop('checked', false);
-					jQuery('#up_svc_price').show();
-					jQuery('#up_svc_price_module').hide();
+					$variablePrice.show();
+					$priceModule.hide();
+					$linkModule.prop('checked', false);
+					$upSvcPrice.show();
+					$upSvcPriceModule.hide();
 				}
 
-				jQuery('.calendar_errortext').html('');
-				jQuery('.price_update_successtext').html('');
-				jQuery('.price_update_errortext').html('');
-				jQuery('.variable_errortext').html('');
-				jQuery('.bulk_errortext').html('');
-				jQuery('#from_bulk_price_change').val('');
-				jQuery('#to_bulk_price_change').val('');
-				jQuery('#bulk_variable_price').val('');
+				$calendarError.html('').hide();
+				$priceSuccess.html('').hide();
+				$priceError.html('').hide();
+				$variableError.html('').hide();
+				$bulkError.html('').hide();
+				$fromBulk.val('');
+				$toBulk.val('').prop('readonly', true);
+				$bulkPrice.val('');
+				$bulkCheck.prop('checked', false);
 
-				jQuery('#to_bulk_price_change').prop('readonly', true);
-				jQuery('#bulk_price_change').prop('checked', false);
+				$cancelSvcPrice.show();
+				$svcPriceModal.show();
+				$singlePriceChange.show();
+				$calendarBulkChange.hide();
 
-				jQuery('#cancel_svc_price').show();
-				jQuery('#svc_price_modal').show();
-				jQuery('#single_price_change').show();
-
-				jQuery('.calendar_errortext').hide();
-				jQuery('.price_update_successtext').hide();
-				jQuery('.price_update_errortext').hide();
-				jQuery('.variable_errortext').hide();
-				jQuery('.bulk_errortext').hide();
-				jQuery('#calendar_bulk_price_change').hide();
-
-				//Prevent the redraw.
 				inst.inline = false;
 			} else {
-				jQuery('.calendar_errortext').html(bm_error_object.set_price);
-				jQuery('.calendar_errortext').show();
-
-				//Prevent the redraw.
+				$calendarError.html(bm_error_object.set_price).show();
 				inst.inline = false;
 			}
 		},
 	});
-	// getUrlParameter('id') != '' ? bm_get_service_price() : addPriceInfo(); // if open by default (when you're using <div>)
 });
 
 
@@ -3809,91 +3820,95 @@ function validate_bulk_capacity_and_submit() {
 
 
 // Save Service Calendar Price
-function save_calendar_service_price(year = '', month = '', day = '', date = '', price = '', default_price = '', done = false) {
+function save_calendar_service_price(year, month, day, date, price, default_price, done) {
+	year = year || ''; month = month || ''; day = day || ''; date = date || '';
+	price = price || ''; default_price = default_price || ''; done = done || false;
+
 	var element = jQuery("#price_datepicker").find('[data-year="' + year + '"][data-month="' + month + '"]').filter(function () {
 		return jQuery(this).find('a').text() == day;
 	}).find("a");
 
-	var price_text = bm_normal_object.currency_position == 'before' ? bm_normal_object.currency_symbol + parseFloat(price).toFixed(2) : parseFloat(price).toFixed(2) + bm_normal_object.currency_symbol;
+	var priceFloat = parseFloat(price);
+	var defaultFloat = parseFloat(default_price);
+	var price_text = bm_normal_object.currency_position === 'before'
+		? bm_normal_object.currency_symbol + priceFloat.toFixed(2)
+		: priceFloat.toFixed(2) + bm_normal_object.currency_symbol;
 
-	element.attr('data-custom', price != '' ? price_text : 'N/A');
-	if (parseFloat(price) > default_price) {
+	element.attr('data-custom', price !== '' ? price_text : 'N/A');
+	if (priceFloat > defaultFloat) {
 		element.css('color', '#fc2e05');
-	} else if (parseFloat(price) < default_price) {
+	} else if (priceFloat < defaultFloat) {
 		element.css('color', '#12812a');
-	} else if (parseFloat(price) == default_price) {
+	} else {
 		element.css('color', '#000000');
 	}
 
-	var date_duplicate = jQuery('[id^=input_variable_date_]').filter(function () {
-		return this.value == date;
+	var $dateInputs = jQuery('[id^=input_variable_date_]');
+	var date_duplicate = $dateInputs.filter(function () {
+		return this.value === date;
 	});
 
-	if (date_duplicate.length != 0) {
-		var id = date_duplicate.attr('id');
-		var index = Number(id.split("_")[3]);
+	if (date_duplicate.length !== 0) {
+		var dupId = date_duplicate.attr('id');
+		var index = Number(dupId.split("_")[3]);
 		date_duplicate.remove();
 		jQuery('#input_variable_price_' + index).remove();
 
-		jQuery('[id^=input_variable_date_]').each(function (id, item) {
-			var counter = id + 1;
-			jQuery(item).attr('id', 'input_variable_date_' + counter);
-			jQuery(item).attr('name', 'variable_svc_prices[date][' + counter + ']');
+		jQuery('[id^=input_variable_date_]').each(function (idx, item) {
+			var counter = idx + 1;
+			jQuery(item).attr({ 'id': 'input_variable_date_' + counter, 'name': 'variable_svc_prices[date][' + counter + ']' });
 		});
 
-		jQuery('[id^=input_variable_price_]').each(function (id, item) {
-			var counter = id + 1;
-			jQuery(item).attr('id', 'input_variable_price_' + counter);
-			jQuery(item).attr('name', 'variable_svc_prices[price][' + counter + ']');
+		jQuery('[id^=input_variable_price_]').each(function (idx, item) {
+			var counter = idx + 1;
+			jQuery(item).attr({ 'id': 'input_variable_price_' + counter, 'name': 'variable_svc_prices[price][' + counter + ']' });
 		});
 
 		done = true;
 	}
 
-	if (parseFloat(price) != parseFloat(default_price)) {
-		var date_element = jQuery('[id^=input_variable_date_]').length;
-		var price_element = jQuery('[id^=input_variable_price_]').length;
-		if (date_element != 0 && price_element != 0 && date_element == price_element) {
-			var date_lastid = jQuery('#svc_calendar_date_inputs input:last').attr("id");
-			var price_lastid = jQuery('#svc_calendar_price_inputs input:last').attr("id");
-			var date_nextindex = Number(date_lastid.split("_")[3]) + 1;
-			var price_nextindex = Number(price_lastid.split("_")[3]) + 1;
+	if (priceFloat !== defaultFloat) {
+		var $calDateInputs = jQuery('[id^=input_variable_date_]');
+		var $calPriceInputs = jQuery('[id^=input_variable_price_]');
+		var date_nextindex, price_nextindex;
+
+		if ($calDateInputs.length > 0 && $calPriceInputs.length > 0 && $calDateInputs.length === $calPriceInputs.length) {
+			date_nextindex = Number(jQuery('#svc_calendar_date_inputs input:last').attr("id").split("_")[3]) + 1;
+			price_nextindex = Number(jQuery('#svc_calendar_price_inputs input:last').attr("id").split("_")[3]) + 1;
 		} else {
-			var date_nextindex = price_nextindex = 1;
+			date_nextindex = price_nextindex = 1;
 		}
 
-		jQuery('<input>').attr({ type: 'hidden', id: 'input_variable_date_' + date_nextindex + '', name: 'variable_svc_prices[date][' + date_nextindex + ']', class: 'price-date-inputs', value: date }).appendTo('#svc_calendar_date_inputs');
-		jQuery('<input>').attr({ type: 'hidden', id: 'input_variable_price_' + price_nextindex + '', name: 'variable_svc_prices[price][' + price_nextindex + ']', class: 'price-price-inputs', value: price }).appendTo('#svc_calendar_price_inputs');
+		jQuery('<input>').attr({ type: 'hidden', id: 'input_variable_date_' + date_nextindex, name: 'variable_svc_prices[date][' + date_nextindex + ']', 'class': 'price-date-inputs', value: date }).appendTo('#svc_calendar_date_inputs');
+		jQuery('<input>').attr({ type: 'hidden', id: 'input_variable_price_' + price_nextindex, name: 'variable_svc_prices[price][' + price_nextindex + ']', 'class': 'price-price-inputs', value: price }).appendTo('#svc_calendar_price_inputs');
 
 		done = true;
 	}
 
 	var module_date_duplicate = jQuery('[id^=input_variable_module_date_]').filter(function () {
-		return this.value == date;
+		return this.value === date;
 	});
 
-	if (module_date_duplicate.length != 0) {
-		var id = module_date_duplicate.attr('id');
-		var index = Number(id.split("_")[4]);
+	if (module_date_duplicate.length !== 0) {
+		var modId = module_date_duplicate.attr('id');
+		var modIndex = Number(modId.split("_")[4]);
 		module_date_duplicate.remove();
-		jQuery('#input_module_variable_' + index).remove();
+		jQuery('#input_module_variable_' + modIndex).remove();
 
-		jQuery('[id^=input_variable_module_date_]').each(function (id, item) {
-			var counter = id + 1;
-			jQuery(item).attr('id', 'input_variable_module_date_' + counter);
-			jQuery(item).attr('name', 'variable_svc_price_modules[date][' + counter + ']');
+		jQuery('[id^=input_variable_module_date_]').each(function (idx, item) {
+			var counter = idx + 1;
+			jQuery(item).attr({ 'id': 'input_variable_module_date_' + counter, 'name': 'variable_svc_price_modules[date][' + counter + ']' });
 		});
 
-		jQuery('[id^=input_module_variable_]').each(function (id, item) {
-			var counter = id + 1;
-			jQuery(item).attr('id', 'input_module_variable_' + counter);
-			jQuery(item).attr('name', 'variable_svc_price_modules[module][' + counter + ']');
+		jQuery('[id^=input_module_variable_]').each(function (idx, item) {
+			var counter = idx + 1;
+			jQuery(item).attr({ 'id': 'input_module_variable_' + counter, 'name': 'variable_svc_price_modules[module][' + counter + ']' });
 		});
 
 		done = true;
 	}
 
-	if (jQuery('[id^=input_variable_date_]').length == 0 && parseFloat(price) == parseFloat(default_price)) {
+	if (jQuery('[id^=input_variable_date_]').length === 0 && priceFloat === defaultFloat) {
 		done = true;
 	}
 
@@ -4911,147 +4926,126 @@ function edit_calendar_service_variable_time_slots(values = []) {
 function bm_get_service_price() {
 	jQuery('.calendar_errortext, .price_update_successtext, .price_update_errortext, .variable_errortext, .bulk_errortext')
 		.hide()
-		.html(' ');
+		.html('');
 
 	var currency_symbol = bm_normal_object.currency_symbol;
 	var currency_position = bm_normal_object.currency_position;
+	var serviceId = getUrlParameter('id');
 
-	if (getUrlParameter('id') != '') {
-		var data = {
+	if (serviceId !== '') {
+		jQuery.post(bm_ajax_object.ajax_url, {
 			'action': 'bm_get_service_prices',
-			'id': getUrlParameter('id'),
+			'id': serviceId,
 			'nonce': bm_ajax_object.nonce
-		};
-
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		}, function (response) {
 			var jsondata = JSON.parse(response);
-			var status = jsondata.status;
+
+			if (jsondata.status !== true) {
+				jQuery('.calendar_errortext').html(bm_error_object.server_error).show();
+				return;
+			}
+
 			var default_price = jsondata.default_price;
-			var variable_price_obj = jsondata.variable_price.price || '';
-			var variable_price_date_obj = jsondata.variable_price.date || '';
-			var variable_module_obj = jsondata.variable_module.module || '';
-			var variable_module_date_obj = jsondata.variable_module.date || '';
+			var defaultPriceFloat = parseFloat(default_price);
+			var variable_price = jsondata.variable_price || {};
+			var variable_module = jsondata.variable_module || {};
 			var unavailability = jsondata.unavailability || '';
 			var gbl_unavailability = jsondata.gbl_unavlabilty || '';
 
-			var price_array = [];
-			var module_array = [];
-			var price_date_array = [];
-			var module_date_array = [];
-			var unavailable_days_array = [];
+			var price_array = variable_price.price ? Object.values(variable_price.price) : [];
+			var price_date_array = variable_price.date ? Object.values(variable_price.date) : [];
+			var module_array = variable_module.module ? Object.values(variable_module.module) : [];
+			var module_date_array = variable_module.date ? Object.values(variable_module.date) : [];
+
 			var weekdays_array = [];
-
-			if (variable_price_obj && variable_price_date_obj) {
-				price_array = Object.values(variable_price_obj);
-				price_date_array = Object.values(variable_price_date_obj);
+			if (unavailability && typeof unavailability === 'object' && unavailability.weekdays) {
+				weekdays_array = Object.values(unavailability.weekdays).map(String);
 			}
 
-			if (variable_module_obj && variable_module_date_obj) {
-				module_array = Object.values(variable_module_obj);
-				module_date_array = Object.values(variable_module_date_obj);
-			}
-
-			if (unavailability && typeof unavailability === 'object') {
-				if (unavailability.weekdays && unavailability.weekdays !== '') {
-					weekdays_array = Object.values(unavailability.weekdays).map(String);
-				}
-			}
-
-			if (
-				gbl_unavailability &&
-				typeof gbl_unavailability === 'object' &&
-				gbl_unavailability.dates &&
-				Object.keys(gbl_unavailability.dates).length > 0
-			) {
+			var unavailable_days_array = [];
+			if (gbl_unavailability && typeof gbl_unavailability === 'object' && gbl_unavailability.dates && Object.keys(gbl_unavailability.dates).length > 0) {
 				unavailable_days_array = Object.values(gbl_unavailability.dates);
-			} else if (unavailability && typeof unavailability === 'object') {
-				if (unavailability.dates && unavailability.dates !== '') {
-					unavailable_days_array = Object.values(unavailability.dates);
-				}
+			} else if (unavailability && typeof unavailability === 'object' && unavailability.dates) {
+				unavailable_days_array = Object.values(unavailability.dates);
 			}
 
-			if (status === true) {
-				setTimeout(function () {
-					jQuery("#price_datepicker")
-						.datepicker()
-						.find(".ui-datepicker-calendar td")
-						.filter(function () {
-							var date = jQuery(this).text();
-							return /\d/.test(date);
-						})
-						.find('a, span')
-						.html(function (i, html) {
-							var $this = jQuery(this);
-							var day = $this.data('date');
-							var month = $this.parent().data('month') + 1;
-							var year = $this.parent().data('year');
-							var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
-							var week_date = new Date(date);
+			var default_price_text = currency_position === 'before'
+				? currency_symbol + defaultPriceFloat.toFixed(2)
+				: defaultPriceFloat.toFixed(2) + currency_symbol;
 
-							if (jQuery.inArray(date, price_date_array) !== -1) {
-								var price = price_array[jQuery.inArray(date, price_date_array)];
-								if (parseFloat(price) > parseFloat(default_price)) {
-									$this.addClass('highValue');
-								} else if (parseFloat(price) < parseFloat(default_price)) {
-									$this.addClass('lowValue');
-								}
-								var price_text = currency_position == 'before'
-									? currency_symbol + parseFloat(price).toFixed(2)
-									: parseFloat(price).toFixed(2) + currency_symbol;
-								$this.attr('data-custom', price === '' ? 'N/A' : price_text);
-							} else if (jQuery.inArray(date, module_date_array) !== -1) {
-								var module = module_array[jQuery.inArray(date, module_date_array)];
-								var module_text = '#module_' + module;
-								$this.attr('data-custom', module_text);
-								$this.addClass('bluetValue');
-							} else {
-								$this.addClass('brightValue');
-								var price_text = currency_position == 'before'
-									? currency_symbol + parseFloat(default_price).toFixed(2)
-									: parseFloat(default_price).toFixed(2) + currency_symbol;
-								$this.attr('data-custom', default_price === '' ? 'N/A' : price_text);
+			var priceDateLookup = {};
+			for (var p = 0; p < price_date_array.length; p++) {
+				priceDateLookup[price_date_array[p]] = price_array[p];
+			}
+			var moduleDateLookup = {};
+			for (var m = 0; m < module_date_array.length; m++) {
+				moduleDateLookup[module_date_array[m]] = module_array[m];
+			}
+
+			setTimeout(function () {
+				jQuery("#price_datepicker")
+					.datepicker()
+					.find(".ui-datepicker-calendar td")
+					.filter(function () {
+						return /\d/.test(jQuery(this).text());
+					})
+					.find('a, span')
+					.html(function (i, html) {
+						var $this = jQuery(this);
+						var day = $this.data('date');
+						var month = $this.parent().data('month') + 1;
+						var year = $this.parent().data('year');
+						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
+
+						if (priceDateLookup.hasOwnProperty(date)) {
+							var price = priceDateLookup[date];
+							var priceFloat = parseFloat(price);
+							if (priceFloat > defaultPriceFloat) {
+								$this.addClass('highValue');
+							} else if (priceFloat < defaultPriceFloat) {
+								$this.addClass('lowValue');
 							}
+							var price_text = currency_position === 'before'
+								? currency_symbol + priceFloat.toFixed(2)
+								: priceFloat.toFixed(2) + currency_symbol;
+							$this.attr('data-custom', price === '' ? 'N/A' : price_text);
+						} else if (moduleDateLookup.hasOwnProperty(date)) {
+							$this.attr('data-custom', '#module_' + moduleDateLookup[date]);
+							$this.addClass('bluetValue');
+						} else {
+							$this.addClass('brightValue');
+							$this.attr('data-custom', default_price === '' ? 'N/A' : default_price_text);
+						}
 
-							var isUnavailable = false;
+						var isUnavailable = false;
+						for (var r = 0; r < unavailable_days_array.length; r++) {
+							var rangeStr = String(unavailable_days_array[r] || '').trim();
+							if (!rangeStr.length) continue;
 
-							for (var r = 0; r < unavailable_days_array.length; r++) {
-								var rawRange = unavailable_days_array[r];
-								if (!rawRange) continue;
-
-								var rangeStr = String(rawRange).trim();
-								if (!rangeStr.length) continue;
-
-								if (rangeStr.indexOf('to') !== -1) {
-									var parts = rangeStr.split('to');
-									var start = parts[0].trim();
-									var end = parts[1].trim();
-									if (start && end && date >= start && date <= end) {
-										isUnavailable = true;
-										break;
-									}
-								} else if (date === rangeStr) {
+							if (rangeStr.indexOf('to') !== -1) {
+								var parts = rangeStr.split('to');
+								var start = parts[0].trim();
+								var end = parts[1].trim();
+								if (start && end && date >= start && date <= end) {
 									isUnavailable = true;
 									break;
 								}
+							} else if (date === rangeStr) {
+								isUnavailable = true;
+								break;
 							}
+						}
 
-							if (!isUnavailable && weekdays_array.length > 0) {
-								var weekdayStr = String(week_date.getDay());
-								if (weekdays_array.indexOf(weekdayStr) !== -1) {
-									isUnavailable = true;
-								}
+						if (!isUnavailable && weekdays_array.length > 0) {
+							var week_date = new Date(date);
+							if (weekdays_array.indexOf(String(week_date.getDay())) !== -1) {
+								isUnavailable = true;
 							}
+						}
 
-							if (isUnavailable) {
-								$this.addClass('not_available_for_booking');
-							} else {
-								$this.addClass('available_for_booking');
-							}
-						});
-				});
-			} else {
-				jQuery('.calendar_errortext').html(bm_error_object.server_error).show();
-			}
+						$this.addClass(isUnavailable ? 'not_available_for_booking' : 'available_for_booking');
+					});
+			});
 		});
 	} else {
 		jQuery('.calendar_errortext').html(bm_error_object.server_error).show();
