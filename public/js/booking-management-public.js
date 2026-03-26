@@ -1817,11 +1817,10 @@ function bm_get_service_price($this = '', $container, service_id = 0) {
 				Object.keys(gbl_unavailability.dates).length > 0
 			) {
 				unavailable_days_array = Object.values(gbl_unavailability.dates);
-			} else if (unavailability && typeof unavailability === 'object') {
-				if (unavailability.dates && unavailability.dates !== '') {
-					unavailable_days_array = Object.values(unavailability.dates);
-				}
 			}
+
+			// Availability periods (new system): array of {date_start, date_end}
+			var availability_periods = jsondata.availability_periods || [];
 
 			var price_array = [];
 			var price_date_array = [];
@@ -1880,6 +1879,20 @@ function bm_get_service_price($this = '', $container, service_id = 0) {
 					if (!isUnavailable && weekdays_array.length > 0) {
 						var weekdayStr = String(week_date.getDay());
 						if (weekdays_array.indexOf(weekdayStr) !== -1) {
+							isUnavailable = true;
+						}
+					}
+
+					// Check availability periods: if periods exist, date must be within at least one
+					if (!isUnavailable && availability_periods.length > 0) {
+						var inPeriod = false;
+						for (var ap = 0; ap < availability_periods.length; ap++) {
+							if (date >= availability_periods[ap].date_start && date <= availability_periods[ap].date_end) {
+								inPeriod = true;
+								break;
+							}
+						}
+						if (!inPeriod) {
 							isUnavailable = true;
 						}
 					}

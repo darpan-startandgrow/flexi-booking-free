@@ -8943,6 +8943,74 @@ class BM_Request {
 
 
 	/**
+	 * Check whether a service has any availability periods defined.
+	 *
+	 * @since 1.4.0
+	 * @param int $service_id Service ID.
+	 * @return bool
+	 */
+	public function bm_service_has_availability_periods( $service_id ) {
+		global $wpdb;
+		$activator  = new BM_Activator();
+		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT COUNT(*) FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d", absint( $service_id ) )
+		);
+
+		return $count > 0;
+	}
+
+	/**
+	 * Check whether a date falls within at least one availability period for a service.
+	 *
+	 * @since 1.4.0
+	 * @param int    $service_id Service ID.
+	 * @param string $date       Date in Y-m-d format.
+	 * @return bool
+	 */
+	public function bm_date_in_availability_period( $service_id, $date ) {
+		global $wpdb;
+		$activator  = new BM_Activator();
+		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d AND %s BETWEEN date_start AND date_end",
+				absint( $service_id ),
+				sanitize_text_field( $date )
+			)
+		);
+
+		return $count > 0;
+	}
+
+	/**
+	 * Fetch all availability periods for a service.
+	 *
+	 * @since 1.4.0
+	 * @param int $service_id Service ID.
+	 * @return array Array of period objects with date_start, date_end, id.
+	 */
+	public function bm_get_availability_periods( $service_id ) {
+		global $wpdb;
+		$activator  = new BM_Activator();
+		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only query
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, date_start, date_end FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d ORDER BY date_start ASC",
+				absint( $service_id )
+			)
+		);
+
+		return ! empty( $results ) ? $results : array();
+	}
+
+	/**
 	 * Get page url
 	 *
 	 * @author Darpan
@@ -9019,19 +9087,16 @@ class BM_Request {
 		$service_unavailability = isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 
 		if ( ! empty( $service_unavailability ) ) {
-			$unavailable_days  = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
-			$unavailable_dates = isset( $service_unavailability['dates'] ) ? $service_unavailability['dates'] : array();
-
-			if ( ! empty( $unavailable_dates ) ) {
-				foreach ( $unavailable_dates as $range ) {
-					list( $start, $end ) = array_map( 'trim', explode( 'to', $range ) );
-					if ( strtotime( $date ) >= strtotime( $start ) && strtotime( $date ) <= strtotime( $end ) ) {
-						return false;
-					}
-				}
-			}
+			$unavailable_days = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
 
 			if ( ! empty( $unavailable_days ) && in_array( $day_of_week, $unavailable_days ) ) {
+				return false;
+			}
+		}
+
+		// Check availability periods – if periods exist the date must fall within at least one.
+		if ( $this->bm_service_has_availability_periods( $service_id ) ) {
+			if ( ! $this->bm_date_in_availability_period( $service_id, $date ) ) {
 				return false;
 			}
 		}
@@ -9114,33 +9179,24 @@ class BM_Request {
 			$unavailable = false;
 
 			if ( ! empty( $service_unavailability ) ) {
-				$unavailable_days  = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
-				$unavailable_dates = isset( $service_unavailability['dates'] ) ? $service_unavailability['dates'] : array();
-
-				if ( ! empty( $unavailable_dates ) ) {
-					foreach ( $unavailable_dates as $range ) {
-						if ( strpos( $range, 'to' ) !== false ) {
-							list( $start, $end ) = array_map( 'trim', explode( 'to', $range ) );
-							if ( strtotime( $date ) >= strtotime( $start ) && strtotime( $date ) <= strtotime( $end ) ) {
-								$unavailable = true;
-								break;
-							}
-						} elseif ( trim( $range ) === $date ) {
-							$unavailable = true;
-							break;
-						}
-					}
-				}
+				$unavailable_days = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
 
 				if ( ! empty( $unavailable_days ) && in_array( $day_of_week, $unavailable_days ) ) {
 					$unavailable = true;
 				}
+			}
 
-				if ( $unavailable ) {
-					$key = array_search( $service->id, $service_ids );
-					if ( $key !== false ) {
-						unset( $service_ids[ $key ] );
-					}
+			// Check availability periods – if periods exist the date must fall within at least one.
+			if ( ! $unavailable && $this->bm_service_has_availability_periods( $service->id ) ) {
+				if ( ! $this->bm_date_in_availability_period( $service->id, $date ) ) {
+					$unavailable = true;
+				}
+			}
+
+			if ( $unavailable ) {
+				$key = array_search( $service->id, $service_ids );
+				if ( $key !== false ) {
+					unset( $service_ids[ $key ] );
 				}
 			}
 		}
@@ -9183,33 +9239,24 @@ class BM_Request {
 			$unavailable = false;
 
 			if ( ! empty( $service_unavailability ) ) {
-				$unavailable_days  = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
-				$unavailable_dates = isset( $service_unavailability['dates'] ) ? $service_unavailability['dates'] : array();
-
-				if ( ! empty( $unavailable_dates ) ) {
-					foreach ( $unavailable_dates as $range ) {
-						if ( strpos( $range, 'to' ) !== false ) {
-							list( $start, $end ) = array_map( 'trim', explode( 'to', $range ) );
-							if ( strtotime( $date ) >= strtotime( $start ) && strtotime( $date ) <= strtotime( $end ) ) {
-								$unavailable = true;
-								break;
-							}
-						} elseif ( trim( $range ) === $date ) {
-							$unavailable = true;
-							break;
-						}
-					}
-				}
+				$unavailable_days = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
 
 				if ( ! empty( $unavailable_days ) && in_array( $day_of_week, $unavailable_days ) ) {
 					$unavailable = true;
 				}
+			}
 
-				if ( $unavailable ) {
-					$key = array_search( $service->service_category, $category_ids );
-					if ( $key !== false ) {
-						unset( $category_ids[ $key ] );
-					}
+			// Check availability periods – if periods exist the date must fall within at least one.
+			if ( ! $unavailable && $this->bm_service_has_availability_periods( $service->id ) ) {
+				if ( ! $this->bm_date_in_availability_period( $service->id, $date ) ) {
+					$unavailable = true;
+				}
+			}
+
+			if ( $unavailable ) {
+				$key = array_search( $service->service_category, $category_ids );
+				if ( $key !== false ) {
+					unset( $category_ids[ $key ] );
 				}
 			}
 		}

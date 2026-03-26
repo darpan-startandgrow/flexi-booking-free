@@ -3975,3 +3975,63 @@ pre {
 .bm-action-view {
     margin-left: 6px;
 }
+
+/* ===== Availability Periods — Blue Chips ===== */
+.bm-availability-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bm-color-primary, #2271b1);
+    color: #fff;
+    border-radius: 16px;
+    padding: 4px 12px;
+    margin: 4px 4px 4px 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.bm-availability-chip .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.bm-chip-remove {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+}
+.bm-chip-remove:hover {
+    color: #fff;
+}
+
+.bm-period-add-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bm-period-add-row label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.bm-period-add-row input[type="date"] {
+    margin-top: 4px;
+}
+
+.bm-weekday-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+}

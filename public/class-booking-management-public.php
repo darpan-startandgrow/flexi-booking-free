@@ -2991,6 +2991,9 @@ class Booking_Management_Public {
 				$data['variable_price']  = isset( $service->variable_svc_prices ) ? maybe_unserialize( $service->variable_svc_prices ) : array();
 				$data['unavailability']  = isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 				$data['gbl_unavlabilty'] = $dbhandler->get_global_option_value( 'bm_global_unavailability' );
+
+				$bmrequests = new BM_Request();
+				$data['availability_periods'] = $bmrequests->bm_get_availability_periods( $id );
 			}
 		}
 

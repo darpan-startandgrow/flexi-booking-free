@@ -559,6 +559,20 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
+		$table_name = $this->get_db_table_name( 'AVAILABILITY_PERIOD' );
+		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`service_id` int(11) NOT NULL,
+		`date_start` date NOT NULL,
+		`date_end` date NOT NULL,
+		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (`id`),
+		KEY `idx_avail_period_service_id` (`service_id`)
+		)$charset_collate;";
+		dbDelta( $sql );
+
+		$this->migrate_closures_to_availability_periods();
+
 		$this->add_error_column_to_emails();
 		$this->create_default_form_fields();
 		$this->create_default_email_templates();
@@ -647,6 +661,9 @@ class Booking_Management_Activator {
 				break;
 			case 'COUPON':
 				$table_name = $plugin_prefix . 'coupon';
+				break;
+			case 'AVAILABILITY_PERIOD':
+				$table_name = $plugin_prefix . 'availability_periods';
 				break;
 			default:
 				$classname = "BM_Helper_$identifier";
@@ -737,6 +754,9 @@ class Booking_Management_Activator {
 				$unique_field_name = 'id';
 				break;
 			case 'PDF_CUSTOMIZATION':
+				$unique_field_name = 'id';
+				break;
+			case 'AVAILABILITY_PERIOD':
 				$unique_field_name = 'id';
 				break;
 			default:
@@ -1799,6 +1819,87 @@ class Booking_Management_Activator {
 
 		return $format;
 	} //end get_field_format_type_COUPON()
+
+	/**
+	 * Migrate legacy closure date-ranges to availability_periods table.
+	 *
+	 * Reads each service's serialized service_unavailability → dates array,
+	 * converts every "YYYY-MM-DD to YYYY-MM-DD" closure range into a row in
+	 * the new service_availability_periods table, then removes the migrated
+	 * dates key from the serialised blob so only weekdays remain.
+	 *
+	 * Runs once; controlled by the bm_availability_periods_migrated option.
+	 *
+	 * @since 1.4.0
+	 */
+	private function migrate_closures_to_availability_periods() {
+		global $wpdb;
+
+		if ( get_option( 'bm_availability_periods_migrated', '0' ) === '1' ) {
+			return;
+		}
+
+		$service_table = $this->get_db_table_name( 'SERVICE' );
+		$period_table  = $this->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
+		$services = $wpdb->get_results( "SELECT id, service_unavailability FROM `" . esc_sql( $service_table ) . "`" );
+
+		if ( ! empty( $services ) ) {
+			foreach ( $services as $svc ) {
+				$unavailability = maybe_unserialize( $svc->service_unavailability );
+				if ( empty( $unavailability ) || ! is_array( $unavailability ) || empty( $unavailability['dates'] ) ) {
+					continue;
+				}
+
+				foreach ( $unavailability['dates'] as $range ) {
+					$range = trim( $range );
+					if ( empty( $range ) ) {
+						continue;
+					}
+
+					if ( strpos( $range, 'to' ) !== false ) {
+						$parts = array_map( 'trim', explode( 'to', $range ) );
+						$start = $parts[0];
+						$end   = $parts[1];
+					} else {
+						$start = $range;
+						$end   = $range;
+					}
+
+					if ( empty( $start ) || empty( $end ) ) {
+						continue;
+					}
+
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
+					$wpdb->insert(
+						$period_table,
+						array(
+							'service_id' => absint( $svc->id ),
+							'date_start' => sanitize_text_field( $start ),
+							'date_end'   => sanitize_text_field( $end ),
+						),
+						array( '%d', '%s', '%s' )
+					);
+				}
+
+				// Remove dates key, keep weekdays only
+				unset( $unavailability['dates'] );
+				$new_val = ! empty( $unavailability ) ? maybe_serialize( $unavailability ) : null;
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration update
+				$wpdb->update(
+					$service_table,
+					array( 'service_unavailability' => $new_val ),
+					array( 'id' => absint( $svc->id ) ),
+					array( '%s' ),
+					array( '%d' )
+				);
+			}
+		}
+
+		update_option( 'bm_availability_periods_migrated', '1' );
+	}
 
 	private function add_error_column_to_emails() {
 		global $wpdb;

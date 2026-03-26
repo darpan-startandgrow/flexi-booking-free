@@ -2322,6 +2322,9 @@ class Booking_Management_Admin {
 			$data['unavailability']  = ! empty( $service ) && isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 			$data['gbl_unavlabilty'] = $dbhandler->get_global_option_value( 'bm_global_unavailability' );
 
+			$bmrequests = new BM_Request();
+			$data['availability_periods'] = $bmrequests->bm_get_availability_periods( $id );
+
 			$data = apply_filters( 'bm_flexibooking_after_getting_service_prices', $data, $service, $id );
 		}
 

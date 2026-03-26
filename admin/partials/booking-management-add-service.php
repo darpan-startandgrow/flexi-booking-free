@@ -1,5 +1,56 @@
 <?php
 
+/**
+ * Save availability periods for a service.
+ *
+ * Deletes periods that were removed (not in $existing_ids), and inserts new ones.
+ *
+ * @since 1.4.0
+ * @param int   $service_id   The service ID.
+ * @param array $new_periods  Array of new periods with 'start' and 'end' sub-arrays.
+ * @param array $existing_ids Array of existing period IDs to keep.
+ */
+function bm_save_availability_periods( $service_id, $new_periods = array(), $existing_ids = array() ) {
+    global $wpdb;
+    $activator  = new BM_Activator();
+    $table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+    // Delete periods that were removed by the user.
+    if ( ! empty( $existing_ids ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $existing_ids ), '%d' ) );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Dynamic safe placeholder list
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d AND id NOT IN ($placeholders)",
+                array_merge( array( absint( $service_id ) ), $existing_ids )
+            )
+        );
+    } else {
+        // No existing periods kept – remove all.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Availability period cleanup
+        $wpdb->delete( $table_name, array( 'service_id' => absint( $service_id ) ), array( '%d' ) );
+    }
+
+    // Insert new periods.
+    if ( ! empty( $new_periods ) && isset( $new_periods['start'] ) && isset( $new_periods['end'] ) ) {
+        foreach ( $new_periods['start'] as $i => $start ) {
+            $end = isset( $new_periods['end'][ $i ] ) ? $new_periods['end'][ $i ] : '';
+            if ( ! empty( $start ) && ! empty( $end ) && strtotime( $end ) >= strtotime( $start ) ) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Availability period insert
+                $wpdb->insert(
+                    $table_name,
+                    array(
+                        'service_id' => absint( $service_id ),
+                        'date_start' => sanitize_text_field( $start ),
+                        'date_end'   => sanitize_text_field( $end ),
+                    ),
+                    array( '%d', '%s', '%s' )
+                );
+            }
+        }
+    }
+}
+
 // Check if user is allowed to add more services
 $can_add = apply_filters( 'booking_management_can_add_service', true );
 
@@ -247,6 +298,9 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 				$dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
 			}
 
+            // Save availability periods for newly created service.
+            bm_save_availability_periods( $service_id, $availability_periods_new, $availability_periods_existing );
+
             wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_all_services' ) );
             exit;
 		} else {
@@ -327,6 +381,9 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 					$frontend_all_services_shortcode_selected_cat_ids = array_merge( $frontend_all_services_shortcode_selected_cat_ids, array( $category_id_updated ) );
 					$dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
 				}
+
+                // Save availability periods for updated service.
+                bm_save_availability_periods( $id, $availability_periods_new, $availability_periods_existing );
 
 				wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_add_service&id=' . esc_attr( $id ) ) );
 				exit;
@@ -474,7 +531,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 <button type="button" class="tablinks" id="gallery_button" onclick="openSection(event, 'service_gallery')"><?php esc_html_e( 'Gallery', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) != 0 ? 'active' : ''; ?>" id="extra_button" onclick="openSection(event, 'service_extra')"><?php esc_html_e( 'Extra', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="price_calendar_button" onclick="openSection(event, 'price_calendar')"><?php esc_html_e( 'Prices', 'service-booking' ); ?></button>
-                <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Unavailability and other settings', 'service-booking' ); ?></button>
+                <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Availability', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Stop Sales', 'service-booking' ); ?>">
                     <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Stop Sales', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
                 </button>
@@ -1364,77 +1421,79 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
 
                 <div id="svc_settings_section" class="tabcontent">
                     <table class="form-table" role="presentation">
-                        <h3><?php esc_html_e( 'Unavailability on Week Days', 'service-booking' ); ?></h3>
+                        <h3><?php esc_html_e( 'Weekly Availability', 'service-booking' ); ?></h3>
                         <tr>
-                            <th scope="row"><label><?php esc_html_e( 'Days of the week when the service is unavailable', 'service-booking' ); ?></label></th>
+                            <th scope="row"><label><?php esc_html_e( 'Days of the week when the service is available', 'service-booking' ); ?></label></th>
                             <td>
-                                <label><input type="checkbox" name="service_unavailability[weekdays][1]" value="<?php echo esc_attr( '1' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '1', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Monday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][2]" value="<?php echo esc_attr( '2' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '2', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Tuesday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][3]" value="<?php echo esc_attr( '3' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '3', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Wednesday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][4]" value="<?php echo esc_attr( '4' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '4', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Thurday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][5]" value="<?php echo esc_attr( '5' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '5', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Friday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][6]" value="<?php echo esc_attr( '6' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '6', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Saturday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][7]" value="<?php echo esc_attr( '0' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '0', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Sunday', 'service-booking' ); ?></label>
+                                <?php
+                                $unavailable_weekdays = ( isset( $svc_unavailability ) && ! empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) ) ? $svc_unavailability['weekdays'] : array();
+                                $weekday_map = array(
+                                    1 => __( 'Monday', 'service-booking' ),
+                                    2 => __( 'Tuesday', 'service-booking' ),
+                                    3 => __( 'Wednesday', 'service-booking' ),
+                                    4 => __( 'Thursday', 'service-booking' ),
+                                    5 => __( 'Friday', 'service-booking' ),
+                                    6 => __( 'Saturday', 'service-booking' ),
+                                    0 => __( 'Sunday', 'service-booking' ),
+                                );
+                                foreach ( $weekday_map as $day_val => $day_label ) :
+                                    $is_available = ! in_array( (string) $day_val, array_map( 'strval', $unavailable_weekdays ), true );
+                                    ?>
+                                    <label class="bm-weekday-label">
+                                        <input type="checkbox"
+                                            class="bm-availability-weekday"
+                                            data-day="<?php echo esc_attr( $day_val ); ?>"
+                                            <?php checked( $is_available ); ?>>
+                                        <?php echo esc_html( $day_label ); ?>
+                                    </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <?php endforeach; ?>
+                                <?php
+                                // Hidden inputs generated by JS for unchecked (unavailable) days.
+                                foreach ( $weekday_map as $day_val => $day_label ) :
+                                    $is_unavailable = in_array( (string) $day_val, array_map( 'strval', $unavailable_weekdays ), true );
+                                    if ( $is_unavailable ) :
+                                        ?>
+                                        <input type="hidden" name="service_unavailability[weekdays][]" value="<?php echo esc_attr( $day_val ); ?>" class="bm-weekday-hidden" data-day="<?php echo esc_attr( $day_val ); ?>">
+                                    <?php endif; endforeach; ?>
                             </td>
                         </tr>
                     </table>
 
-                    <!-- <table class="form-table" role="presentation">
-                        <h3><?php esc_html_e( 'Unavailability on Specific Dates', 'service-booking' ); ?></h3>
-                        <tr class="date_input_tr">
-                            <th scope="row"><label for="unavailable_date"><?php esc_html_e( 'Specific dates when the service is unavailable', 'service-booking' ); ?></label></th>
-                            <td class="date_option_field">
-                                <?php
-                                if ( isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['dates'] ) && !empty( $svc_unavailability['dates'] ) ) {
-                                    $i = 1;
-                                    foreach ( $svc_unavailability['dates'] as $unavailable_date ) {
-                                        if ( !empty( $unavailable_date ) ) {
-                                            $date_name = "service_unavailability[dates][$i]";
-                                            $date_id   = "unavailable_date_$i";
-											?>
-                                            <span class="date_input_span">
-                                                <input type="date" id="<?php echo esc_html( $date_id ); ?>" name="<?php echo esc_html( $date_name ); ?>" value="<?php echo esc_html( $unavailable_date ); ?>">
-                                                <button type="button" id="svc_date_remove" title="<?php esc_attr_e( 'Remove', 'service-booking' ); ?>" onclick="bm_remove_svc_unavailable_date(this)"><?php esc_attr_e( '✕', 'service-booking' ); ?></button>
-                                            </span>
-											<?php
-                                            $i++;
-                                        }
-                                    }
-                                }
-                                ?>
-                                <span class="add_dates_button"><button type="button" class="button button-primary" onClick="bm_add_unavailable_date()"><?php esc_html_e( 'add date', 'service-booking' ); ?></button></span>
-                            </td>
-                        </tr>
-                    </table> -->
-                    
                     <table class="form-table" role="presentation">
-                    <h3><?php esc_html_e( 'Unavailability on Specific Dates', 'service-booking' ); ?></h3>
-                    <tr class="date_input_tr">
-                        <th scope="row"><label for="unavailable_date_range"><?php esc_html_e( 'Select unavailable date ranges', 'service-booking' ); ?></label></th>
+                    <h3><?php esc_html_e( 'Availability Periods', 'service-booking' ); ?></h3>
+                    <tr>
+                        <th scope="row"><label><?php esc_html_e( 'Date ranges when the service is available', 'service-booking' ); ?></label></th>
                         <td class="date_option_field">
-                            <div id="unavailable_date_ranges">
+                            <div id="availability_periods_list">
                                 <?php
-                                if ( isset( $svc_unavailability['dates'] ) && !empty( $svc_unavailability['dates'] ) ) {
-                                    $i = 1;
-                                    foreach ( $svc_unavailability['dates'] as $range ) {
-                                        if ( !empty( $range ) ) {
-                                            $range_name = "service_unavailability[dates][$i]";
-                                            $range_id   = "unavailable_date_range_$i";
-                                            ?>
-                                            <span class="date_range_span">
-                                                <input type="text" readonly id="<?php echo esc_html( $range_id ); ?>" name="<?php echo esc_html( $range_name ); ?>" value="<?php echo esc_html( $range ); ?>" class="date_range_input">
-                                                <button type="button" class="remove_range" onclick="bm_remove_unavailable_range(this)">✕</button>
-                                            </span>
-                                            <?php
-                                            $i++;
-                                        }
+                                $availability_periods = array();
+                                if ( isset( $svc_row ) && ! empty( $svc_row->id ) ) {
+                                    $availability_periods = $bmrequests->bm_get_availability_periods( $svc_row->id );
+                                }
+                                if ( ! empty( $availability_periods ) ) {
+                                    foreach ( $availability_periods as $period ) {
+                                        ?>
+                                        <span class="bm-availability-chip">
+                                            <span class="dashicons dashicons-calendar-alt"></span>
+                                            <?php echo esc_html( $period->date_start . ' to ' . $period->date_end ); ?>
+                                            <input type="hidden" name="availability_periods[existing][]" value="<?php echo esc_attr( $period->id ); ?>">
+                                            <button type="button" class="bm-chip-remove" onclick="bm_remove_availability_period(this)" title="<?php esc_attr_e( 'Remove', 'service-booking' ); ?>">&times;</button>
+                                        </span>
+                                        <?php
                                     }
                                 }
                                 ?>
                             </div>
 
-                            <input type="text" id="service_date_range_picker" placeholder="<?php esc_attr_e( 'Select date range', 'service-booking' ); ?>" readonly>
-                            <button type="button" class="button button-primary" id="add_date_range"><?php esc_html_e( 'Add Range', 'service-booking' ); ?></button>
+                            <div class="bm-period-add-row" style="margin-top: 10px;">
+                                <label><?php esc_html_e( 'From', 'service-booking' ); ?>
+                                    <input type="date" id="bm_period_start" />
+                                </label>
+                                <label><?php esc_html_e( 'To', 'service-booking' ); ?>
+                                    <input type="date" id="bm_period_end" />
+                                </label>
+                                <button type="button" class="button button-primary" id="bm_add_period"><?php esc_html_e( 'Add Period', 'service-booking' ); ?></button>
+                            </div>
                         </td>
                     </tr>
                 </table>

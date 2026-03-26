@@ -4963,9 +4963,10 @@ function bm_get_service_price() {
 			var unavailable_days_array = [];
 			if (gbl_unavailability && typeof gbl_unavailability === 'object' && gbl_unavailability.dates && Object.keys(gbl_unavailability.dates).length > 0) {
 				unavailable_days_array = Object.values(gbl_unavailability.dates);
-			} else if (unavailability && typeof unavailability === 'object' && unavailability.dates) {
-				unavailable_days_array = Object.values(unavailability.dates);
 			}
+
+			// Availability periods (new system): array of {date_start, date_end}
+			var availability_periods = jsondata.availability_periods || [];
 
 			var default_price_text = currency_position === 'before'
 				? currency_symbol + defaultPriceFloat.toFixed(2)
@@ -5016,6 +5017,8 @@ function bm_get_service_price() {
 						}
 
 						var isUnavailable = false;
+
+						// Check global unavailability date ranges
 						for (var r = 0; r < unavailable_days_array.length; r++) {
 							var rangeStr = String(unavailable_days_array[r] || '').trim();
 							if (!rangeStr.length) continue;
@@ -5034,9 +5037,24 @@ function bm_get_service_price() {
 							}
 						}
 
+						// Check weekday unavailability
 						if (!isUnavailable && weekdays_array.length > 0) {
 							var week_date = new Date(date);
 							if (weekdays_array.indexOf(String(week_date.getDay())) !== -1) {
+								isUnavailable = true;
+							}
+						}
+
+						// Check availability periods: if periods exist, date must be within at least one
+						if (!isUnavailable && availability_periods.length > 0) {
+							var inPeriod = false;
+							for (var ap = 0; ap < availability_periods.length; ap++) {
+								if (date >= availability_periods[ap].date_start && date <= availability_periods[ap].date_end) {
+									inPeriod = true;
+									break;
+								}
+							}
+							if (!inPeriod) {
 								isUnavailable = true;
 							}
 						}
@@ -13163,77 +13181,75 @@ jQuery(document).ready(function ($) {
 
 
 
+// --- Weekly Availability Checkbox Logic ---
+// Checked = available (no hidden input). Unchecked = unavailable (hidden input sent).
 jQuery(document).ready(function($) {
-    // Initialize your daterangepicker
-    $('#service_date_range_picker').daterangepicker({
-        autoUpdateInput: false,
-        locale: {
-            cancelLabel: 'Clear',
-            format: 'YYYY-MM-DD'
-        },
-        opens: 'left'
-    });
+    $('.bm-availability-weekday').on('change', function() {
+        var dayVal = $(this).data('day');
+        var isChecked = $(this).is(':checked');
 
-    // When user selects a range
-    $('#service_date_range_picker').on('apply.daterangepicker', function(ev, picker) {
-        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
-    });
+        // Remove any existing hidden for this day
+        $('input.bm-weekday-hidden[data-day="' + dayVal + '"]').remove();
 
-    $('#service_date_range_picker').on('cancel.daterangepicker', function(ev, picker) {
-        $(this).val('');
-    });
-
-    // Add selected range to list
-    $('#add_date_range').on('click', function() {
-        const val = $('#service_date_range_picker').val();
-        if (!val) {
-            alert('Please select a date range first.');
-            return;
+        if (!isChecked) {
+            // Day is unavailable: add hidden input
+            $(this).closest('td').append(
+                '<input type="hidden" name="service_unavailability[weekdays][]" value="' + dayVal + '" class="bm-weekday-hidden" data-day="' + dayVal + '">'
+            );
         }
-
-        let overlap = false;
-        $('#unavailable_date_ranges input').each(function() {
-            if ($(this).val() === val) overlap = true;
-        });
-        if (overlap) {
-            alert('This range is already added.');
-            return;
-        }
-
-        const rangesContainer = $('#unavailable_date_ranges');
-        const index = rangesContainer.find('.date_range_span').length + 1;
-
-        const span = `
-            <span class="date_range_span">
-                <input type="text" readonly id="unavailable_date_range_${index}" 
-                    name="service_unavailability[dates][${index}]" 
-                    value="${val}" class="date_range_input">
-                <button type="button" class="remove_range" onclick="bm_remove_unavailable_range(this)">✕</button>
-            </span>
-        `;
-
-        rangesContainer.append(span);
-        $('#service_date_range_picker').val(''); // clear after adding
     });
 });
 
 
+// --- Availability Periods Logic ---
+jQuery(document).ready(function($) {
+    // Add Period button handler
+    $('#bm_add_period').on('click', function() {
+        var startVal = $('#bm_period_start').val();
+        var endVal = $('#bm_period_end').val();
 
+        if (!startVal || !endVal) {
+            alert('Please select both start and end dates.');
+            return;
+        }
 
-function bm_remove_unavailable_range(el) {
-    if (confirm('Remove this date range?')) {
-        jQuery(el).parent('span').remove();
+        if (endVal < startVal) {
+            alert('End date must be on or after start date.');
+            return;
+        }
 
-        // Reindex
-        jQuery('#unavailable_date_ranges .date_range_span input').each(function(index) {
-            const i = index + 1;
-            jQuery(this).attr('id', 'unavailable_date_range_' + i);
-            jQuery(this).attr('name', 'service_unavailability[dates][' + i + ']');
+        // Check for duplicates
+        var rangeText = startVal + ' to ' + endVal;
+        var isDuplicate = false;
+        $('#availability_periods_list .bm-availability-chip').each(function() {
+            if ($(this).text().replace('×', '').trim() === rangeText) {
+                isDuplicate = true;
+            }
         });
+        if (isDuplicate) {
+            alert('This period is already added.');
+            return;
+        }
+
+        var chip = '<span class="bm-availability-chip">' +
+            '<span class="dashicons dashicons-calendar-alt"></span> ' +
+            startVal + ' to ' + endVal +
+            '<input type="hidden" name="availability_periods_new[start][]" value="' + startVal + '">' +
+            '<input type="hidden" name="availability_periods_new[end][]" value="' + endVal + '">' +
+            '<button type="button" class="bm-chip-remove" onclick="bm_remove_availability_period(this)" title="Remove">&times;</button>' +
+            '</span>';
+
+        $('#availability_periods_list').append(chip);
+        $('#bm_period_start').val('');
+        $('#bm_period_end').val('');
+    });
+});
+
+function bm_remove_availability_period(el) {
+    if (confirm('Remove this availability period?')) {
+        jQuery(el).closest('.bm-availability-chip').remove();
     }
 }
-
-
 
 
 jQuery(document).ready(function($) {
@@ -13262,19 +13278,12 @@ jQuery(document).ready(function($) {
         $('#global_unavailable_date_ranges').append(`
             <span class="date_range_span">
                 <input type="text" readonly name="bm_global_unavailability[dates][${index}]" value="${val}" class="date_range_input">
-                <button type="button" class="remove_range" onclick="bm_remove_unavailable_range(this)">✕</button>
+                <button type="button" class="remove_range" onclick="bm_remove_global_unavailable_range(this)">✕</button>
             </span>
         `);
         $('#global_date_range_picker').val('');
     });
 });
-
-
-
-
-function bm_remove_unavailable_range(el) {
-    jQuery(el).parent('span').remove();
-}
 
 
 
