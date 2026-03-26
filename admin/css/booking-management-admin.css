@@ -3,6 +3,20 @@
  * included in this file.
  */
 
+/* ===== CSS Custom Properties ===== */
+:root {
+    --bm-color-primary: #2B00D7;
+    --bm-color-primary-hover: #1e009b;
+    --bm-color-success: #46b450;
+    --bm-color-warning: #f0ad4e;
+    --bm-color-danger: #dc3232;
+    --bm-color-text: #333;
+    --bm-color-text-muted: #8A92A6;
+    --bm-color-border: #E8E8E8;
+    --bm-color-bg-light: #f9f9f9;
+    --bm-border-radius: 8px;
+}
+
 /* ===== Tab Navigation ===== */
 .tab button:hover {
     background-color: #ddd;

@@ -1,5 +1,4 @@
 #resend_email .email-container {
-    /* max-width: 564px; */
     margin: auto;
     background: #fff;
     border-radius: 4px;
@@ -13,7 +12,7 @@
 
 #resend_email .email-container .header {
     display: flex;
-    Padding: 16px 20px 16px 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid #E8E8E8;
     margin-bottom: 24px;
 }
@@ -177,29 +176,3 @@
     line-height: 20px;
     color: white;
 }
-
-/* #resend_email .file-item {
-    margin-bottom: 8px;
-    background-color: #f4f4f4;
-    font-weight: bold;
-    color: black;
-    font-size: 10px;
-    text-align: center;
-    padding: 2px 5px 2px 4px;
-    width: 100%;
-    box-shadow: 0 0 0 1px #a8a8a8;
-    flex: 1 0 40%;
-} */
-
-/* #resend_email #fileList {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
-#resend_email .remove_email_attachment {
-    font-size: 10px;
-    cursor: pointer;
-    color: red;
-    margin-left: 5px;
-} */
