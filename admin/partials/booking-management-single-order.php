@@ -1,16 +1,16 @@
 <?php
 $booking_id = isset( $_GET['booking_id'] ) ? intval( $_GET['booking_id'] ) : 0;
 
-if ( !$booking_id ) {
-    echo '<div class="error-message">No booking ID provided</div>';
+if ( ! $booking_id ) {
+    echo '<div class="error-message">' . esc_html__( 'No booking ID provided', 'service-booking' ) . '</div>';
     return;
 }
 
 $bm_requests   = new BM_Request();
 $order_details = $bm_requests->bm_fetch_order_details_for_single_page( $booking_id );
 
-if ( !$order_details ) {
-    echo '<div class="error-message">Order not found</div>';
+if ( ! $order_details ) {
+    echo '<div class="error-message">' . esc_html__( 'Order not found', 'service-booking' ) . '</div>';
     return;
 }
 ?>

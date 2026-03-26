@@ -189,7 +189,7 @@ $calendar_events_json = wp_json_encode( $calendar_events ?: array() )
     window.bmCalendarConfig = {
         singlePlannerinitialStart: '<?php echo $now->format( 'Y-m-d' ); ?>',
         singlePlannerinitialEnd: '<?php echo $end_date_obj->format( 'Y-m-d' ); ?>',
-        singlePlanneEvents: <?php echo $calendar_events_json; ?>,
-        singlePannerCat_ids: '<?php echo isset( $cat_ids ) ? $cat_ids : ''; ?>'
+        singlePlanneEvents: <?php echo $calendar_events_json; // Already safe - output of wp_json_encode() ?>,
+        singlePannerCat_ids: '<?php echo esc_js( isset( $cat_ids ) ? $cat_ids : '' ); ?>'
     };
 </script>

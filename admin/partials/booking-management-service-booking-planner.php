@@ -242,7 +242,7 @@ $calendar_events_json = wp_json_encode( $calendar_events ?: array() )
     window.bmServiceBookingPlannerConfig = {
         plannerTimeslotInitialStart: '<?php echo $now->format( 'Y-m-d' ); ?>',
         plannerTimeslotInitialEnd: '<?php echo $end_date_obj->format( 'Y-m-d' ); ?>',
-        plannerevents: <?php echo $calendar_events_json; ?>,
-        planner_cat_ids: '<?php echo isset( $cat_ids ) ? $cat_ids : ''; ?>'
+        plannerevents: <?php echo $calendar_events_json; // Already safe - output of wp_json_encode() ?>,
+        planner_cat_ids: '<?php echo esc_js( isset( $cat_ids ) ? $cat_ids : '' ); ?>'
     };
 </script>

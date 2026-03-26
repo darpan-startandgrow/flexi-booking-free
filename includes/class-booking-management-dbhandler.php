@@ -349,7 +349,8 @@ class BM_DBhandler {
 		$base_alias   = isset( $tables[1] ) ? $tables[1] : 's';
 
 		if ( $increase_group_concat_length ) {
-			$wpdb->query( "SET SESSION group_concat_max_len = $group_concat_length;" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- SET SESSION cannot use prepare placeholders for values
+			$wpdb->query( $wpdb->prepare( 'SET SESSION group_concat_max_len = %d', absint( $group_concat_length ) ) );
 		}
 
 		$qry = "SELECT $columns FROM $base_table $base_alias";

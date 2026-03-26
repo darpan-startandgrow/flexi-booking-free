@@ -5295,9 +5295,7 @@ class Booking_Management_Admin {
             $action            = sanitize_text_field( $_GET['test_pdf_action'] );
             $type              = sanitize_text_field( $_GET['type'] );
             $booking_id_or_key = sanitize_text_field( $_GET['booking_id'] );
-            $nonce             = isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '';
-
-            error_log( $nonce );
+            $nonce             = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
 
             if ( ! wp_verify_nonce( $nonce, 'test_pdf_action_' . $type . '_' . $booking_id_or_key ) ) {
                 wp_die( esc_html__( 'Security check failed', 'service-booking' ) );
@@ -5322,8 +5320,6 @@ class Booking_Management_Admin {
                     $pdf_path = $pdf_processor->generate_booking_pdf( $booking_id_or_key );
                     break;
             }
-
-            error_log( $pdf_path );
 
             if ( ! file_exists( $pdf_path ) ) {
                 wp_die( esc_html__( 'PDF could not be generated', 'service-booking' ) );
@@ -6907,7 +6903,7 @@ class Booking_Management_Admin {
 							'price'            => esc_html( $bmrequests->bm_fetch_service_price_by_service_id_and_date( $service->id, $current_date, 'global_format' ) ),
 							'category'         => $service->service_category ?? 0,
 							'categoryName'     => $category_name,
-							'full_desc'        => isset( $service->service_desc ) && ! empty( $service->service_desc ) ? wp_kses_post( stripslashes( $service->service_desc ) ) : '',
+							'full_desc'        => isset( $service->service_desc ) && ! empty( $service->service_desc ) ? wp_kses_post( wp_unslash( $service->service_desc ) ) : '',
 							'image'            => esc_url( $bmrequests->bm_fetch_image_url_or_guid( $service->id, 'SERVICE', 'url' ) ),
 							'date'             => $current_date,
 							'serviceId'        => $service->id ?? 0,
@@ -7430,7 +7426,7 @@ class Booking_Management_Admin {
 								'category'         => $service->service_category ?? 0,
 								'service_position' => $service->service_position,
 								'categoryName'     => $category_name,
-								'full_desc'        => isset( $service->service_desc ) && ! empty( $service->service_desc ) ? wp_kses_post( stripslashes( $service->service_desc ) ) : '',
+								'full_desc'        => isset( $service->service_desc ) && ! empty( $service->service_desc ) ? wp_kses_post( wp_unslash( $service->service_desc ) ) : '',
 								'image'            => esc_url( $bmrequests->bm_fetch_image_url_or_guid( $service->id, 'SERVICE', 'url' ) ),
 								'date'             => $current_date,
 								'serviceId'        => $service->id ?? 0,
@@ -7586,7 +7582,7 @@ class Booking_Management_Admin {
 								'category'         => $service->service_category ?? 0,
 								'service_position' => $service->service_position,
 								'categoryName'     => $category_name,
-								'full_desc'        => isset( $service->service_desc ) && ! empty( $service->service_desc ) ? wp_kses_post( stripslashes( $service->service_desc ) ) : '',
+								'full_desc'        => isset( $service->service_desc ) && ! empty( $service->service_desc ) ? wp_kses_post( wp_unslash( $service->service_desc ) ) : '',
 								'image'            => esc_url( $bmrequests->bm_fetch_image_url_or_guid( $service->id, 'SERVICE', 'url' ) ),
 								'date'             => $current_date,
 								'serviceId'        => $service->id ?? 0,
@@ -10885,7 +10881,7 @@ class Booking_Management_Admin {
         }
 
         $bmrequests  = new BM_Request();
-        $post        = isset( $_POST['post'] ) ? json_decode( stripslashes( $_POST['post'] ), true ) : array();
+        $post        = isset( $_POST['post'] ) ? json_decode( wp_unslash( $_POST['post'] ), true ) : array();
         $action_type = ! empty( $post['action_type'] ) ? sanitize_text_field( $post['action_type'] ) : '';
 
         $date_from = ! empty( $post['date_from'] ) ? $bmrequests->bm_convert_date_format( $post['date_from'], 'd/m/Y', 'Y-m-d' ) : gmdate( 'Y-m-01' );
@@ -13163,7 +13159,7 @@ class Booking_Management_Admin {
 			return;
 		}
 
-		$country = trim( stripslashes( sanitize_text_field( filter_input( INPUT_POST, 'country' ) ) ) );
+		$country = trim( wp_unslash( sanitize_text_field( filter_input( INPUT_POST, 'country' ) ) ) );
 		if ( empty( $country ) ) {
 			wp_send_json_error( __( 'Invalid request data', 'service-booking' ) );
 			return;
@@ -13257,7 +13253,7 @@ class Booking_Management_Admin {
 			return;
 		}
 
-		$code = trim( stripslashes( sanitize_text_field( filter_input( INPUT_POST, 'code' ) ) ) );
+		$code = trim( wp_unslash( sanitize_text_field( filter_input( INPUT_POST, 'code' ) ) ) );
 		if ( empty( $code ) ) {
 			wp_send_json_error( __( 'Invalid request data', 'service-booking' ) );
 			return;
@@ -13310,8 +13306,8 @@ class Booking_Management_Admin {
 			return;
 		}
 
-		$code   = trim( stripslashes( sanitize_text_field( $post['code'] ) ) );
-		$status = trim( stripslashes( sanitize_text_field( $post['status'] ) ) );
+		$code   = trim( wp_unslash( sanitize_text_field( $post['code'] ) ) );
+		$status = trim( wp_unslash( sanitize_text_field( $post['status'] ) ) );
 
 		if ( empty( $code ) ) {
 			wp_send_json_error( __( 'Invalid request data', 'service-booking' ) );
@@ -14187,7 +14183,7 @@ class Booking_Management_Admin {
 					'process_id'  => $process_id,
 					'mail_to'     => $customer_email,
 					'mail_sub'    => wp_kses_post( $template_subject ),
-					'mail_body'   => wp_kses_post( stripslashes( $template_body ) ),
+					'mail_body'   => wp_kses_post( wp_unslash( $template_body ) ),
 					'mail_lang'   => $language,
 					'status'      => 1,
 				);
@@ -14465,7 +14461,7 @@ class Booking_Management_Admin {
 					'process_id'  => $process_id,
 					'mail_to'     => $customer_email,
 					'mail_sub'    => wp_kses_post( $template_subject ),
-					'mail_body'   => wp_kses_post( stripslashes( $template_body ) ),
+					'mail_body'   => wp_kses_post( wp_unslash( $template_body ) ),
 					'mail_lang'   => $language,
 					'status'      => 1,
 				);
@@ -14743,7 +14739,7 @@ class Booking_Management_Admin {
 					'process_id'  => $process_id,
 					'mail_to'     => $customer_email,
 					'mail_sub'    => wp_kses_post( $template_subject ),
-					'mail_body'   => wp_kses_post( stripslashes( $template_body ) ),
+					'mail_body'   => wp_kses_post( wp_unslash( $template_body ) ),
 					'mail_lang'   => $language,
 					'status'      => 1,
 				);
@@ -15024,7 +15020,7 @@ class Booking_Management_Admin {
 					'process_id'  => $process_id,
 					'mail_to'     => $customer_email,
 					'mail_sub'    => wp_kses_post( $template_subject ),
-					'mail_body'   => wp_kses_post( stripslashes( $template_body ) ),
+					'mail_body'   => wp_kses_post( wp_unslash( $template_body ) ),
 					'mail_lang'   => $language,
 					'status'      => 1,
 				);
@@ -15353,7 +15349,7 @@ class Booking_Management_Admin {
 					'mail_cc'     => $cc,
 					'mail_bcc'    => $bcc,
 					'mail_sub'    => wp_kses_post( $subject ),
-					'mail_body'   => ! empty( $template_body ) ? wp_kses_post( stripslashes( $template_body ) ) : '',
+					'mail_body'   => ! empty( $template_body ) ? wp_kses_post( wp_unslash( $template_body ) ) : '',
 					'is_resent'   => 1,
 					'mail_lang'   => $language,
 					'status'      => 1,
