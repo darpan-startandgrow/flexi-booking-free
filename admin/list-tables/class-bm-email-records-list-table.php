@@ -92,8 +92,8 @@ class BM_Email_Records_List_Table extends WP_List_Table {
 
 		// Search across mail_to and mail_sub.
 		if ( ! empty( $_REQUEST['s'] ) ) {
-			$search      = '%' . $this->dbhandler->get_global_db()->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
-			$additional .= $this->dbhandler->get_global_db()->prepare(
+			$search      = '%' . $GLOBALS['wpdb']->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
+			$additional .= $GLOBALS['wpdb']->prepare(
 				' AND (e.mail_to LIKE %s OR e.mail_sub LIKE %s)',
 				$search,
 				$search
@@ -105,7 +105,7 @@ class BM_Email_Records_List_Table extends WP_List_Table {
 			$yearmonth   = sanitize_text_field( wp_unslash( $_REQUEST['m'] ) );
 			$year        = absint( substr( $yearmonth, 0, 4 ) );
 			$month       = absint( substr( $yearmonth, 4, 2 ) );
-			$additional .= $this->dbhandler->get_global_db()->prepare(
+			$additional .= $GLOBALS['wpdb']->prepare(
 				' AND YEAR(e.created_at) = %d AND MONTH(e.created_at) = %d',
 				$year,
 				$month
@@ -115,7 +115,7 @@ class BM_Email_Records_List_Table extends WP_List_Table {
 		// Filter by status.
 		if ( isset( $_REQUEST['status_filter'] ) && '' !== $_REQUEST['status_filter'] ) {
 			$status_val  = absint( $_REQUEST['status_filter'] );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND e.status = %d', $status_val );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND e.status = %d', $status_val );
 		}
 
 		// Joins.

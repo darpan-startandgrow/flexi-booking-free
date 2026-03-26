@@ -174,7 +174,7 @@ class BM_Categories_List_Table extends WP_List_Table {
 
 		if ( isset( $_REQUEST['visibility_filter'] ) && '' !== $_REQUEST['visibility_filter'] ) {
 			$vis         = absint( $_REQUEST['visibility_filter'] );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND cat_in_front = %d', $vis );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND cat_in_front = %d', $vis );
 		}
 
 		$count_results = $this->dbhandler->get_all_result( 'CATEGORY', 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );

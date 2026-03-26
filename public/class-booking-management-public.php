@@ -101,9 +101,6 @@ class Booking_Management_Public {
 		wp_enqueue_style( 'flexi-daterangepicker', plugin_dir_url( __FILE__ ) . 'css/booking-management-daterangepicker.css', array(), $this->version, 'all' );
 		wp_enqueue_style( 'flexi-fullcalendar', plugin_dir_url( __FILE__ ) . 'css/booking-management-fullcalendar.css', array(), $this->version, 'all' );
 		wp_enqueue_style( 'flexi-timeslot-fullcalendar', plugin_dir_url( __FILE__ ) . 'css/booking-management-timeslot-fullcalendar.css', array(), $this->version, 'all' );
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_style( 'flexi-cropper', plugin_dir_url( __FILE__ ) . 'css/booking-management-cropper.css', array(), $this->version, 'all' );
-		}
 
 		if ( ! empty( $post_id ) ) {
 			$original_title = get_the_title( $post_id );
@@ -117,19 +114,10 @@ class Booking_Management_Public {
 			}
 			if ( $original_title == 'Flexibooking Checkout' ) {
 				if ( empty( $pid ) ) {
-					if ( Booking_Management_Limits::is_pro_active() ) {
-						wp_enqueue_style( 'flexi-payment', plugin_dir_url( __FILE__ ) . 'css/booking-management-payment.css', array(), $this->version, 'all' );
-						wp_enqueue_style( 'flexi-checkout-coupon', plugin_dir_url( __FILE__ ) . 'css/booking-management-coupon.css', array(), $this->version, 'all' );
-					}
+					// Pro-only payment/coupon CSS removed for free version.
 				} else {
 					wp_enqueue_style( 'flexi-payment-final-page', plugin_dir_url( __FILE__ ) . 'css/booking-management-booking-final-page.css', array(), $this->version, 'all' );
 				}
-			}
-
-			if ( $original_title == 'Flexibooking Voucher Redeem' && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_style( 'flexi-redeem-voucher', plugin_dir_url( __FILE__ ) . 'css/booking-management-redeem-voucher.css', array(), $this->version, 'all' );
-
-				wp_enqueue_style( 'flexi-payment-final-page', plugin_dir_url( __FILE__ ) . 'css/booking-management-booking-final-page.css', array(), $this->version, 'all' );
 			}
 		}
 
@@ -212,9 +200,6 @@ class Booking_Management_Public {
 		wp_enqueue_script( 'jquery-daterangepicker', plugin_dir_url( __FILE__ ) . 'js/booking-management-daterangepicker.js', array( 'jquery', 'jquery-fullcalendar', 'fullcalendar-moment', 'jquery-moment' ), $this->version, true );
 		wp_enqueue_script( 'jquery-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 		wp_enqueue_script( 'jquery-timeslot-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-timeslot-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
-		if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 && Booking_Management_Limits::is_pro_active() ) {
-			wp_enqueue_script( 'stripes', 'https://js.stripe.com/v3/', array(), $this->version, false );
-		}
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-public.js', array( 'jquery' ), $this->version, true );
 		wp_enqueue_script( 'frontend-add-order-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-add-order.js', array( 'jquery' ), $this->version, true );

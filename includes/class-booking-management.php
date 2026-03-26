@@ -265,23 +265,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_set_serice_price', $plugin_admin, 'bm_set_serice_price' );
 		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price', $plugin_admin, 'bm_set_bulk_serice_price' );
 
-		// Pro-only service management AJAX hooks: stopsales, saleswitch, max capacity, variable time slots.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
-			$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
-			$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
-			$this->loader->add_action( 'wp_ajax_bm_set_service_saleswitch', $plugin_admin, 'bm_set_service_saleswitch' );
-			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_stopsales', $plugin_admin, 'bm_set_bulk_serice_stopsales' );
-			$this->loader->add_action( 'wp_ajax_bm_set_bulk_service_saleswitch', $plugin_admin, 'bm_set_bulk_service_saleswitch' );
-			$this->loader->add_action( 'wp_ajax_bm_get_service_max_cap', $plugin_admin, 'bm_get_service_max_cap' );
-			$this->loader->add_action( 'wp_ajax_bm_set_serice_max_cap', $plugin_admin, 'bm_set_serice_max_cap' );
-			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_max_cap', $plugin_admin, 'bm_set_bulk_serice_max_cap' );
-			$this->loader->add_action( 'wp_ajax_bm_get_service_time_slots', $plugin_admin, 'bm_get_service_time_slots' );
-			$this->loader->add_action( 'wp_ajax_bm_get_specific_time_slot', $plugin_admin, 'bm_get_specific_time_slot' );
-			$this->loader->add_action( 'wp_ajax_bm_set_variable_time_slot', $plugin_admin, 'bm_set_variable_time_slot' );
-			$this->loader->add_action( 'wp_ajax_bm_remove_variable_time_slot', $plugin_admin, 'bm_remove_variable_time_slot' );
-		}
-
 		$this->loader->add_action( 'wp_ajax_bm_save_field_and_setting', $plugin_admin, 'bm_save_field_and_setting' );
 		$this->loader->add_action( 'wp_ajax_bm_get_all_field_labels', $plugin_admin, 'bm_get_all_field_labels' );
 		$this->loader->add_action( 'wp_ajax_bm_get_field_settings', $plugin_admin, 'bm_get_field_settings' );
@@ -290,10 +273,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_preview_form', $plugin_admin, 'bm_fetch_preview_form' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_template_listing', $plugin_admin, 'bm_fetch_template_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_template', $plugin_admin, 'bm_remove_template' );
-		// SMTP test — Pro only (SMTP class not present in Lite).
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$this->loader->add_action( 'wp_ajax_bm_test_smtp', $plugin_admin, 'bm_check_smtp_connection' );
-		}
 		$this->loader->add_action( 'wp_ajax_bm_fetch_timezone', $plugin_admin, 'bm_fetch_timezone' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_product_details', $plugin_admin, 'bm_fetch_ordered_product_details' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_service_details', $plugin_admin, 'bm_fetch_ordered_service_details' );
@@ -363,12 +342,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_remove_process', $plugin_admin, 'bm_remove_notification_process' );
 		$this->loader->add_action( 'wp_ajax_bm_change_process_visibility', $plugin_admin, 'bm_change_notification_process_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_template_visibility', $plugin_admin, 'bm_change_email_template_visibility' );
-
-		// Book-on-request AJAX — Pro only (free version is direct booking only).
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$this->loader->add_action( 'wp_ajax_bm_cancel_bor_order', $plugin_admin, 'bm_cancel_book_on_request_order' );
-			$this->loader->add_action( 'wp_ajax_bm_approve_bor_order', $plugin_admin, 'bm_approve_book_on_request_order' );
-		}
 
 		$this->loader->add_action( 'wp_ajax_bm_update_transaction', $plugin_admin, 'bm_update_order_transaction' );
 		$this->loader->add_action( 'wp_ajax_bm_save_order_transaction', $plugin_admin, 'bm_save_order_transaction' );

@@ -194,7 +194,7 @@ class BM_Email_Templates_List_Table extends WP_List_Table {
 
 		if ( isset( $_REQUEST['type_filter'] ) && '' !== $_REQUEST['type_filter'] ) {
 			$type_val    = absint( $_REQUEST['type_filter'] );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND type = %d', $type_val );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND type = %d', $type_val );
 		}
 
 		$count_results   = $this->dbhandler->get_all_result( 'EMAIL_TMPL', 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );

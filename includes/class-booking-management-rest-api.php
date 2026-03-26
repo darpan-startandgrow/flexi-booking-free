@@ -993,12 +993,8 @@ class Booking_Management_Rest_API {
 			) );
 		}
 
-		// Free version: return only essential columns. Pro: return all.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$select_cols = '*';
-		} else {
-			$select_cols = 'id, service_name, booking_created_at, booking_date, service_cost, extra_svc_cost, disount_amount, total_cost, order_status, booking_type, field_values';
-		}
+		// Free version: return only essential columns.
+		$select_cols = 'id, service_name, booking_created_at, booking_date, service_cost, extra_svc_cost, disount_amount, total_cost, order_status, booking_type, field_values';
 
 		$where  = array( '1=1' );
 		$values = array();
@@ -1146,13 +1142,6 @@ class Booking_Management_Rest_API {
 			'is_service_front' => (int) $service->is_service_front,
 			'service_position' => (int) $service->service_position,
 		);
-
-		// Only include Pro-specific fields if Pro is active.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$data['default_stopsales']  = isset( $service->default_stopsales ) ? $service->default_stopsales : '';
-			$data['default_saleswitch'] = isset( $service->default_saleswitch ) ? $service->default_saleswitch : '';
-			$data['default_max_cap']    = isset( $service->default_max_cap ) ? $service->default_max_cap : '';
-		}
 
 		return new WP_REST_Response( $data, 200 );
 	}
@@ -1647,12 +1636,8 @@ class Booking_Management_Rest_API {
 		$where_clause = implode( ' AND ', $where );
 		$offset       = ( $page - 1 ) * $per_page;
 
-		// In free version, only show email column. Whitelisted static strings — no user input.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$select_cols = 'id, customer_name, customer_email, customer_created_at';
-		} else {
-			$select_cols = 'id, customer_email';
-		}
+		// Free version: only show email column.
+		$select_cols = 'id, customer_email';
 
 		if ( ! empty( $values ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared

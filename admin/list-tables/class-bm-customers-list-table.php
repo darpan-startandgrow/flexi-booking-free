@@ -129,8 +129,8 @@ class BM_Customers_List_Table extends WP_List_Table {
 		$where      = 1;
 		$additional = '';
 		if ( ! empty( $_REQUEST['s'] ) ) {
-			$search      = '%' . $this->dbhandler->get_global_db()->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND customer_email LIKE %s', $search );
+			$search      = '%' . $GLOBALS['wpdb']->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND customer_email LIKE %s', $search );
 		}
 
 		$count_results = $this->dbhandler->get_all_result( 'CUSTOMERS', 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );

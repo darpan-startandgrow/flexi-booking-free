@@ -575,43 +575,10 @@ class Booking_Management_Admin {
 			wp_localize_script( $this->plugin_name, 'bm_success_object', $success );
 			wp_localize_script( $this->plugin_name, 'bm_normal_object', $normal );
 
-			if ( $screen->base == 'admin_page_bm_add_external_service_price' && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_script( 'service-price-module-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-price-module.js', array( 'jquery' ), $this->version, false );
-				wp_localize_script( 'service-price-module-js', 'bm_error_object', $error );
-				wp_localize_script( 'service-price-module-js', 'bm_normal_object', $normal );
-			}
-
 			if ( $screen->base == 'admin_page_bm_add_order' ) {
 				wp_enqueue_script( 'backennd-order-script', plugin_dir_url( __FILE__ ) . 'js/booking-management-add-order.js', array( 'jquery' ), $this->version, true );
 				wp_localize_script( 'backennd-order-script', 'bm_error_object', $error );
 				wp_localize_script( 'backennd-order-script', 'bm_normal_object', $normal );
-			}
-
-			if ( $screen->base == 'flexibooking_page_bm_check_ins' && Booking_Management_Limits::is_pro_active() ) {
-				wp_enqueue_script( 'check-in-script', plugin_dir_url( __FILE__ ) . 'js/booking-management-check-ins.js', array( 'jquery' ), $this->version, true );
-				// WPML compatibility for QR scanner page URL
-				$scanner_page_url = get_permalink( get_option( 'bm_qr_scanner_page_id' ) );
-
-				global $sitepress;
-				if ( $sitepress ) {
-					$default_lang = $sitepress->get_default_language();
-					$current_lang = $sitepress->get_current_language();
-					// $sitepress->switch_lang( $default_lang, true );
-					$sitepress->switch_lang( $current_lang, true );
-					$original_page = get_option( 'bm_qr_scanner_page_id' );
-					$translated_id = apply_filters( 'wpml_object_id', $original_page, 'page', true, $current_lang );
-					if ( $translated_id ) {
-						$scanner_page_url = get_permalink( $translated_id );
-					}
-				}
-				wp_localize_script(
-					'check-in-script',
-					'qrScannerData',
-					array(
-						'scannerPageUrl' => get_permalink( get_option( 'bm_qr_scanner_page_id' ) ),
-						'plugin_url'     => plugin_dir_url( __FILE__ ),
-					)
-				);
 			}
 
 

@@ -196,12 +196,12 @@ class BM_Services_List_Table extends WP_List_Table {
 
 		if ( isset( $_REQUEST['category_filter'] ) && '' !== $_REQUEST['category_filter'] ) {
 			$cat_id     = absint( $_REQUEST['category_filter'] );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND service_category = %d', $cat_id );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND service_category = %d', $cat_id );
 		}
 
 		if ( isset( $_REQUEST['visibility_filter'] ) && '' !== $_REQUEST['visibility_filter'] ) {
 			$vis         = absint( $_REQUEST['visibility_filter'] );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND is_service_front = %d', $vis );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND is_service_front = %d', $vis );
 		}
 
 		// Count with filters.

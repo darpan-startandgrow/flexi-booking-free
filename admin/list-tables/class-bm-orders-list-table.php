@@ -220,12 +220,12 @@ class BM_Orders_List_Table extends WP_List_Table {
 
 		if ( ! empty( $_REQUEST['order_status_filter'] ) ) {
 			$status_val  = sanitize_text_field( wp_unslash( $_REQUEST['order_status_filter'] ) );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND order_status = %s', $status_val );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND order_status = %s', $status_val );
 		}
 
 		if ( ! empty( $_REQUEST['service_name_filter'] ) ) {
 			$svc_name    = sanitize_text_field( wp_unslash( $_REQUEST['service_name_filter'] ) );
-			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND service_name = %s', $svc_name );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND service_name = %s', $svc_name );
 		}
 
 		// Count with filters.
