@@ -30,7 +30,17 @@ class Booking_Management_Activator {
 	 * @since 1.0.0
 	 */
 	public function activate() {
-        $this->create_table();
+		$this->create_table();
+
+		/**
+		 * Fires after plugin activation and table creation.
+		 *
+		 * Use this hook to run additional setup logic, create
+		 * custom database tables, or seed default data.
+		 *
+		 * @since 1.1.0
+		 */
+		do_action( 'sg_booking_activated' );
 	} //end activate()
 
 

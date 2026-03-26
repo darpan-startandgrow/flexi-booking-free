@@ -387,6 +387,19 @@ class Booking_Management {
 		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_flexi_admin_notice' );
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_admin, 'bm_fetch_states_by_country' );
 
+		/**
+		 * Fires after the Lite admin hooks are registered.
+		 *
+		 * Use this hook to register custom admin AJAX handlers,
+		 * add filters, or extend admin functionality.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param Booking_Management_Loader $loader       The hook loader instance.
+		 * @param Booking_Management_Admin  $plugin_admin The admin class instance.
+		 */
+		do_action( 'sg_booking_register_admin_hooks', $this->loader, $plugin_admin );
+
 	}
 
 	/**

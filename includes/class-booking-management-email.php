@@ -28,11 +28,76 @@ class BM_Email
 			$bmrequests->bm_restore_locale( $old_locale );
 		}
 
+		/**
+		 * Filters the admin notification email subject.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$subject = apply_filters( 'sg_booking_admin_email_subject', $subject, $booking_id );
+
+		/**
+		 * Filters the admin notification email body.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $message    The email HTML body.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$message = apply_filters( 'sg_booking_admin_email_content', $message, $booking_id );
+
+		/**
+		 * Filters the admin notification email headers.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $headers    The email headers string.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$headers = apply_filters( 'sg_booking_admin_email_headers', $headers, $booking_id );
+
+		/**
+		 * Filters the admin notification email attachments.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $attachment_urls Array of attachment file paths.
+		 * @param int   $booking_id     The booking ID.
+		 */
+		$attachment_urls = apply_filters( 'sg_booking_admin_email_attachments', $attachment_urls, $booking_id );
+
+		/**
+		 * Fires before the admin notification email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $admin_email_address The recipient email address.
+		 * @param string $subject             The email subject.
+		 * @param string $message             The email body.
+		 * @param int    $booking_id          The booking ID.
+		 */
+		do_action( 'sg_booking_before_admin_email', $admin_email_address, $subject, $message, $booking_id );
+
 		if ( is_string( $admin_email_address ) ) {
-			return wp_mail( maybe_unserialize( $admin_email_address ), $subject, $message, $headers, $attachment_urls );
+			$result = wp_mail( maybe_unserialize( $admin_email_address ), $subject, $message, $headers, $attachment_urls );
 		} else {
-			return wp_mail( $admin_email_address, $subject, $message, $headers, $attachment_urls );
+			$result = wp_mail( $admin_email_address, $subject, $message, $headers, $attachment_urls );
 		}
+
+		/**
+		 * Fires after the admin notification email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param bool   $result     Whether wp_mail() succeeded.
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		do_action( 'sg_booking_after_admin_email', $result, $subject, $booking_id );
+
+		return $result;
 	}//end bm_send_notification_to_shop_admin()
 
 
@@ -53,7 +118,73 @@ class BM_Email
 		// if( $old_locale ){
 		// $bmrequests->bm_restore_locale( $old_locale );
 		// }
-		return wp_mail( $customer_email, $subject, $message, $headers, $attachment_urls );
+
+		/**
+		 * Filters the customer email subject.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$subject = apply_filters( 'sg_booking_customer_email_subject', $subject, $booking_id );
+
+		/**
+		 * Filters the customer email body.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $message    The email HTML body.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$message = apply_filters( 'sg_booking_customer_email_content', $message, $booking_id );
+
+		/**
+		 * Filters the customer email headers.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $headers    The email headers string.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$headers = apply_filters( 'sg_booking_customer_email_headers', $headers, $booking_id );
+
+		/**
+		 * Filters the customer email attachments.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $attachment_urls Array of attachment file paths.
+		 * @param int   $booking_id     The booking ID.
+		 */
+		$attachment_urls = apply_filters( 'sg_booking_customer_email_attachments', $attachment_urls, $booking_id );
+
+		/**
+		 * Fires before the customer email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $customer_email The customer email address.
+		 * @param string $subject        The email subject.
+		 * @param string $message        The email body.
+		 * @param int    $booking_id     The booking ID.
+		 */
+		do_action( 'sg_booking_before_customer_email', $customer_email, $subject, $message, $booking_id );
+
+		$result = wp_mail( $customer_email, $subject, $message, $headers, $attachment_urls );
+
+		/**
+		 * Fires after the customer email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param bool   $result     Whether wp_mail() succeeded.
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		do_action( 'sg_booking_after_customer_email', $result, $subject, $booking_id );
+
+		return $result;
 	}//end bm_send_email_to_customer()
 
 
@@ -127,6 +258,17 @@ class BM_Email
 				$message = str_replace( $search, $value, $message );
 			}
 		}
+
+		/**
+		 * Filters the final email content after placeholder replacement.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $message    The processed email body.
+		 * @param int    $booking_id The booking ID.
+		 * @param bool   $customer   Whether this is a customer email.
+		 */
+		$message = apply_filters( 'sg_booking_email_content_filtered', $message, $booking_id, $customer );
 
 		return $message;
 	}//end bm_filter_email_content()

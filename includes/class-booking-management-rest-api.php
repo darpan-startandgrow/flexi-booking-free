@@ -719,6 +719,18 @@ class Booking_Management_Rest_API {
 				),
 			)
 		);
+
+		/**
+		 * Fires after all Lite REST routes are registered.
+		 *
+		 * Use this hook to register additional custom REST routes
+		 * under the same namespace or to modify existing route behaviour.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $namespace The REST namespace ('sg-booking/v1').
+		 */
+		do_action( 'sg_booking_rest_routes_registered', self::NAMESPACE );
 	}
 
 	// ------------------------------------------------------------------
@@ -812,6 +824,17 @@ class Booking_Management_Rest_API {
 
 		// Cache for 5 minutes.
 		set_transient( $transient_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+
+		/**
+		 * Filters the timeslots response before sending to client.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $timeslots    The timeslot data array.
+		 * @param int   $service_id   The service ID.
+		 * @param string $booking_date The booking date.
+		 */
+		$timeslots = apply_filters( 'sg_booking_rest_timeslots', $timeslots, $service_id, $booking_date );
 
 		return rest_ensure_response( $timeslots );
 	}
@@ -930,6 +953,17 @@ class Booking_Management_Rest_API {
 					$booking_data[ $key ] = sanitize_text_field( $customer[ $key ] );
 				}
 			}
+
+			/**
+			 * Filters the booking data before it is saved to the database.
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param array $booking_data The booking record data.
+			 * @param array $customer     The raw customer data from the request.
+			 * @param int   $slot_id      The selected time slot ID.
+			 */
+			$booking_data = apply_filters( 'sg_booking_before_save', $booking_data, $customer, $slot_id );
 
 			$wpdb->insert( $book_table, $booking_data );
 			$booking_id = $wpdb->insert_id;

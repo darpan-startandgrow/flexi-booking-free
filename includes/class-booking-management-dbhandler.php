@@ -7,9 +7,34 @@ class BM_DBhandler {
 		global $wpdb;
 		$bm_activator = new Booking_Management_Activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
-		$result       = $wpdb->insert( $table, $data, $format );
+
+		/**
+		 * Filters the data before inserting a row.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array  $data       The row data to insert.
+		 * @param string $identifier The table identifier (e.g. 'SERVICE', 'BOOKING').
+		 * @param array  $format     The data format array.
+		 */
+		$data = apply_filters( 'sg_booking_before_insert', $data, $identifier, $format );
+
+		$result = $wpdb->insert( $table, $data, $format );
 		if ( $result !== false ) {
-			return $wpdb->insert_id;
+			$insert_id = $wpdb->insert_id;
+
+			/**
+			 * Fires after a row is successfully inserted.
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param int    $insert_id  The new row ID.
+			 * @param string $identifier The table identifier.
+			 * @param array  $data       The inserted data.
+			 */
+			do_action( 'sg_booking_after_insert', $insert_id, $identifier, $data );
+
+			return $insert_id;
 		} else {
 			return false;
 		}
@@ -39,8 +64,32 @@ class BM_DBhandler {
 			return false;
 		}
 
-		$where = array( $unique_field => $unique_field_value );
-		return $wpdb->update( $table, $data, $where, $format, $where_format );
+		/**
+		 * Filters the data before updating a row.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array  $data               The data to update.
+		 * @param string $identifier          The table identifier.
+		 * @param mixed  $unique_field_value  The row's unique field value.
+		 */
+		$data = apply_filters( 'sg_booking_before_update', $data, $identifier, $unique_field_value );
+
+		$where  = array( $unique_field => $unique_field_value );
+		$result = $wpdb->update( $table, $data, $where, $format, $where_format );
+
+		/**
+		 * Fires after a row is updated.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $identifier          The table identifier.
+		 * @param mixed  $unique_field_value  The row's unique field value.
+		 * @param array  $data                The updated data.
+		 */
+		do_action( 'sg_booking_after_update', $identifier, $unique_field_value, $data );
+
+		return $result;
 	}//end update_row()
 
 
@@ -67,8 +116,32 @@ class BM_DBhandler {
 			return false;
 		}
 
-		$where = array( $unique_field => $unique_field_value );
-		return $wpdb->delete( $table, $where, $where_format );
+		/**
+		 * Fires before a row is deleted.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $identifier          The table identifier.
+		 * @param mixed  $unique_field_value  The row's unique field value.
+		 * @param object $result              The row data before deletion.
+		 */
+		do_action( 'sg_booking_before_delete', $identifier, $unique_field_value, $result );
+
+		$where       = array( $unique_field => $unique_field_value );
+		$del_result  = $wpdb->delete( $table, $where, $where_format );
+
+		/**
+		 * Fires after a row is deleted.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $identifier          The table identifier.
+		 * @param mixed  $unique_field_value  The row's unique field value.
+		 * @param object $result              The row data that was deleted.
+		 */
+		do_action( 'sg_booking_after_delete', $identifier, $unique_field_value, $result );
+
+		return $del_result;
 	}//end remove_row()
 
 
