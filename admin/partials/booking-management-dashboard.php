@@ -39,7 +39,7 @@ $months         = array(
 
 ?>
 
-<div class="container">
+<div class="container bm-dashboard-container">
     <div class="pagewrapper">
         <div class="widgetbar">
             <div class="widgetbox">

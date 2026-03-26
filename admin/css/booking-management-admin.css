@@ -3,33 +3,20 @@
  * included in this file.
  */
 
-/* Style the tab */
-
-
-/* Change background color of buttons on hover */
+/* ===== Tab Navigation ===== */
 .tab button:hover {
     background-color: #ddd;
 }
 
-
-
-/* Create an active/current tablink class */
 .tab button.active {
-    /*    background-color: #ccc;*/
+    /* background-color: #ccc; */
 }
 
-
-
-/* Style the tab content */
 .tabcontent {
     display: none;
-    /*    padding: 6px 12px;*/
     border-top: none;
 }
-
-
-/* Added by Darpan */
-/* service image */
+/* ===== Image Containers ===== */
 .svc_image_container,
 .pdf_logo_container,
 .field_image_container,
@@ -77,8 +64,6 @@
     cursor: pointer;
 }
 
-
-
 /* Remove Time Slot */
 .remove_slot {
     margin-top: -10px;
@@ -87,19 +72,11 @@
     border-radius: 50px;
     font-weight: bold;
 }
-
-
-/* Added by Darpan */
-/* Success Message */
+/* ===== Notice Messages ===== */
 .bm-notice {
-    /* width: 100%;
-    float: left; */
     text-align: left;
     background-color: #F2F2F1;
-    /* padding: 15px;
-    font-size: 12px; */
     border-left: 4px solid #0DB14B;
-    /* display: inline-block; */
     display: flex;
     line-height: 1.4;
     padding: 11px 15px;
@@ -109,17 +86,11 @@
     border-radius: 5px;
 }
 
-
-/* Added by Darpan */
-/* Error Message */
 .bm-notice.bm-error {
     border-left: 4px solid #ff1500;
-    /* background: #fff; */
 }
 
-
-/* Added by Darpan */
-/* Validation Message */
+/* ===== Validation Error Text ===== */
 .bminput .errortext,
 .bminput .tmpl_errortext,
 .bminput .global_general_errortext,
@@ -141,8 +112,6 @@
     color: #fb0000;
     font-size: 12px;
 }
-
-
 .setting_input {
     position: relative;
 }
@@ -156,50 +125,25 @@
     position: relative;
 }
 
-.bulk_bm_required .bulk_errortext {
+/* ===== Bulk Action Error Text ===== */
+.bulk_bm_required .bulk_errortext,
+.bulk_stopsales_bm_required .bulk_stopsales_errortext,
+.bulk_saleswitch_bm_required .bulk_saleswitch_errortext,
+.bulk_cap_bm_required .bulk_cap_errortext,
+.bm_required_variable .variable_slots_errortext {
     font-family: monospace;
-    /* width: 100%;
-    display: block;
-    float: left; */
     color: #fb0000;
     font-size: 12px;
+}
+
+.bulk_bm_required .bulk_errortext {
     margin-bottom: 10px;
 }
 
-.bulk_stopsales_bm_required .bulk_stopsales_errortext {
-    font-family: monospace;
-    /* width: 100%;
-    display: block;
-    float: left; */
-    color: #fb0000;
-    font-size: 12px;
-}
-
-.bulk_saleswitch_bm_required .bulk_saleswitch_errortext {
-    font-family: monospace;
-    /* width: 100%;
-    display: block;
-    float: left; */
-    color: #fb0000;
-    font-size: 12px;
-}
-
-.bulk_cap_bm_required .bulk_cap_errortext {
-    font-family: monospace;
-    /* width: 100%;
-    display: block;
-    float: left; */
-    color: #fb0000;
-    font-size: 12px;
-}
-
 .bm_required_variable .variable_slots_errortext {
-    font-family: monospace;
     width: 100%;
     display: block;
     float: left;
-    color: #fb0000;
-    font-size: 12px;
 }
 
 .update_errortext,
@@ -282,8 +226,6 @@
     display: none;
 }
 
-
-/* Added by Darpan */
 /* Loader */
 #loader_span {
     /* position: relative; */
@@ -356,8 +298,6 @@
         top: 6.94em
     }
 }
-
-
 .loader_modal {
     display: none;
     position: fixed;
@@ -368,21 +308,15 @@
     opacity: 0.7;
     background: rgba(255, 255, 255, .8) url('../partials/images/ajax-loader3.gif') 50% 50% no-repeat;
 }
-
-
 body.loading .loader_modal {
     overflow: hidden;
 }
-
-
 body.loading .loader_modal {
     display: block;
 }
 
 /* End of Loader */
 
-
-/* Added by Darpan */
 /* Service datepicker */
 .ui-datepicker .weekend .ui-state-default {
     background: rgb(250, 238, 189);
@@ -436,8 +370,6 @@ input[type=checkbox] {
     position: relative;
     font-weight: 600;
 }
-
-
 .ui-datepicker-calendar td a[data-custom]::after {
     /*STYLE THE CUSTOME DATA HERE*/
     content: attr(data-custom);
@@ -448,8 +380,6 @@ input[type=checkbox] {
     font-weight: 500 !important;
 }
 
-
-/* Added by Darpan */
 /* Service datepicker on select date field */
 #variable_date,
 #variable_price_module_date,
@@ -460,8 +390,6 @@ input[type=checkbox] {
     color: #F9F6EE;
 }
 
-
-/* Added by Darpan */
 /* Time Slot Error Message */
 .time_box,
 .cap_box {
@@ -480,16 +408,12 @@ input[type=checkbox] {
     top: 25px;
     left: 30px;
 }
-
-
 /* Make Checkbox Readonly */
 .readonly_checkbox {
     background-color: #f0f0f1 !important;
     pointer-events: none;
 }
 
-
-/* Added by Darpan */
 /* Style the field tab */
 .field_tab {
     overflow: hidden;
@@ -520,8 +444,6 @@ input[type=checkbox] {
     background-color: #ccc;
 }
 
-
-/* Added by Darpan */
 /* Style the tab content */
 .field_tabcontent {
     display: none;
@@ -573,8 +495,6 @@ input[type=checkbox] {
 #field_settings #settings_form .field_settings_from_button {
     padding: 20px 10px;
 }
-
-
 
 /*------field section styles-------*/
 /* .field_content .field_text,
@@ -734,8 +654,6 @@ input[type=checkbox] {
     -webkit-overflow-scrolling: touch;
     border-radius: 4px;
 }
-
-
 .modaloverlay1 .modal {
     background-color: white;
     height: 100%;
@@ -744,8 +662,6 @@ input[type=checkbox] {
     -webkit-overflow-scrolling: touch;
     border-radius: 4px;
 }
-
-
 @media (min-width: 80em) {
 
     .modaloverlay .modal,
@@ -795,13 +711,9 @@ input[type=checkbox] {
     z-index: 1;
     cursor: pointer;
 }
-
-
 #resend_email_modal .close {
     color: #333;
 }
-
-
 .modaloverlay1 .close {
     color: #fff;
     font-size: 28px;
@@ -1045,8 +957,6 @@ input[type=checkbox] {
     margin: auto;
     display: inline-flex;
 }
-
-
 /*------global settings styles-------*/
 .bm-setting-wrapper {
     float: left;
@@ -1157,8 +1067,6 @@ input[type=checkbox] {
     line-height: 22px;
     width: calc(100% - 100px);
 }
-
-
 .bm-setting-wrapper .bm-setting-wrap {
     display: flex;
     flex-wrap: wrap;
@@ -1335,10 +1243,6 @@ span.bm_stripe_failed::before {
 .product_details_thead {
     height: 20px !important;
 }
-
-
-
-
 /*------add order page styles-------*/
 .extra_content {
     padding: 20px;
@@ -1536,12 +1440,6 @@ span.bm_stripe_failed::before {
     cursor: default;
     transform: none;
 }
-
-
-
-
-
-
 /*------service page styles-------*/
 .sg-container {
     width: 98%;
@@ -1601,8 +1499,6 @@ span.bm_stripe_failed::before {
     width: 100% !important;
     max-width: 100% !important;
 }
-
-
 .sg-tab {
     width: 100%;
     display: inline-block;
@@ -1672,8 +1568,6 @@ span.bm_stripe_failed::before {
     margin-right: 6%;
 }
 
-
-
 .sg-main-heading {
     padding: 16px;
     background: #F8F8F8;
@@ -1722,8 +1616,6 @@ span.bm_stripe_failed::before {
     line-height: 42px;
     border: 1px solid #8c8f94;
 }
-
-
 .sg-tab {
     width: 100%;
     display: inline-block;
@@ -1754,8 +1646,6 @@ span.bm_stripe_failed::before {
 .sg-tabcontent {
     margin-top: 20px
 }
-
-
 .order_listing_top .dash_title,
 .checkin_listing_top .dash_title {
     display: inline-block;
@@ -1763,8 +1653,6 @@ span.bm_stripe_failed::before {
     font-size: 14px;
     /* float: left; */
 }
-
-
 /*------order page styles-------*/
 .order_buttons {
     display: block;
@@ -1817,10 +1705,6 @@ span.bm_stripe_failed::before {
     color: #fff !important;
 }
 
-
-
-
-
 /*------Readonly styles-------*/
 .readonly_div {
     background-color: #c8c8c8 !important;
@@ -1844,10 +1728,6 @@ span.bm_stripe_failed::before {
     pointer-events: none;
     cursor: default;
 }
-
-
-
-
 
 /*------Add Order page modal-------*/
 #order_columns_modal #order_columns .checkbox_list,
@@ -2010,8 +1890,6 @@ span.bm_stripe_failed::before {
     left: 336%;
     text-align: center;
 }
-
-
 .dashboard_all_orders .no_records_class,
 .dashoboard_weekly_orders .no_records_class,
 .dashoboard_cat_wise_orders .no_records_class,
@@ -2026,8 +1904,6 @@ span.bm_stripe_failed::before {
     width: 69.7%;
     text-align: center;
 }
-
-
 
 /*------No recors in listing message-------*/
 .bm_no_records_message {
@@ -2117,10 +1993,6 @@ span.bm_stripe_failed::before {
     top: 50%;
     border-color: transparent red;
 }
-
-
-
-
 /*------Paginations-------*/
 .listing_table ul.page-numbers {
     display: -webkit-box;
@@ -2155,8 +2027,6 @@ span.bm_stripe_failed::before {
 .listing_table ul.page-numbers li a:active {
     background-color: #EAF1E4;
 }
-
-
 .listing_table ul.page-numbers li span.current {
     position: relative;
     display: block;
@@ -2182,14 +2052,10 @@ span.bm_stripe_failed::before {
     border-top-right-radius: 0.25rem;
     border-bottom-right-radius: 0.25rem;
 }
-
-
 .listing_table ul.page-numbers li:first-child,
 .listing_table ul.page-numbers li {
     display: inline-block;
 }
-
-
 .listing_table ul.page-numbers {
     padding: 10px;
     margin: 0;
@@ -2262,8 +2128,6 @@ span.bm_stripe_failed::before {
 .fields_listing_screen {
     min-height: 900px !important;
 }
-
-
 .postbox .inside h2,
 .wrap [class$=icon32]+h2,
 .wrap h1,
@@ -2376,8 +2240,6 @@ input[type=time] {
     background: #195587 !important;
     color: #fff !important;
 }
-
-
 .sg-admin-main-box .listing_table .title {
     margin: 0px;
     font-size: 24px;
@@ -2482,8 +2344,6 @@ table.widefat {
 .smallinput {
     width: 30px !important;
 }
-
-
 .sg-admin-main-box .button,
 .sg-admin-main-box .wp-core-ui .button-primary,
 .sg-admin-main-box .wp-core-ui .button-secondary {
@@ -2591,8 +2451,6 @@ table.widefat {
     background: #195587 !important;
     color: #fff;
 }
-
-
 
 /* toggle swich css start */
 
@@ -2812,8 +2670,6 @@ input.bm_toggle:checked+label:after {
     top: 360px;
 }
 
-
-
 /* CSS for the popup container */
 .popup-message-container {
     display: none;
@@ -2855,22 +2711,16 @@ input.bm_toggle:checked+label:after {
     border-radius: 5px;
 }
 
-
-/* Added by Darpan */
 .edit-button,
 .delete-button {
     cursor: pointer;
 }
-
-/* Added by Darpan */
 #conditional_content .add_trigger_conditions_class {
     position: relative;
     right: 130px;
     top: 11px;
     vertical-align: top;
 }
-
-/* Added by Darpan */
 #conditional_content .condition_field .bm_remove_event_condition {
     outline: 0;
     border: 0;
@@ -2893,33 +2743,23 @@ input.bm_toggle:checked+label:after {
     display: none;
     cursor: pointer;
 }
-
-/* Added by Darpan */
 #conditional_content .condition_field .bm_remove_event_condition:hover {
     color: #dc5858;
     box-shadow: 0 0 0 2px #dc5858;
 }
-
-/* Added by Darpan */
 #conditional_content .condition_field:hover .bm_remove_event_condition {
     display: block;
 }
-
-/* Added by Darpan */
 #conditional_content .condition_field .bm_remove_event_condition i {
     vertical-align: middle;
     line-height: 21px;
     display: block;
 }
-
-/* Added by Darpan */
 #conditional_content .condition_field {
     position: relative;
     display: block;
     padding: 6px 10px !important;
 }
-
-/* Added by Darpan */
 #conditional_content .add_condition_box_btn {
     padding: 6px 12px;
     background-color: #2271b1;
@@ -2936,20 +2776,14 @@ input.bm_toggle:checked+label:after {
     font-size: 16px;
     vertical-align: middle;
 }
-
-/* Added by Darpan */
 .condition_field .ms-options-wrap {
     display: inline-block !important;
 }
-
-/* Added by Darpan */
 #resend_email_modal .modal {
     /* padding: 15px;
     width: 57% !important; */
     width: fit-content !important;
 }
-
-/* Added by Darpan */
 .condition_field .ms-options-wrap>button:focus,
 .ms-options-wrap>button {
     width: 270px !important;
@@ -2961,24 +2795,16 @@ input.bm_toggle:checked+label:after {
     font-size: 14px !important;
     cursor: pointer !important;
 }
-
-/* Added by Darpan */
 .condition_field .ms-options-wrap>.ms-options>ul label {
     padding: 4px 4px 4px 24px !important;
 }
-
-/* Added by Darpan */
 .condition_field .ms-options-wrap>.ms-options>ul input[type="checkbox"] {
     top: 6px !important;
 }
-
-/* Added by Darpan */
 .condition_field .bminput .errortext {
     position: relative !important;
     left: 43%;
 }
-
-/* Added by Darpan */
 /* #notification_process_form .bminput .errortext {
     float: none !important;
 } */
@@ -3082,8 +2908,6 @@ input.bm_toggle:checked+label:after {
     -ms-transform: translateZ(0);
     transform: translateZ(0);
 }
-
-
 .spinner,
 .spinner:before,
 .spinner:after {
@@ -3110,8 +2934,6 @@ input.bm_toggle:checked+label:after {
 .transaction_details_parent_div .single_transaction_details {
     margin-bottom: 10px !important;
 }
-
-
 .order-listing-admin-main-box .transaction_details_parent_div .single_transaction_details input,
 .order-listing-admin-main-box .transaction_details_parent_div .single_transaction_details select {
     width: 300px !important;
@@ -3127,8 +2949,6 @@ input.bm_toggle:checked+label:after {
     display: inline-block;
     width: 20% !important;
 }
-
-
 .export_details_parent_div {
     display: block;
     padding: 10px 100px 10px 10px;
@@ -3142,8 +2962,6 @@ input.bm_toggle:checked+label:after {
 .export_details_parent_div .single_export_details #pageFrom {
     margin-bottom: 10px !important;
 }
-
-
 .order-listing-admin-main-box .export_details_parent_div .single_export_details input,
 .order-listing-admin-main-box .export_details_parent_div .single_export_details select,
 .checkin-listing-admin-main-box .export_details_parent_div .single_export_details input,
@@ -3161,8 +2979,6 @@ input.bm_toggle:checked+label:after {
     display: inline-block;
     width: 30% !important;
 }
-
-
 .hidden {
     display: none;
 }
@@ -3188,8 +3004,6 @@ input.bm_toggle:checked+label:after {
     display: none;
 }
 
-
-/* Added by Darpan */
 .custom-email-attachement {
     margin-left: 5px;
     border: 1px solid #ccc;
@@ -3220,10 +3034,6 @@ input.bm_toggle:checked+label:after {
 #email_attachment_form {
     display: inline-block !important;
 }
-
-
-
-/* Added by Darpan */
 .copyMessagetooltip {
     position: relative;
     display: inline-block;
@@ -3265,8 +3075,6 @@ input.bm_toggle:checked+label:after {
 input.copytextTooltip::selection {
     background-color: transparent;
 }
-
-
 .allShortcode .tooltiptext {
     bottom: 70% !important;
 }
@@ -3314,8 +3122,6 @@ input.copytextTooltip::selection {
     width: 120px !important;
     line-height: 25px !important;
 }
-
-
 #email_details .mailcommonbox h4 {
     font-size: 18px !important;
     margin-bottom: 10px !important;
@@ -3709,15 +3515,11 @@ input.copytextTooltip::selection {
 .positive_discount::before {
     content: "-";
 }
-
-
 #email_details_modal .modal {
     max-width: none !important;
     max-width: 75em !important;
     width: auto !important;
 }
-
-
 .order_listing_top .failed-order-toggle {
     margin-left: 5px;
     display: inline-flex;
@@ -3736,8 +3538,6 @@ input.copytextTooltip::selection {
 .cap_box #min_cap_1 {
     width: 80px !important;
 }
-
-
 
 .multi-select-input-box {
     width: 20% !important;
@@ -3774,8 +3574,6 @@ input.copytextTooltip::selection {
 .greybox_external_price input[type=number] {
     width: 165px !important;
 }
-
-
 #price_module_form #module_name {
     width: 356px !important;
 }
@@ -3803,8 +3601,6 @@ input.copytextTooltip::selection {
 h2 a:focus{
     box-shadow: none;
 }
-
-
 /* New shortcode modal css */
 .bm-shortcode-modal {
     display: none;
