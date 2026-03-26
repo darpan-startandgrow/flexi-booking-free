@@ -19,6 +19,11 @@ This document lists all available WordPress action hooks and filter hooks provid
 11. [Admin Menu & UI Hooks](#admin-menu--ui-hooks)
 12. [Internationalisation Hooks](#internationalisation-hooks)
 13. [WooCommerce Integration Hooks](#woocommerce-integration-hooks)
+14. [License Management Hooks](#license-management-hooks)
+15. [Event Dispatcher Hooks](#event-dispatcher-hooks)
+16. [Async Queue Hooks](#async-queue-hooks)
+17. [Deactivation Hooks](#deactivation-hooks)
+18. [Hybrid Architecture Overview](#hybrid-architecture-overview)
 
 ---
 
@@ -1017,3 +1022,370 @@ The following table identifiers are used with the database hooks (`sg_booking_be
 3. **Freemium Architecture**: The free version uses CSS-only teasers for Pro features. Pro-only admin menus use the `bm_pro_upsell_page` callback with `<span class="bm-menu-pro-badge">Pro</span>` badges.
 4. **REST API Namespace**: All endpoints are under `sg-booking/v1`.
 5. **Database Operations**: Always use `BM_DBhandler` methods (`insert_row`, `update_row`, `remove_row`) instead of direct `$wpdb` calls to ensure hooks fire correctly.
+
+---
+
+## License Management Hooks
+
+### `sg_license_before_activation` *(action)*
+
+Fires before a license activation attempt.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$license_key` | `string` | The license key being activated. |
+| `$item_id` | `string` | The product/plan ID. |
+
+```php
+add_action( 'sg_license_before_activation', function ( $license_key, $item_id ) {
+    error_log( 'Attempting to activate license: ' . substr( $license_key, 0, 8 ) . '...' );
+}, 10, 2 );
+```
+
+### `sg_license_after_activation` *(action)*
+
+Fires after a license activation attempt completes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$license_key` | `string` | The license key. |
+| `$valid` | `bool` | Whether activation succeeded. |
+| `$status` | `string` | The new license status (`'active'` or `'invalid'`). |
+| `$provider` | `string` | The license provider used (`'edd'`, `'freemius'`, `'custom'`). |
+
+```php
+add_action( 'sg_license_after_activation', function ( $license_key, $valid, $status, $provider ) {
+    if ( $valid ) {
+        // Enable Pro features, clear caches, etc.
+    }
+}, 10, 4 );
+```
+
+### `sg_license_before_deactivation` *(action)*
+
+Fires before a license deactivation attempt.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$license_key` | `string` | The license key being deactivated. |
+| `$provider` | `string` | The license provider. |
+
+### `sg_license_after_deactivation` *(action)*
+
+Fires after a license is deactivated.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$license_key` | `string` | The license key that was deactivated. |
+| `$provider` | `string` | The license provider. |
+
+### `sg_license_is_active` *(filter)*
+
+Filters the license active status. Allows external plugins to override the license check.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$is_active` | `bool` | Whether the license is active. |
+| `$license_key` | `string` | The stored license key. |
+| `$status` | `string` | The raw status string. |
+
+**Return:** `bool`
+
+```php
+add_filter( 'sg_license_is_active', function ( $is_active, $license_key, $status ) {
+    // Override during testing.
+    if ( defined( 'SG_BOOKING_DEV_MODE' ) && SG_BOOKING_DEV_MODE ) {
+        return true;
+    }
+    return $is_active;
+}, 10, 3 );
+```
+
+### `sg_license_show_notice` *(filter)*
+
+Filters whether to display the license admin notice.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$show` | `bool` | Whether to show the notice. Default `true`. |
+| `$status` | `string` | The current license status. |
+| `$screen_id` | `string` | The current admin screen ID. |
+
+**Return:** `bool`
+
+### `sg_license_before_notice` *(action)*
+
+Fires before the license admin notice is displayed.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$status` | `string` | The license status (`'invalid'` or `'expired'`). |
+
+### `sg_license_after_notice` *(action)*
+
+Fires after the license admin notice is displayed.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$status` | `string` | The license status. |
+
+---
+
+## Event Dispatcher Hooks
+
+### `sg_booking_event_payload` *(filter)*
+
+Filters the event payload before dispatching.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$payload` | `array` | Event data. |
+| `$event` | `string` | Event name. |
+
+**Return:** `array`
+
+```php
+add_filter( 'sg_booking_event_payload', function ( $payload, $event ) {
+    if ( 'booking.confirmed' === $event ) {
+        $payload['custom_tracking_id'] = uniqid( 'trk_' );
+    }
+    return $payload;
+}, 10, 2 );
+```
+
+### `sg_booking_event_{event_name}` *(action)*
+
+Dynamic action for each dispatched event. The event name has dots replaced with underscores.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$payload` | `array` | Event data. |
+
+**Examples:**
+- `sg_booking_event_booking_confirmed` — Booking confirmed
+- `sg_booking_event_booking_cancelled` — Booking cancelled
+- `sg_booking_event_payment_received` — Payment received
+- `sg_booking_event_email_admin_notification` — Admin email sent
+- `sg_booking_event_email_customer_notification` — Customer email sent
+- `sg_booking_event_pdf_generate` — PDF generation requested
+- `sg_booking_event_webhook_send` — Webhook delivery
+
+```php
+add_action( 'sg_booking_event_booking_confirmed', function ( $payload ) {
+    // Send a webhook to an external CRM.
+    wp_remote_post( 'https://crm.example.com/webhook', array(
+        'body' => wp_json_encode( $payload ),
+    ) );
+} );
+```
+
+### `sg_booking_event_dispatched` *(action)*
+
+Fires after any event is dispatched (catch-all).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$event` | `string` | Event name. |
+| `$payload` | `array` | Event data. |
+
+### `sg_booking_async_events` *(filter)*
+
+Filters the list of events processed asynchronously via the queue.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$async_events` | `array` | Default async event list. |
+
+**Return:** `array`
+
+```php
+add_filter( 'sg_booking_async_events', function ( $events ) {
+    // Add custom event to async processing.
+    $events[] = 'crm.sync';
+    return $events;
+} );
+```
+
+### `sg_booking_event_system_init` *(action)*
+
+Fires after the event system is initialized. Register custom listeners or async events here.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| *(none)* | — | — |
+
+```php
+add_action( 'sg_booking_event_system_init', function () {
+    SG_Event_Dispatcher::listen( 'booking.confirmed', 'my_crm_sync_callback' );
+    SG_Event_Dispatcher::register_async( 'crm.sync' );
+} );
+```
+
+---
+
+## Async Queue Hooks
+
+### `sg_booking_should_queue_job` *(filter)*
+
+Filters whether a job should be queued or processed immediately.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$should_queue` | `bool` | Default `true`. |
+| `$event` | `string` | Job event name. |
+| `$payload` | `array` | Job data. |
+
+**Return:** `bool`
+
+```php
+// Process all email jobs immediately (skip queue).
+add_filter( 'sg_booking_should_queue_job', function ( $should_queue, $event ) {
+    if ( str_starts_with( $event, 'email.' ) ) {
+        return false;
+    }
+    return $should_queue;
+}, 10, 2 );
+```
+
+### `sg_booking_job_queued` *(action)*
+
+Fires when a job is added to the queue.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$job` | `array` | Job data (`id`, `event`, `payload`, `created_at`). |
+| `$event` | `string` | The event name. |
+
+### `sg_booking_job_processed` *(action)*
+
+Fires after a queued job is processed successfully.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$job` | `array` | The processed job data. |
+
+### `sg_booking_job_failed` *(action)*
+
+Fires when a queued job fails after all retries (3 attempts).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$job` | `array` | The failed job data. |
+| `$exception` | `\Exception` | The exception that caused the failure. |
+
+```php
+add_action( 'sg_booking_job_failed', function ( $job, $exception ) {
+    error_log( 'FlexiBooking queue job failed: ' . $job['event'] . ' — ' . $exception->getMessage() );
+}, 10, 2 );
+```
+
+### `sg_booking_queue_batch_complete` *(action)*
+
+Fires after a queue batch is processed.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$processed` | `int` | Number of successfully processed jobs. |
+| `$remaining` | `array` | Jobs remaining in the queue. |
+| `$failed` | `array` | Jobs that failed after all retries. |
+
+### `sg_booking_queue_processor` *(filter)*
+
+Filters the job processor for custom queue backends (Redis Queue, RabbitMQ, etc.).
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$processor` | `callable\|null` | Custom job processor. Default `null`. |
+| `$event` | `string` | Job event name. |
+| `$payload` | `array` | Job data. |
+
+**Return:** `callable|null`
+
+```php
+// Route all jobs to a custom Redis-based processor.
+add_filter( 'sg_booking_queue_processor', function ( $processor, $event, $payload ) {
+    return function ( $event, $payload ) {
+        MyRedisQueue::dispatch( $event, $payload );
+    };
+}, 10, 3 );
+```
+
+---
+
+## Deactivation Hooks
+
+### `sg_booking_deactivated` *(action)*
+
+Fires during plugin deactivation, after queue cleanup.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| *(none)* | — | — |
+
+```php
+add_action( 'sg_booking_deactivated', function () {
+    // Clean up custom tables or options.
+    delete_option( 'my_addon_settings' );
+} );
+```
+
+---
+
+## Hybrid Architecture Overview
+
+### Scalability Tiers
+
+| Traffic Level | Architecture | Components |
+|---------------|-------------|------------|
+| 10K–100K users/day | Optimized modular plugin + caching | `SG_Cache_Manager` (transients), WP-Cron queue |
+| 100K–1M users/day | Add async processing + external services | `SG_Async_Queue` + `SG_Event_Dispatcher` (async), Redis object cache |
+| 1M+ users/day | Headless + microservices | Custom `sg_booking_queue_processor`, external queue (Redis/RabbitMQ), CDN caching |
+
+### Cache Manager Usage
+
+```php
+$cache = SG_Cache_Manager::get_instance();
+
+// Simple get/set.
+$cache->set( 'service_42', $service_data, 600 );
+$data = $cache->get( 'service_42' );
+
+// Remember pattern (get or compute).
+$timeslots = $cache->remember( 'ts_42_2024-01-15', function () {
+    return compute_timeslots( 42, '2024-01-15' );
+}, 300 );
+
+// API response caching.
+$response = $cache->cache_api_response( '/timeslots', $params, function () use ( $params ) {
+    return fetch_timeslots_from_db( $params );
+}, 300 );
+```
+
+### Event Dispatcher Usage
+
+```php
+// Dispatch a booking event.
+SG_Event_Dispatcher::dispatch( 'booking.confirmed', [
+    'booking_id' => 123,
+    'service_id' => 42,
+    'customer'   => 'user@example.com',
+] );
+
+// Listen for events.
+SG_Event_Dispatcher::listen( 'booking.confirmed', function ( $payload ) {
+    // Send webhook, update analytics, etc.
+} );
+```
+
+### Async Queue Usage
+
+```php
+$queue = SG_Async_Queue::get_instance();
+
+// Push a job for background processing.
+$queue->push( 'email.send', [
+    'to'      => 'user@example.com',
+    'subject' => 'Booking Confirmed',
+    'body'    => $email_html,
+] );
+```
