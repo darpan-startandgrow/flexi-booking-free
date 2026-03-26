@@ -35,13 +35,6 @@ class BM_Orders_List_Table extends WP_List_Table {
 	private $bmrequests;
 
 	/**
-	 * Whether Pro is active.
-	 *
-	 * @var bool
-	 */
-	private $is_pro;
-
-	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -54,7 +47,6 @@ class BM_Orders_List_Table extends WP_List_Table {
 		);
 		$this->dbhandler  = new BM_DBhandler();
 		$this->bmrequests = new BM_Request();
-		$this->is_pro     = Booking_Management_Limits::is_pro_active();
 	}
 
 	/**
@@ -122,7 +114,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 
 		foreach ( $order_ids as $id ) {
 			if ( $id > 0 ) {
-				$this->dbhandler->bm_delete( 'BOOKING', $id );
+				$this->dbhandler->remove_row( 'BOOKING', 'id', $id, '%d' );
 			}
 		}
 	}
@@ -144,7 +136,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Extra table nav (above/below table) — used for status filter and search.
+	 * Extra table nav (above/below table) — used for status filter, service filter.
 	 *
 	 * @param string $which 'top' or 'bottom'.
 	 */
@@ -153,11 +145,17 @@ class BM_Orders_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$status_filter = isset( $_REQUEST['order_status_filter'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['order_status_filter'] ) ) : '';
-		$statuses      = $this->bmrequests->bm_fetch_order_status_key_value();
+		$status_filter  = isset( $_REQUEST['order_status_filter'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['order_status_filter'] ) ) : '';
+		$service_filter = isset( $_REQUEST['service_name_filter'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['service_name_filter'] ) ) : '';
+		$statuses       = $this->bmrequests->bm_fetch_order_status_key_value();
 		unset( $statuses['failed'] );
 
+		// Fetch unique service names from bookings.
+		$services = $this->dbhandler->get_all_result( 'SERVICE', 'id, service_name', 1, 'results', 0, false, 'service_name', 'ASC' );
+
 		echo '<div class="alignleft actions">';
+
+		// Status filter.
 		echo '<select name="order_status_filter">';
 		echo '<option value="">' . esc_html__( 'All Statuses', 'service-booking' ) . '</option>';
 		foreach ( $statuses as $key => $label ) {
@@ -169,6 +167,22 @@ class BM_Orders_List_Table extends WP_List_Table {
 			);
 		}
 		echo '</select>';
+
+		// Service filter.
+		echo '<select name="service_name_filter">';
+		echo '<option value="">' . esc_html__( 'All Services', 'service-booking' ) . '</option>';
+		if ( ! empty( $services ) ) {
+			foreach ( $services as $svc ) {
+				printf(
+					'<option value="%s"%s>%s</option>',
+					esc_attr( $svc->service_name ),
+					selected( $service_filter, $svc->service_name, false ),
+					esc_html( $svc->service_name )
+				);
+			}
+		}
+		echo '</select>';
+
 		submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false );
 		echo '</div>';
 	}
@@ -179,9 +193,11 @@ class BM_Orders_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		$this->process_bulk_action();
 
-		$per_page = ! empty( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
-			? absint( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
-			: 10;
+		$per_page = ! empty( $_REQUEST['per_page'] )
+			? absint( $_REQUEST['per_page'] )
+			: ( ! empty( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
+				? absint( $this->dbhandler->get_global_option_value( 'bm_orders_per_page' ) )
+				: 10 );
 
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
@@ -198,7 +214,23 @@ class BM_Orders_List_Table extends WP_List_Table {
 			$table_key = 'BOOKING_ARCHIVE';
 		}
 
-		$total = $this->dbhandler->bm_count( $table_key );
+		// Build filter conditions.
+		$where      = 1;
+		$additional = '';
+
+		if ( ! empty( $_REQUEST['order_status_filter'] ) ) {
+			$status_val  = sanitize_text_field( wp_unslash( $_REQUEST['order_status_filter'] ) );
+			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND order_status = %s', $status_val );
+		}
+
+		if ( ! empty( $_REQUEST['service_name_filter'] ) ) {
+			$svc_name    = sanitize_text_field( wp_unslash( $_REQUEST['service_name_filter'] ) );
+			$additional .= $this->dbhandler->get_global_db()->prepare( ' AND service_name = %s', $svc_name );
+		}
+
+		// Count with filters.
+		$count_results = $this->dbhandler->get_all_result( $table_key, 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );
+		$total         = is_array( $count_results ) ? count( $count_results ) : 0;
 
 		// Sorting.
 		$orderby = 'id';
@@ -215,7 +247,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 			$order = ( 'asc' === strtolower( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) ) ) ? 'ASC' : 'DESC';
 		}
 
-		$orders = $this->dbhandler->get_all_result( $table_key, '*', 1, 'results', $offset, $per_page, $orderby, $order );
+		$orders = $this->dbhandler->get_all_result( $table_key, '*', $where, 'results', $offset, $per_page, $orderby, $order, $additional );
 
 		$this->items = array();
 		if ( ! empty( $orders ) ) {

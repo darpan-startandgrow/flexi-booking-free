@@ -58,12 +58,59 @@ class BM_Vouchers_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
+			'cb'          => '<input type="checkbox" />',
 			'serial'      => esc_html__( '#', 'service-booking' ),
 			'code'        => esc_html__( 'Voucher Code', 'service-booking' ),
 			'service'     => esc_html__( 'Service', 'service-booking' ),
 			'status'      => esc_html__( 'Status', 'service-booking' ),
 			'created_at'  => esc_html__( 'Created Date', 'service-booking' ),
 		);
+	}
+
+	/**
+	 * Checkbox column for bulk actions.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_cb( $item ) {
+		return sprintf( '<input type="checkbox" name="voucher_ids[]" value="%s" />', esc_attr( $item['id'] ) );
+	}
+
+	/**
+	 * Bulk actions available in the dropdown.
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		return array(
+			'bulk-delete' => esc_html__( 'Delete', 'service-booking' ),
+		);
+	}
+
+	/**
+	 * Process bulk actions.
+	 */
+	public function process_bulk_action() {
+		if ( 'bulk-delete' !== $this->current_action() ) {
+			return;
+		}
+
+		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'bulk-vouchers' ) ) {
+			return;
+		}
+
+		$ids = isset( $_REQUEST['voucher_ids'] ) ? array_map( 'absint', (array) $_REQUEST['voucher_ids'] ) : array();
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		$dbhandler = new BM_DBhandler();
+		foreach ( $ids as $id ) {
+			if ( $id > 0 ) {
+				$dbhandler->remove_row( 'VOUCHERS', 'id', $id, '%d' );
+			}
+		}
 	}
 
 	/**
@@ -114,15 +161,19 @@ class BM_Vouchers_List_Table extends WP_List_Table {
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
+		$this->process_bulk_action();
+
 		global $wpdb;
 		$activator     = new Booking_Management_Activator();
 		$dbhandler     = new BM_DBhandler();
 		$voucher_table = $activator->get_db_table_name( 'VOUCHERS' );
 		$booking_table = $activator->get_db_table_name( 'BOOKING' );
 
-		$per_page = ! empty( $dbhandler->get_global_option_value( 'bm_voucher_records_per_page' ) )
-			? absint( $dbhandler->get_global_option_value( 'bm_voucher_records_per_page' ) )
-			: 10;
+		$per_page = ! empty( $_REQUEST['per_page'] )
+			? absint( $_REQUEST['per_page'] )
+			: ( ! empty( $dbhandler->get_global_option_value( 'bm_voucher_records_per_page' ) )
+				? absint( $dbhandler->get_global_option_value( 'bm_voucher_records_per_page' ) )
+				: 10 );
 
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
