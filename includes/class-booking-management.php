@@ -295,12 +295,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status_to_complete_or_cancelled', $plugin_admin, 'bm_change_order_status_to_complete_or_cancelled' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status', $plugin_admin, 'bm_change_order_status' );
 
-		// Manage Columns — Pro only.
-		if ( Booking_Management_Limits::can_manage_columns() ) {
-			$this->loader->add_action( 'wp_ajax_bm_fetch_columns_screen_options', $plugin_admin, 'bm_fetch_columns_screen_options' );
-			$this->loader->add_action( 'wp_ajax_bm_save_columns_screen_options', $plugin_admin, 'bm_save_columns_screen_options' );
-		}
-
 		$this->loader->add_action( 'wp_ajax_bm_fetch_order_as_per_search', $plugin_admin, 'bm_fetch_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_archived_order_as_per_search', $plugin_admin, 'bm_fetch_archived_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_failed_order_as_per_search', $plugin_admin, 'bm_fetch_failed_order_as_per_search' );
@@ -323,11 +317,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_change_service_visibility', $plugin_admin, 'bm_change_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
-
-		// Customer visibility toggle — Pro only (free shows read-only listing).
-		if ( Booking_Management_Limits::can_create_customer() ) {
-			$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
-		}
 
 		$this->loader->add_filter( 'flexibooking_cancel_booking', $plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
@@ -469,16 +458,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_checkout_options', $plugin_public, 'bm_fetch_available_checkout_options' );
 		$this->loader->add_action( 'wp_ajax_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
-
-		// Voucher redemption AJAX hooks — Pro only.
-		if ( Booking_Management_Limits::can_redeem_voucher() ) {
-			$this->loader->add_action( 'wp_ajax_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-			$this->loader->add_action( 'wp_ajax_nopriv_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-			$this->loader->add_action( 'wp_ajax_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-			$this->loader->add_action( 'wp_ajax_nopriv_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-			$this->loader->add_action( 'wp_ajax_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
-			$this->loader->add_action( 'wp_ajax_nopriv_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
-		}
 
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_public, 'bm_fetch_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_get_states', $plugin_public, 'bm_fetch_states_by_country' );

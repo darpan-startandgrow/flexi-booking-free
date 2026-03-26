@@ -676,6 +676,9 @@ class Booking_Management_Admin {
 		// Payment Logs: Pro-only.
 		add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs ★', 'service-booking' ), 'manage_options', 'bm_payment_logs', array( $this, 'bm_pro_upsell_page' ) );
 
+		// Coupons: Pro-only.
+		add_submenu_page( 'bm_home', __( 'Coupons', 'service-booking' ), __( 'Coupons ★', 'service-booking' ), 'manage_options', 'bm_all_coupons', array( $this, 'bm_pro_upsell_page' ) );
+
 		// --- Global Settings ---
 		add_submenu_page( 'bm_home', __( 'Global Settings', 'service-booking' ), __( 'Global Settings', 'service-booking' ), 'manage_options', 'bm_global', array( $this, 'bm_global' ) );
 		add_submenu_page( '', __( 'Global General Settings', 'service-booking' ), __( 'Global General Settings', 'service-booking' ), 'manage_options', 'bm_global_general_settings', array( $this, 'bm_global_general_settings' ) );
