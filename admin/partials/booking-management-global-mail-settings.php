@@ -8,8 +8,6 @@ $plugin_path = plugin_dir_url( __FILE__ );
 $dbhandler   = new BM_DBhandler();
 $bmrequests  = new BM_Request();
 $language    = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
-$is_pro      = Booking_Management_Limits::is_pro_active();
-
 if ( filter_input( INPUT_POST, 'save_email_global' ) || filter_input( INPUT_POST, 'resetdata' ) ) {
 
     $retrieved_nonce = filter_input( INPUT_POST, '_wpnonce' );
@@ -304,128 +302,6 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
                         </td>
                     </tr>
                 </table>
-                <?php if ( $is_pro ) : ?>
-                <table class="form-table" role="presentation">
-                    <tr>
-                        <th scope="row">
-                            <?php esc_html_e( 'Enable SMTP', 'service-booking' ); ?>
-                        </th>
-                        <td class="bm-checkbox-td" style="width: 40%;">
-                            <input name="bm_enable_smtp" type="checkbox" id="bm_enable_smtp" class="regular-text bm_toggle" onClick="bm_toggle_tab(this,'smtp_settings_html')" <?php checked( $dbhandler->get_global_option_value( 'bm_enable_smtp' ), '1' ); ?>>
-                            <label for="bm_enable_smtp"></label>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <?php esc_html_e( 'Route emails from a dedicated email services instead of using your server\'s mail functionality. Allows a lot more control and better chances to avoid overzealous spam filters.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                </table>
-                <table class="form-table" role="presentation" id="smtp_settings_html" 
-                <?php
-                if ( $dbhandler->get_global_option_value( 'bm_enable_smtp', 0 ) == 1 ) {
-					echo "style='display: block;'";}
-				?>
-                >
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_host"><?php esc_html_e( 'SMTP Host', 'service-booking' ); ?></label>
-                        </th>
-                        <td><input name="bm_smtp_host" type="text" id="bm_smtp_host" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_host' ) ); ?>"></td>
-                        <td>
-                            <?php esc_html_e( 'Host Server name. For e.g. smtp.gmail.com if you wish to use Gmail. Consult your SMTP service provider for exact name.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_encription"><?php esc_html_e( 'Type of Encryption', 'service-booking' ); ?></label>
-                        </th>
-                        <td style="width: 40%;">
-                            <select name="bm_smtp_encription" id="bm_smtp_encription" class="regular-text">
-                                <option value="false" <?php selected( $dbhandler->get_global_option_value( 'bm_smtp_encription' ), 'false' ); ?>><?php esc_html_e( 'None', 'service-booking' ); ?></option>
-                                <option value="tls" <?php selected( $dbhandler->get_global_option_value( 'bm_smtp_encription' ), 'tls' ); ?>><?php esc_html_e( 'TLS', 'service-booking' ); ?></option>
-                                <option value="ssl" <?php selected( $dbhandler->get_global_option_value( 'bm_smtp_encription' ), 'ssl' ); ?>><?php esc_html_e( 'SSL', 'service-booking' ); ?></option>
-                            </select>
-                        </td>
-                         <td>
-                            <?php esc_html_e( 'Encryption supported by your SMTP provider.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_port"><?php esc_html_e( 'SMTP Port', 'service-booking' ); ?></label>
-                           
-                        </th>
-                        <td><input name="bm_smtp_port" type="text" id="bm_smtp_port" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_port' ) ); ?>"></td>
-                        <td>
-                            <?php esc_html_e( 'SMTP port. Usually a number. For e.g. 465.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_authentication"><?php esc_html_e( 'SMTP Authentication', 'service-booking' ); ?></label>
-                        </th>
-                        <td>
-                            <select name="bm_smtp_authentication" id="bm_smtp_authentication" class="regular-text">
-                                <option value="true" <?php selected( $dbhandler->get_global_option_value( 'bm_smtp_authentication' ), 'true' ); ?>><?php esc_html_e( 'Yes', 'service-booking' ); ?></option>
-                                <option value="false" <?php selected( $dbhandler->get_global_option_value( 'bm_smtp_authentication' ), 'false' ); ?>><?php esc_html_e( 'No', 'service-booking' ); ?></option>
-                            </select>
-                        </td>
-                         <td>
-                            <?php esc_html_e( 'Authentication supported by your SMTP service provider.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_username"><?php esc_html_e( 'SMTP Username', 'service-booking' ); ?></label>
-                        </th>
-                        <td><input name="bm_smtp_username" type="text" id="bm_smtp_username" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_username' ) ); ?>"></td>
-                        <td>
-                            <?php esc_html_e( 'Your SMTP Username.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_password"><?php esc_html_e( 'SMTP Password', 'service-booking' ); ?></label>
-                        </th>
-                        <td><input name="bm_smtp_password" type="password" id="bm_smtp_password" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_password' ) ); ?>"></td>
-                        <td>
-                            <?php esc_html_e( 'Your SMTP Password.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_from_email_name"><?php esc_html_e( 'From Email Name.', 'service-booking' ); ?></label>
-                        </th>
-                        <td><input name="bm_smtp_from_email_name" type="text" id="bm_smtp_from_email_name" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_from_email_name' ) ); ?>"></td>
-                        <td>
-                            <?php esc_html_e( 'From Email Name.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_from_email_address"><?php esc_html_e( 'From Email Address', 'service-booking' ); ?></label>
-                        </th>
-                        <td><input name="bm_smtp_from_email_address" type="text" id="bm_smtp_from_email_address" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_from_email_address' ) ); ?>"></td>
-                         <td>
-                            <?php esc_html_e( 'Your SMTP Email Address.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="bm_smtp_test_email_address"><?php esc_html_e( 'Test Outgoing Connection', 'service-booking' ); ?></label>
-                           
-                        </th>
-                        <td id="smtptestconn">
-                            <input name="bm_smtp_test_email_address" type="text" id="bm_smtp_test_email_address" class="regular-text" value="<?php echo esc_attr( $dbhandler->get_global_option_value( 'bm_smtp_test_email_address' ) ); ?>">
-                            <a class="cancel_button" onclick="bm_test_smtp_connection()"><?php esc_html_e( 'Test', 'service-booking' ); ?></a>
-                            <span id="bm_smtp_result"></span>
-                            <img class="smtp_check_loader" src="<?php echo esc_url( $plugin_path . 'images/ajax-loader.gif' ); ?>" style="display:none;">
-                        </td>
-                        <td>
-                            <?php esc_html_e( 'For Testing Purpose Only. Once you have filled in all required SMTP details, you can enter an email address here, click \'TEST\' button and check if the email is sent successfully.', 'service-booking' ); ?>
-                        </td>
-                    </tr>
-                </table>
-                <?php else : ?>
                 <table class="form-table" role="presentation">
                     <tr>
                         <th scope="row">
@@ -442,7 +318,6 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
                         </td>
                     </tr>
                 </table>
-                <?php endif; ?>
             </table>
             <div class="row">
                 <p class="submit">
