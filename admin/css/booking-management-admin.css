@@ -430,6 +430,8 @@ input[type=checkbox] {
     outline: none;
     cursor: pointer;
     padding: 14px 109.5px;
+    -webkit-transition: 0.3s;
+    -moz-transition: 0.3s;
     transition: 0.3s;
     width: 49%;
 }
@@ -575,6 +577,8 @@ input[type=checkbox] {
     text-align: center;
     padding: 6px;
     border-radius: 10px;
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
     transition: all 0.5s;
 }
 
@@ -590,6 +594,8 @@ input[type=checkbox] {
     cursor: pointer;
     display: inline-block;
     position: relative;
+    -webkit-transition: 0.5s;
+    -moz-transition: 0.5s;
     transition: 0.5s;
     font-weight: 600;
 }
@@ -600,6 +606,8 @@ input[type=checkbox] {
     opacity: 0;
     top: 0;
     right: -20px;
+    -webkit-transition: 0.5s;
+    -moz-transition: 0.5s;
     transition: 0.5s;
 }
 
