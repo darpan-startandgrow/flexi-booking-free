@@ -2096,7 +2096,7 @@ jQuery(document).ready(function ($) {
 
 				var currency_symbol = bm_normal_object.currency_symbol;
 				var selectedCell = $(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
-					return $(this).find('a').text() == inst.selectedDay;
+					return Number($(this).find('a').text()) === inst.selectedDay;
 				}).find("a");
 				var text = selectedCell.attr('data-custom');
 
@@ -3820,9 +3820,7 @@ function validate_bulk_capacity_and_submit() {
 
 
 // Save Service Calendar Price
-function save_calendar_service_price(year, month, day, date, price, default_price, done) {
-	year = year || ''; month = month || ''; day = day || ''; date = date || '';
-	price = price || ''; default_price = default_price || ''; done = done || false;
+function save_calendar_service_price(year = '', month = '', day = '', date = '', price = '', default_price = '', done = false) {
 
 	var element = jQuery("#price_datepicker").find('[data-year="' + year + '"][data-month="' + month + '"]').filter(function () {
 		return jQuery(this).find('a').text() == day;
