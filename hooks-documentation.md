@@ -19,11 +19,13 @@ This document lists all available WordPress action hooks and filter hooks provid
 11. [Admin Menu & UI Hooks](#admin-menu--ui-hooks)
 12. [Internationalisation Hooks](#internationalisation-hooks)
 13. [WooCommerce Integration Hooks](#woocommerce-integration-hooks)
-14. [License Management Hooks](#license-management-hooks)
-15. [Event Dispatcher Hooks](#event-dispatcher-hooks)
-16. [Async Queue Hooks](#async-queue-hooks)
-17. [Deactivation Hooks](#deactivation-hooks)
-18. [Hybrid Architecture Overview](#hybrid-architecture-overview)
+14. [Payment Processing Hooks](#payment-processing-hooks)
+15. [Event-Driven Booking Events](#event-driven-booking-events)
+16. [License Management Hooks](#license-management-hooks)
+17. [Event Dispatcher Hooks](#event-dispatcher-hooks)
+18. [Async Queue Hooks](#async-queue-hooks)
+19. [Deactivation Hooks](#deactivation-hooks)
+20. [Hybrid Architecture Overview](#hybrid-architecture-overview)
 
 ---
 
@@ -458,6 +460,48 @@ add_filter( 'sg_booking_before_save', function ( $booking_data, $customer, $slot
     $booking_data['referral_source'] = sanitize_text_field( $_COOKIE['ref'] ?? 'direct' );
     return $booking_data;
 }, 10, 3 );
+```
+
+### `sg_booking_rest_services` *(filter)*
+
+Filters the services list returned by the REST API v1 `GET /services` endpoint.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$items` | `array` | The service items array. |
+| `$total` | `int` | Total number of services matching the query. |
+| `$request` | `WP_REST_Request` | The original request object. |
+
+**Return:** `array`
+
+```php
+add_filter( 'sg_booking_rest_services', function ( $items, $total, $request ) {
+    // Add a computed field to each service.
+    foreach ( $items as &$item ) {
+        $item['is_popular'] = $item['service_position'] <= 3;
+    }
+    return $items;
+}, 10, 3 );
+```
+
+### `sg_booking_rest_categories` *(filter)*
+
+Filters the categories list returned by the REST API v1 `GET /categories` endpoint.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$data` | `array` | The category items array. |
+| `$request` | `WP_REST_Request` | The original request object. |
+
+**Return:** `array`
+
+```php
+add_filter( 'sg_booking_rest_categories', function ( $data, $request ) {
+    // Remove hidden categories from the API response.
+    return array_filter( $data, function ( $cat ) {
+        return $cat['cat_in_front'] === 1;
+    } );
+}, 10, 2 );
 ```
 
 ---
@@ -989,6 +1033,131 @@ Filters Google Analytics purchase data for bookings.
 | `$data` | `array` | The GA purchase data. |
 
 **Return:** `array`
+
+### `sg_booking_before_wc_add_to_cart` *(action)*
+
+Fires before FlexiBooking adds items to the WooCommerce cart.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$data` | `array` | Cart data (service_id, booking_date, etc.). |
+| `$flexi_order_key` | `string` | The FlexiBooking order key. |
+
+```php
+add_action( 'sg_booking_before_wc_add_to_cart', function ( $data, $flexi_order_key ) {
+    // Log WooCommerce cart additions.
+    error_log( "Adding booking {$flexi_order_key} to WooCommerce cart." );
+}, 10, 2 );
+```
+
+### `sg_booking_wc_cart_item_data` *(filter)*
+
+Filters the WooCommerce cart item data for a FlexiBooking order.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$cart_item_data` | `array` | Cart item data array. |
+| `$data` | `array` | The original booking data. |
+| `$flexi_order_key` | `string` | The FlexiBooking order key. |
+
+**Return:** `array`
+
+```php
+add_filter( 'sg_booking_wc_cart_item_data', function ( $cart_item_data, $data, $flexi_order_key ) {
+    // Add custom metadata to the WooCommerce cart item.
+    $cart_item_data['custom_addon_ref'] = 'my_addon_v1';
+    return $cart_item_data;
+}, 10, 3 );
+```
+
+### `sg_booking_after_wc_add_to_cart` *(action)*
+
+Fires after FlexiBooking successfully adds items to the WooCommerce cart.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$data` | `array` | The booking data. |
+| `$flexi_order_key` | `string` | The FlexiBooking order key. |
+| `$service_id` | `int` | The service ID. |
+
+```php
+add_action( 'sg_booking_after_wc_add_to_cart', function ( $data, $flexi_order_key, $service_id ) {
+    // Trigger analytics event after WooCommerce cart addition.
+    do_action( 'my_analytics_cart_add', $service_id );
+}, 10, 3 );
+```
+
+---
+
+## Payment Processing Hooks
+
+### `sg_booking_before_payment_processing` *(action)*
+
+Fires before payment processing begins.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$booking_key` | `string` | The booking key. |
+| `$checkout_key` | `string` | The checkout key. |
+| `$method_id` | `string` | The payment method ID. |
+| `$gift` | `bool` | Whether the booking is a gift. |
+
+```php
+add_action( 'sg_booking_before_payment_processing', function ( $booking_key, $checkout_key, $method_id, $gift ) {
+    // Log payment attempt.
+    error_log( "Payment processing started for booking {$booking_key}, method: {$method_id}" );
+}, 10, 4 );
+```
+
+### `sg_booking_after_payment_processing` *(action)*
+
+Fires after payment processing completes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$process_status` | `string` | The result status. |
+| `$booking_key` | `string` | The booking key. |
+| `$checkout_key` | `string` | The checkout key. |
+
+```php
+add_action( 'sg_booking_after_payment_processing', function ( $process_status, $booking_key, $checkout_key ) {
+    if ( $process_status === 'success' ) {
+        // Trigger post-payment workflows.
+    }
+}, 10, 3 );
+```
+
+---
+
+## Event-Driven Booking Events
+
+The following events are dispatched via `SG_Event_Dispatcher::dispatch()` alongside the legacy action hooks. Use `SG_Event_Dispatcher::listen()` or the `sg_booking_event_{name}` WordPress actions to respond.
+
+| Event Name | When Dispatched | Payload Keys |
+|-----------|-----------------|--------------|
+| `booking.confirmed` | After a direct booking is successfully saved | `booking_id`, `booking_type`, `service_id`, `booking_date`, `slot_id`, `quantity`, `source` |
+| `booking.request_created` | After a book-on-request is created | `booking_id`, `booking_type` |
+| `booking.cancelled` | After a booking is cancelled | `booking_id` |
+| `booking.approved` | After a book-on-request is approved | `booking_id` |
+| `booking.failed` | After payment processing fails | `booking_id`, `customer_id` |
+| `booking.failed_refund` | After a failed order is refunded | `booking_key`, `transaction_id`, `refund_id` |
+| `payment.received` | After successful payment | `booking_id`, `transaction_id`, `paid_amount` |
+| `payment.refunded` | After a booking refund is processed | `booking_id`, `refund_id` |
+
+```php
+// Listen for booking confirmation events.
+SG_Event_Dispatcher::listen( 'booking.confirmed', function ( $payload ) {
+    // Send to external analytics, trigger webhook, etc.
+    wp_remote_post( 'https://example.com/webhook', array(
+        'body' => wp_json_encode( $payload ),
+    ) );
+} );
+
+// Or use WordPress actions (dot replaced with underscore).
+add_action( 'sg_booking_event_booking_confirmed', function ( $payload ) {
+    // Same as above, using WordPress hook system.
+} );
+```
 
 ---
 
