@@ -1,11 +1,29 @@
 <?php
 class BM_DBhandler {
 
+	/**
+	 * Cached activator instance to avoid repeated instantiation.
+	 *
+	 * @var Booking_Management_Activator|null
+	 */
+	private $activator = null;
+
+	/**
+	 * Get or create a cached Booking_Management_Activator instance.
+	 *
+	 * @return Booking_Management_Activator
+	 */
+	private function get_activator() {
+		if ( null === $this->activator ) {
+			$this->activator = new Booking_Management_Activator();
+		}
+		return $this->activator;
+	}
 
 
 	public function insert_row( $identifier, $data, $format = null ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 
 		/**
@@ -43,7 +61,7 @@ class BM_DBhandler {
 
 	public function update_row( $identifier, $unique_field, $unique_field_value, $data, $format = null, $where_format = null ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 		if ( $unique_field === false ) {
 			$unique_field = $bm_activator->get_db_table_unique_field_name( $identifier );
@@ -95,7 +113,7 @@ class BM_DBhandler {
 
 	public function remove_row( $identifier, $unique_field, $unique_field_value, $where_format = null ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 		if ( $unique_field === false ) {
 			$unique_field = $bm_activator->get_db_table_unique_field_name( $identifier );
@@ -147,7 +165,7 @@ class BM_DBhandler {
 
 	public function get_row( $identifier, $unique_field_value, $unique_field = false, $output_type = 'OBJECT' ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 		$result       = null;
 		if ( $unique_field === false ) {
@@ -173,7 +191,7 @@ class BM_DBhandler {
 
 	public function get_value( $identifier, $field, $unique_field_value, $unique_field = false ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 
 		if ( $unique_field === false ) {
@@ -199,7 +217,7 @@ class BM_DBhandler {
 
 	public function get_value_with_multicondition( $identifier, $field, $where ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 		$qry          = "SELECT $field from $table where";
 		$i            = 0;
@@ -228,7 +246,7 @@ class BM_DBhandler {
 
 	public function get_all_result( $identifier, $column = '*', $where = 1, $result_type = 'results', $offset = 0, $limit = false, $sort_by = null, $descending = false, $additional = '', $output = 'OBJECT', $distinct = false ) {
 		global $wpdb;
-		$bm_activator   = new Booking_Management_Activator();
+		$bm_activator   = $this->get_activator();
 		$table          = $bm_activator->get_db_table_name( $identifier );
 		$unique_id_name = $bm_activator->get_db_table_unique_field_name( $identifier );
 		$args           = array();
@@ -326,7 +344,7 @@ class BM_DBhandler {
 	 */
 	public function get_results_with_join( $tables, $columns = '*', $joins = array(), $where = array(), $result_type = 'results', $offset = 0, $limit = false, $sort_by = null, $descending = false, $additional = '', $increase_group_concat_length = false, $group_concat_length = 10000, $output = 'OBJECT' ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$base_table   = $bm_activator->get_db_table_name( $tables[0] );
 		$base_alias   = isset( $tables[1] ) ? $tables[1] : 's';
 
@@ -453,7 +471,7 @@ class BM_DBhandler {
 
 	public function bm_count( $identifier, $where = 1, $data_specifiers = '' ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table_name   = $bm_activator->get_db_table_name( $identifier );
 		if ( $data_specifiers == '' ) {
 			$unique_id_name = $bm_activator->get_db_table_unique_field_name( $identifier );
@@ -552,7 +570,7 @@ class BM_DBhandler {
 	 */
 	public function get_table_columns( $identifier, $exclude_columns = array() ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 
 		$columns = $wpdb->get_col(
@@ -578,7 +596,7 @@ class BM_DBhandler {
 	 */
 	public function get_results_by_columns( $identifier, $columns, $exclude_columns = array(), $result_type = 'results', $output = 'OBJECT' ) {
 		global $wpdb;
-		$bm_activator = new Booking_Management_Activator();
+		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 
 		// Exclude specified columns

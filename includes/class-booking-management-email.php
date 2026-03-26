@@ -2,9 +2,28 @@
 class BM_Email
 {
 
+	/**
+	 * Cached DB handler instance to avoid repeated instantiation.
+	 *
+	 * @var BM_DBhandler|null
+	 */
+	private $dbhandler = null;
+
+	/**
+	 * Get or create a cached BM_DBhandler instance.
+	 *
+	 * @return BM_DBhandler
+	 */
+	private function get_dbhandler() {
+		if ( null === $this->dbhandler ) {
+			$this->dbhandler = new BM_DBhandler();
+		}
+		return $this->dbhandler;
+	}
+
 
 	public function bm_send_notification_to_shop_admin( $subject, $message, $booking_id ) {
-		$dbhandler           = new BM_DBhandler();
+		$dbhandler           = $this->get_dbhandler();
 		$bmrequests          = new BM_Request();
 		$from_email_address  = $this->bm_get_from_email();
 		$admin_email_address = $this->bm_get_admin_email();
@@ -104,7 +123,7 @@ class BM_Email
 	public function bm_send_email_to_customer( $subject, $message, $booking_id ) {
 		$bmrequests         = new BM_Request();
 		$from_email_address = $this->bm_get_from_email();
-		$dbhandler          = new BM_DBhandler();
+		$dbhandler          = $this->get_dbhandler();
 		$booking_refrence   = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
 		// $old_locale         = $bmrequests->bm_switch_locale_by_booking_reference( $booking_refrence );
 		$headers         = "MIME-Version: 1.0\r\n";
@@ -191,7 +210,7 @@ class BM_Email
 	public function bm_send_voucher_email_to_recipient( $subject, $message, $booking_id, $send_voucher_pdf = true ) {
 		$bmrequests         = new BM_Request();
 		$from_email_address = $this->bm_get_from_email();
-		$dbhandler          = new BM_DBhandler();
+		$dbhandler          = $this->get_dbhandler();
 		$booking_refrence   = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
 		$old_locale         = $bmrequests->bm_switch_locale_by_booking_reference( $booking_refrence );
 
@@ -212,7 +231,7 @@ class BM_Email
 
 
 	public function bm_get_template_email_content( $template_id, $booking_id, $customer = false ) {
-		$dbhandler = new BM_DBhandler();
+		$dbhandler = $this->get_dbhandler();
 		$language  = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 		$back_lang = $dbhandler->get_global_option_value( 'bm_flexi_current_language_backend', '' );
 		$language  = ! empty( $back_lang ) ? $back_lang : $language;
@@ -230,7 +249,7 @@ class BM_Email
 
 
 	public function bm_get_template_email_subject( $template_id, $booking_id, $customer = false ) {
-		$dbhandler = new BM_DBhandler();
+		$dbhandler = $this->get_dbhandler();
 		$language  = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 		$back_lang = $dbhandler->get_global_option_value( 'bm_flexi_current_language_backend', '' );
 		$language  = ! empty( $back_lang ) ? $back_lang : $language;
@@ -275,7 +294,7 @@ class BM_Email
 
 
 	public function bm_get_from_email() {
-		$dbhandler     = new BM_DBhandler();
+		$dbhandler     = $this->get_dbhandler();
 		$email_address = '';
 
 		if ( $dbhandler->get_global_option_value( 'bm_enable_smtp' ) == 1 ) {
@@ -289,7 +308,7 @@ class BM_Email
 
 
 	public function bm_get_from_name() {
-		$dbhandler = new BM_DBhandler();
+		$dbhandler = $this->get_dbhandler();
 		$from_name = '';
 
 		if ( $dbhandler->get_global_option_value( 'bm_enable_smtp' ) == 1 ) {
@@ -311,7 +330,7 @@ class BM_Email
 
 
 	public function bm_get_admin_email() {
-		$dbhandler     = new BM_DBhandler();
+		$dbhandler     = $this->get_dbhandler();
 		$email_address = array( get_option( 'admin_email' ) );
 		$extra_emails  = maybe_unserialize( $dbhandler->get_global_option_value( 'bm_shop_admin_email' ) );
 
