@@ -59,6 +59,15 @@ class WooCommerceService {
             return false;
         }
 
+        /**
+         * Fires before FlexiBooking adds items to the WooCommerce cart.
+         *
+         * @since 1.2.0
+         * @param array  $data             Cart data (service_id, booking_date, etc.).
+         * @param string $flexi_order_key   The FlexiBooking order key.
+         */
+        do_action( 'sg_booking_before_wc_add_to_cart', $data, $flexi_order_key );
+
         try {
             foreach ( $wooCommerceCart->get_cart() as $wc_key => $wc_item ) {
                 $wooCommerceCart->remove_cart_item( $wc_key );
@@ -84,11 +93,19 @@ class WooCommerceService {
                     $dbhandler->update_row('SERVICE', 'id', $service_id, ['is_linked_wc_product' => 1, 'wc_product' => $product_id], '', '%d');
                     }*/
 
-                    $cart_item_data = array(
+                    /**
+                     * Filters the WooCommerce cart item data for a FlexiBooking order.
+                     *
+                     * @since 1.2.0
+                     * @param array  $cart_item_data  Cart item data array.
+                     * @param array  $data            The original booking data.
+                     * @param string $flexi_order_key The FlexiBooking order key.
+                     */
+                    $cart_item_data = apply_filters( 'sg_booking_wc_cart_item_data', array(
                         'added_by_flexibooking' => true,
                         'flexi_booking_key'     => $flexi_order_key,
                         'flexi_checkout_key'    => ( new BM_Request() )->bm_generate_unique_code( '', 'FLEXIC', 15 ),
-                    );
+                    ), $data, $flexi_order_key );
 
                     if ( $svc_price != -1 ) {
                         $cart_item_data['flexi_svc_price'] = $svc_price;
@@ -121,6 +138,16 @@ class WooCommerceService {
                             }
                         }
                     }//end if
+
+                    /**
+                     * Fires after FlexiBooking successfully adds items to the WooCommerce cart.
+                     *
+                     * @since 1.2.0
+                     * @param array  $data            The booking data.
+                     * @param string $flexi_order_key The FlexiBooking order key.
+                     * @param int    $service_id      The service ID.
+                     */
+                    do_action( 'sg_booking_after_wc_add_to_cart', $data, $flexi_order_key, $service_id );
                     return true;
                 }
             }//end if

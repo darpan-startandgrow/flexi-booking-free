@@ -677,6 +677,16 @@ class Booking_API
 
     public function get_categories(WP_REST_Request $request)
     {
+        // Use cache manager for frequently accessed category data.
+        if ( class_exists( 'SG_Cache_Manager' ) ) {
+            $cache    = SG_Cache_Manager::get_instance();
+            $cache_key = 'api_categories';
+            $cached    = $cache->get( $cache_key );
+            if ( false !== $cached ) {
+                return rest_ensure_response( $cached );
+            }
+        }
+
         $dbhandler      = new BM_DBhandler();
         $bmrequests     = new BM_Request();
 
@@ -691,10 +701,17 @@ class Booking_API
         }
         $allCategory = !empty($categories) ? $categories : [];
 
-        return rest_ensure_response([
+        $response_data = [
             'status' => 200,
             'data'   => $allCategory
-        ]);
+        ];
+
+        // Cache the response for 5 minutes.
+        if ( class_exists( 'SG_Cache_Manager' ) ) {
+            $cache->set( $cache_key, $response_data, 300 );
+        }
+
+        return rest_ensure_response( $response_data );
     }
 
     public function get_services(WP_REST_Request $request)
@@ -705,6 +722,16 @@ class Booking_API
         $date   = $params['date'];
         $category_id = $params['category'] ?? null;
         $all = isset($params['all']) && $params['all'] == 'true' ? true : false;
+
+        // Use cache manager for services listing.
+        if ( class_exists( 'SG_Cache_Manager' ) ) {
+            $cache     = SG_Cache_Manager::get_instance();
+            $cache_key = 'api_services_' . md5( $date . '_' . $category_id . '_' . ( $all ? '1' : '0' ) );
+            $cached    = $cache->get( $cache_key );
+            if ( false !== $cached ) {
+                return rest_ensure_response( $cached );
+            }
+        }
 
         $tables = 'SERVICE';
         $where = array(
@@ -726,11 +753,18 @@ class Booking_API
             }
         }
 
-        return rest_ensure_response([
+        $response_data = [
             'status' => 200,
             'total_services' => (!empty($response)) ? $total_services : 0,
             'data'   => $response
-        ]);
+        ];
+
+        // Cache the response for 5 minutes.
+        if ( class_exists( 'SG_Cache_Manager' ) ) {
+            $cache->set( $cache_key, $response_data, 300 );
+        }
+
+        return rest_ensure_response( $response_data );
     }
 
     public function get_service_details(WP_REST_Request $request)
