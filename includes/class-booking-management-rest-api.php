@@ -1124,6 +1124,16 @@ class Booking_Management_Rest_API {
 		$search   = $request->get_param( 'search' );
 		$cat_id   = $request->get_param( 'category_id' );
 
+		// Check cache for listing requests.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache     = SG_Cache_Manager::get_instance();
+			$cache_key = 'rest_services_' . md5( wp_json_encode( array( $page, $per_page, $search, $cat_id ) ) );
+			$cached    = $cache->get( $cache_key );
+			if ( false !== $cached ) {
+				return new WP_REST_Response( $cached, 200 );
+			}
+		}
+
 		$offset = ( $page - 1 ) * $per_page;
 
 		$where = 'WHERE 1=1';
@@ -1166,15 +1176,29 @@ class Booking_Management_Rest_API {
 			}
 		}
 
-		return new WP_REST_Response(
-			array(
-				'items' => $items,
-				'total' => $total,
-				'page'  => $page,
-				'pages' => ceil( $total / max( 1, $per_page ) ),
-			),
-			200
+		/**
+		 * Filters the services list returned by the REST API.
+		 *
+		 * @since 1.2.0
+		 * @param array           $items   The service items array.
+		 * @param int             $total   Total number of services matching the query.
+		 * @param WP_REST_Request $request The original request object.
+		 */
+		$items = apply_filters( 'sg_booking_rest_services', $items, $total, $request );
+
+		$response_data = array(
+			'items' => $items,
+			'total' => $total,
+			'page'  => $page,
+			'pages' => ceil( $total / max( 1, $per_page ) ),
 		);
+
+		// Cache for 5 minutes.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache->set( $cache_key, $response_data, 5 * MINUTE_IN_SECONDS );
+		}
+
+		return new WP_REST_Response( $response_data, 200 );
 	}
 
 	/**
@@ -2046,6 +2070,16 @@ class Booking_Management_Rest_API {
 	 * @return WP_REST_Response
 	 */
 	public function get_categories( $request ) {
+		// Check cache for categories listing.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache     = SG_Cache_Manager::get_instance();
+			$cache_key = 'rest_v1_categories';
+			$cached    = $cache->get( $cache_key );
+			if ( false !== $cached ) {
+				return rest_ensure_response( $cached );
+			}
+		}
+
 		$dbhandler  = new BM_DBhandler();
 		$categories = $dbhandler->get_all_result( 'CATEGORY', '*', 1, 'results', 0, false, 'cat_position', 'ASC' );
 
@@ -2059,6 +2093,20 @@ class Booking_Management_Rest_API {
 					'cat_position' => (int) $cat->cat_position,
 				);
 			}
+		}
+
+		/**
+		 * Filters the categories list returned by the REST API.
+		 *
+		 * @since 1.2.0
+		 * @param array           $data    The category items array.
+		 * @param WP_REST_Request $request The original request object.
+		 */
+		$data = apply_filters( 'sg_booking_rest_categories', $data, $request );
+
+		// Cache for 5 minutes.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache->set( $cache_key, $data, 5 * MINUTE_IN_SECONDS );
 		}
 
 		return rest_ensure_response( $data );

@@ -101,19 +101,19 @@ class BM_Payment_Logs_Table extends WP_List_Table {
         // Build WHERE conditions
         $where = array( '1=1' );
         if ( ! empty( $_REQUEST['s'] ) ) {
-            $search  = '%' . $wpdb->esc_like( $_REQUEST['s'] ) . '%';
-            $where[] = $wpdb->prepare( '(b.service_name LIKE %s OR c.customer_email LIKE %s)', $search, $search );
+            $search  = '%' . $wpdb->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
+            $where[] = $wpdb->prepare( '(b.service_name LIKE %s OR cust.customer_email LIKE %s)', $search, $search );
         }
         if ( ! empty( $_REQUEST['booking_id'] ) ) {
-            $where[] = $wpdb->prepare( 'b.id = %d', $_REQUEST['booking_id'] );
+            $where[] = $wpdb->prepare( 'b.id = %d', absint( $_REQUEST['booking_id'] ) );
         }
         if ( ! empty( $_REQUEST['payment_status'] ) && $_REQUEST['payment_status'] !== 'all' ) {
-            $where[] = $wpdb->prepare( 'payment_status = %s', $_REQUEST['payment_status'] );
+            $where[] = $wpdb->prepare( 'payment_status = %s', sanitize_text_field( wp_unslash( $_REQUEST['payment_status'] ) ) );
         }
         if ( ! empty( $_REQUEST['m'] ) ) {
-            $yearmonth = $_REQUEST['m'];
-            $year      = substr( $yearmonth, 0, 4 );
-            $month     = substr( $yearmonth, 4, 2 );
+            $yearmonth = sanitize_text_field( wp_unslash( $_REQUEST['m'] ) );
+            $year      = absint( substr( $yearmonth, 0, 4 ) );
+            $month     = absint( substr( $yearmonth, 4, 2 ) );
             $where[]   = $wpdb->prepare( '(YEAR(created_at) = %d AND MONTH(created_at) = %d)', $year, $month );
         }
 
@@ -159,8 +159,12 @@ class BM_Payment_Logs_Table extends WP_List_Table {
         LEFT JOIN $customers_table cust ON f.customer_id = cust.id
         WHERE $where_sql";
 
-        // Combine with UNION
-        $union_sql = "( $success_sql ) UNION ( $failed_sql ) ORDER BY created_at DESC LIMIT $offset, $per_page";
+        // Combine with UNION — $offset and $per_page are derived from integers, cast for safety.
+        $union_sql = $wpdb->prepare(
+            "( $success_sql ) UNION ( $failed_sql ) ORDER BY created_at DESC LIMIT %d, %d",
+            $offset,
+            $per_page
+        );
 
         $this->items = $wpdb->get_results( $union_sql );
 
@@ -190,12 +194,13 @@ class BM_Payment_Logs_Table extends WP_List_Table {
         <div class="alignleft actions">
             <input type="text" name="booking_id" placeholder="<?php esc_attr_e( 'Booking ID', 'service-booking' ); ?>" value="<?php echo esc_attr( $_REQUEST['booking_id'] ?? '' ); ?>" size="5" />
             <select name="payment_status">
-                <option value="all"><?php _e( 'All statuses', 'service-booking' ); ?></option>
-                <option value="succeeded" <?php selected( $_REQUEST['payment_status'] ?? '', 'succeeded' ); ?>><?php _e( 'Succeeded', 'service-booking' ); ?></option>
-                <option value="free" <?php selected( $_REQUEST['payment_status'] ?? '', 'free' ); ?>><?php _e( 'Free', 'service-booking' ); ?></option>
-                <option value="requires_capture" <?php selected( $_REQUEST['payment_status'] ?? '', 'requires_capture' ); ?>><?php _e( 'Requires Capture', 'service-booking' ); ?></option>
-                <option value="canceled" <?php selected( $_REQUEST['payment_status'] ?? '', 'canceled' ); ?>><?php _e( 'Canceled', 'service-booking' ); ?></option>
-                <option value="requires_payment_method" <?php selected( $_REQUEST['payment_status'] ?? '', 'requires_payment_method' ); ?>><?php _e( 'Requires Payment Method', 'service-booking' ); ?></option>
+                <option value="all"><?php esc_html_e( 'All statuses', 'service-booking' ); ?></option>
+                <?php $current_payment_status = isset( $_REQUEST['payment_status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['payment_status'] ) ) : ''; ?>
+                <option value="succeeded" <?php selected( $current_payment_status, 'succeeded' ); ?>><?php esc_html_e( 'Succeeded', 'service-booking' ); ?></option>
+                <option value="free" <?php selected( $current_payment_status, 'free' ); ?>><?php esc_html_e( 'Free', 'service-booking' ); ?></option>
+                <option value="requires_capture" <?php selected( $current_payment_status, 'requires_capture' ); ?>><?php esc_html_e( 'Requires Capture', 'service-booking' ); ?></option>
+                <option value="canceled" <?php selected( $current_payment_status, 'canceled' ); ?>><?php esc_html_e( 'Canceled', 'service-booking' ); ?></option>
+                <option value="requires_payment_method" <?php selected( $current_payment_status, 'requires_payment_method' ); ?>><?php esc_html_e( 'Requires Payment Method', 'service-booking' ); ?></option>
             </select>
             <?php submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false ); ?>
         </div>
@@ -208,7 +213,7 @@ $table = new BM_Payment_Logs_Table();
 $table->prepare_items();
 ?>
 <div class="wrap">
-    <h1><?php _e( 'Payment Logs', 'service-booking' ); ?></h1>
+    <h1><?php esc_html_e( 'Payment Logs', 'service-booking' ); ?></h1>
     <form method="get">
         <input type="hidden" name="page" value="bm_payment_logs" />
         <?php $table->search_box( __( 'Search Service/Customer', 'service-booking' ), 'search_id' ); ?>

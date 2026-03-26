@@ -230,7 +230,9 @@ class Booking_Management_Activator {
 		KEY `idx_booking_status` (`order_status`),
 		KEY `idx_booking_customer_id` (`customer_id`),
 		KEY `idx_booking_wc_order_id` (`wc_order_id`),
-		KEY `idx_booking_svc_date` (`service_id`, `booking_date`)
+		KEY `idx_booking_svc_date` (`service_id`, `booking_date`),
+		KEY `idx_booking_key` (`booking_key`),
+		KEY `idx_checkout_key` (`checkout_key`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -402,7 +404,11 @@ class Booking_Management_Activator {
 		`mail_sent` int(11) DEFAULT NULL,
 		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`))$charset_collate;";
+        PRIMARY KEY (`id`),
+		KEY `idx_failed_txn_booking_key` (`booking_key`),
+		KEY `idx_failed_txn_payment_status` (`payment_status`),
+		KEY `idx_failed_txn_customer_id` (`customer_id`)
+		)$charset_collate;";
 		dbDelta( $sql );
 
 		$table_name = $this->get_db_table_name( 'EXTERNAL_SERVICE_PRICE_MODULE' );
