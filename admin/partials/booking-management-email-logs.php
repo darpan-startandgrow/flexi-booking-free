@@ -83,7 +83,7 @@ class BM_Email_Logs_Table extends WP_List_Table {
 
 		// Search across mail_to and mail_sub (OR logic)
 		if ( ! empty( $_REQUEST['s'] ) ) {
-			$search      = '%' . $this->dbhandler->get_global_db()->esc_like( $_REQUEST['s'] ) . '%';
+			$search      = '%' . $this->dbhandler->get_global_db()->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
 			$additional .= $this->dbhandler->get_global_db()->prepare(
                 ' AND (e.mail_to LIKE %s OR e.mail_sub LIKE %s)',
                 $search,
@@ -93,19 +93,19 @@ class BM_Email_Logs_Table extends WP_List_Table {
 
 		// Filter by email status (exact match)
 		if ( ! empty( $_REQUEST['status'] ) && $_REQUEST['status'] !== 'all' ) {
-			$where['e.status'] = array( '=' => intval( $_REQUEST['status'] ) );
+			$where['e.status'] = array( '=' => absint( $_REQUEST['status'] ) );
 		}
 
 		// Filter by booking ID (exact match)
 		if ( ! empty( $_REQUEST['booking_id'] ) ) {
-			$where['e.module_id'] = array( '=' => intval( $_REQUEST['booking_id'] ) );
+			$where['e.module_id'] = array( '=' => absint( $_REQUEST['booking_id'] ) );
 		}
 
 		// Filter by month (using YEAR() and MONTH() functions)
 		if ( ! empty( $_REQUEST['m'] ) ) {
-			$yearmonth   = $_REQUEST['m'];
-			$year        = substr( $yearmonth, 0, 4 );
-			$month       = substr( $yearmonth, 4, 2 );
+			$yearmonth   = sanitize_text_field( wp_unslash( $_REQUEST['m'] ) );
+			$year        = absint( substr( $yearmonth, 0, 4 ) );
+			$month       = absint( substr( $yearmonth, 4, 2 ) );
 			$additional .= $this->dbhandler->get_global_db()->prepare(
                 ' AND YEAR(e.created_at) = %d AND MONTH(e.created_at) = %d',
                 $year,
@@ -182,9 +182,10 @@ class BM_Email_Logs_Table extends WP_List_Table {
         ?>
         <div class="alignleft actions">
             <select name="status">
-                <option value="all"><?php _e( 'All statuses', 'service-booking' ); ?></option>
-                <option value="1" <?php selected( $_REQUEST['status'] ?? '', '1' ); ?>><?php _e( 'Success', 'service-booking' ); ?></option>
-                <option value="0" <?php selected( $_REQUEST['status'] ?? '', '0' ); ?>><?php _e( 'Failed', 'service-booking' ); ?></option>
+                <option value="all"><?php esc_html_e( 'All statuses', 'service-booking' ); ?></option>
+                <?php $current_email_status = isset( $_REQUEST['status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['status'] ) ) : ''; ?>
+                <option value="1" <?php selected( $current_email_status, '1' ); ?>><?php esc_html_e( 'Success', 'service-booking' ); ?></option>
+                <option value="0" <?php selected( $current_email_status, '0' ); ?>><?php esc_html_e( 'Failed', 'service-booking' ); ?></option>
             </select>
             <input type="text" name="booking_id" placeholder="<?php esc_attr_e( 'Booking ID', 'service-booking' ); ?>" value="<?php echo esc_attr( $_REQUEST['booking_id'] ?? '' ); ?>" size="5" />
             <?php submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false ); ?>
@@ -198,7 +199,7 @@ $table = new BM_Email_Logs_Table();
 $table->prepare_items();
 ?>
 <div class="wrap">
-    <h1><?php _e( 'Email Logs', 'service-booking' ); ?></h1>
+    <h1><?php esc_html_e( 'Email Logs', 'service-booking' ); ?></h1>
     <form method="get">
         <input type="hidden" name="page" value="bm_email_logs" />
         <?php $table->search_box( __( 'Search Recipient/Subject', 'service-booking' ), 'search_id' ); ?>

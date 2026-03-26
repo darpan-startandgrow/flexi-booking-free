@@ -719,6 +719,18 @@ class Booking_Management_Rest_API {
 				),
 			)
 		);
+
+		/**
+		 * Fires after all Lite REST routes are registered.
+		 *
+		 * Use this hook to register additional custom REST routes
+		 * under the same namespace or to modify existing route behaviour.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $namespace The REST namespace ('sg-booking/v1').
+		 */
+		do_action( 'sg_booking_rest_routes_registered', self::NAMESPACE );
 	}
 
 	// ------------------------------------------------------------------
@@ -758,8 +770,14 @@ class Booking_Management_Rest_API {
 		$service_id   = $request->get_param( 'service_id' );
 		$booking_date = $request->get_param( 'booking_date' );
 
-		$transient_key = 'sg_ts_' . $service_id . '_' . $booking_date;
-		$cached        = get_transient( $transient_key );
+		// Check cache — use SG_Cache_Manager if available, otherwise fall back to transients.
+		$cache_key = 'ts_' . $service_id . '_' . $booking_date;
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cached = SG_Cache_Manager::get_instance()->get( $cache_key );
+		} else {
+			$transient_key = 'sg_ts_' . $service_id . '_' . $booking_date;
+			$cached        = get_transient( $transient_key );
+		}
 
 		if ( false !== $cached ) {
 			return rest_ensure_response( $cached );
@@ -810,8 +828,23 @@ class Booking_Management_Rest_API {
 			}
 		}
 
-		// Cache for 5 minutes.
-		set_transient( $transient_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+		// Cache for 5 minutes — use SG_Cache_Manager if available.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			SG_Cache_Manager::get_instance()->set( $cache_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+		} else {
+			set_transient( $transient_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+		}
+
+		/**
+		 * Filters the timeslots response before sending to client.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $timeslots    The timeslot data array.
+		 * @param int   $service_id   The service ID.
+		 * @param string $booking_date The booking date.
+		 */
+		$timeslots = apply_filters( 'sg_booking_rest_timeslots', $timeslots, $service_id, $booking_date );
 
 		return rest_ensure_response( $timeslots );
 	}
@@ -931,6 +964,17 @@ class Booking_Management_Rest_API {
 				}
 			}
 
+			/**
+			 * Filters the booking data before it is saved to the database.
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param array $booking_data The booking record data.
+			 * @param array $customer     The raw customer data from the request.
+			 * @param int   $slot_id      The selected time slot ID.
+			 */
+			$booking_data = apply_filters( 'sg_booking_before_save', $booking_data, $customer, $slot_id );
+
 			$wpdb->insert( $book_table, $booking_data );
 			$booking_id = $wpdb->insert_id;
 
@@ -946,6 +990,12 @@ class Booking_Management_Rest_API {
 			// Invalidate timeslot cache.
 			$this->invalidate_timeslot_cache( $service_id, $booking_date );
 
+			// Invalidate services/categories API cache.
+			if ( class_exists( 'SG_Cache_Manager' ) ) {
+				$cache = SG_Cache_Manager::get_instance();
+				$cache->delete( 'api_categories' );
+			}
+
 			/**
 			 * Fires after a booking has been successfully saved.
 			 *
@@ -955,6 +1005,18 @@ class Booking_Management_Rest_API {
 			 * @param array $booking_data The booking data that was inserted.
 			 */
 			do_action( 'bm_after_booking_saved', $booking_id, $booking_data );
+
+			// Event-driven dispatch for REST API booking creation.
+			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+				SG_Event_Dispatcher::dispatch( 'booking.confirmed', array(
+					'booking_id'   => $booking_id,
+					'service_id'   => $service_id,
+					'booking_date' => $booking_date,
+					'slot_id'      => $slot_id,
+					'quantity'     => $quantity,
+					'source'       => 'rest_api',
+				) );
+			}
 
 			return rest_ensure_response( array(
 				'success'    => true,
@@ -993,12 +1055,8 @@ class Booking_Management_Rest_API {
 			) );
 		}
 
-		// Free version: return only essential columns. Pro: return all.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$select_cols = '*';
-		} else {
-			$select_cols = 'id, service_name, booking_created_at, booking_date, service_cost, extra_svc_cost, disount_amount, total_cost, order_status, booking_type, field_values';
-		}
+		// Free version: return only essential columns.
+		$select_cols = 'id, service_name, booking_created_at, booking_date, service_cost, extra_svc_cost, disount_amount, total_cost, order_status, booking_type, field_values';
 
 		$where  = array( '1=1' );
 		$values = array();
@@ -1066,6 +1124,16 @@ class Booking_Management_Rest_API {
 		$search   = $request->get_param( 'search' );
 		$cat_id   = $request->get_param( 'category_id' );
 
+		// Check cache for listing requests.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache     = SG_Cache_Manager::get_instance();
+			$cache_key = 'rest_services_' . md5( wp_json_encode( array( $page, $per_page, $search, $cat_id ) ) );
+			$cached    = $cache->get( $cache_key );
+			if ( false !== $cached ) {
+				return new WP_REST_Response( $cached, 200 );
+			}
+		}
+
 		$offset = ( $page - 1 ) * $per_page;
 
 		$where = 'WHERE 1=1';
@@ -1108,15 +1176,29 @@ class Booking_Management_Rest_API {
 			}
 		}
 
-		return new WP_REST_Response(
-			array(
-				'items' => $items,
-				'total' => $total,
-				'page'  => $page,
-				'pages' => ceil( $total / max( 1, $per_page ) ),
-			),
-			200
+		/**
+		 * Filters the services list returned by the REST API.
+		 *
+		 * @since 1.2.0
+		 * @param array           $items   The service items array.
+		 * @param int             $total   Total number of services matching the query.
+		 * @param WP_REST_Request $request The original request object.
+		 */
+		$items = apply_filters( 'sg_booking_rest_services', $items, $total, $request );
+
+		$response_data = array(
+			'items' => $items,
+			'total' => $total,
+			'page'  => $page,
+			'pages' => ceil( $total / max( 1, $per_page ) ),
 		);
+
+		// Cache for 5 minutes.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache->set( $cache_key, $response_data, 5 * MINUTE_IN_SECONDS );
+		}
+
+		return new WP_REST_Response( $response_data, 200 );
 	}
 
 	/**
@@ -1146,13 +1228,6 @@ class Booking_Management_Rest_API {
 			'is_service_front' => (int) $service->is_service_front,
 			'service_position' => (int) $service->service_position,
 		);
-
-		// Only include Pro-specific fields if Pro is active.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$data['default_stopsales']  = isset( $service->default_stopsales ) ? $service->default_stopsales : '';
-			$data['default_saleswitch'] = isset( $service->default_saleswitch ) ? $service->default_saleswitch : '';
-			$data['default_max_cap']    = isset( $service->default_max_cap ) ? $service->default_max_cap : '';
-		}
 
 		return new WP_REST_Response( $data, 200 );
 	}
@@ -1647,12 +1722,8 @@ class Booking_Management_Rest_API {
 		$where_clause = implode( ' AND ', $where );
 		$offset       = ( $page - 1 ) * $per_page;
 
-		// In free version, only show email column. Whitelisted static strings — no user input.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$select_cols = 'id, customer_name, customer_email, customer_created_at';
-		} else {
-			$select_cols = 'id, customer_email';
-		}
+		// Free version: only show email column.
+		$select_cols = 'id, customer_email';
 
 		if ( ! empty( $values ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -1999,6 +2070,16 @@ class Booking_Management_Rest_API {
 	 * @return WP_REST_Response
 	 */
 	public function get_categories( $request ) {
+		// Check cache for categories listing.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache     = SG_Cache_Manager::get_instance();
+			$cache_key = 'rest_v1_categories';
+			$cached    = $cache->get( $cache_key );
+			if ( false !== $cached ) {
+				return rest_ensure_response( $cached );
+			}
+		}
+
 		$dbhandler  = new BM_DBhandler();
 		$categories = $dbhandler->get_all_result( 'CATEGORY', '*', 1, 'results', 0, false, 'cat_position', 'ASC' );
 
@@ -2012,6 +2093,20 @@ class Booking_Management_Rest_API {
 					'cat_position' => (int) $cat->cat_position,
 				);
 			}
+		}
+
+		/**
+		 * Filters the categories list returned by the REST API.
+		 *
+		 * @since 1.2.0
+		 * @param array           $data    The category items array.
+		 * @param WP_REST_Request $request The original request object.
+		 */
+		$data = apply_filters( 'sg_booking_rest_categories', $data, $request );
+
+		// Cache for 5 minutes.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cache->set( $cache_key, $data, 5 * MINUTE_IN_SECONDS );
 		}
 
 		return rest_ensure_response( $data );

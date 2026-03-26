@@ -28,13 +28,6 @@ class BM_Customers_List_Table extends WP_List_Table {
 	private $dbhandler;
 
 	/**
-	 * Whether Pro is active.
-	 *
-	 * @var bool
-	 */
-	private $is_pro;
-
-	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -46,32 +39,64 @@ class BM_Customers_List_Table extends WP_List_Table {
 			)
 		);
 		$this->dbhandler = new BM_DBhandler();
-		$this->is_pro    = Booking_Management_Limits::is_pro_active();
 	}
 
 	/**
-	 * Define columns — different for Free vs Pro.
+	 * Define columns — free version shows essential columns only.
 	 *
 	 * @return array
 	 */
 	public function get_columns() {
-		$columns = array(
+		return array(
+			'cb'             => '<input type="checkbox" />',
 			'serial'         => esc_html__( '#', 'service-booking' ),
+			'customer_email' => esc_html__( 'Email', 'service-booking' ),
 		);
+	}
 
-		if ( $this->is_pro ) {
-			$columns['customer_name'] = esc_html__( 'Name', 'service-booking' );
+	/**
+	 * Checkbox column for bulk actions.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_cb( $item ) {
+		return sprintf( '<input type="checkbox" name="customer_ids[]" value="%s" />', esc_attr( $item['id'] ) );
+	}
+
+	/**
+	 * Bulk actions available in the dropdown.
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		return array(
+			'bulk-delete' => esc_html__( 'Delete', 'service-booking' ),
+		);
+	}
+
+	/**
+	 * Process bulk actions.
+	 */
+	public function process_bulk_action() {
+		if ( 'bulk-delete' !== $this->current_action() ) {
+			return;
 		}
 
-		$columns['customer_email'] = esc_html__( 'Email', 'service-booking' );
-
-		if ( $this->is_pro ) {
-			$columns['profile']   = esc_html__( 'Profile', 'service-booking' );
-			$columns['is_active'] = esc_html__( 'Status', 'service-booking' );
-			$columns['actions']   = esc_html__( 'Actions', 'service-booking' );
+		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'bulk-customers' ) ) {
+			return;
 		}
 
-		return $columns;
+		$ids = isset( $_REQUEST['customer_ids'] ) ? array_map( 'absint', (array) $_REQUEST['customer_ids'] ) : array();
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		foreach ( $ids as $id ) {
+			if ( $id > 0 ) {
+				$this->dbhandler->remove_row( 'CUSTOMERS', 'id', $id, '%d' );
+			}
+		}
 	}
 
 	/**
@@ -89,14 +114,28 @@ class BM_Customers_List_Table extends WP_List_Table {
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
-		$per_page = ! empty( $this->dbhandler->get_global_option_value( 'bm_customers_per_page' ) )
-			? absint( $this->dbhandler->get_global_option_value( 'bm_customers_per_page' ) )
-			: 10;
+		$this->process_bulk_action();
+
+		$per_page = ! empty( $_REQUEST['per_page'] )
+			? absint( $_REQUEST['per_page'] )
+			: ( ! empty( $this->dbhandler->get_global_option_value( 'bm_customers_per_page' ) )
+				? absint( $this->dbhandler->get_global_option_value( 'bm_customers_per_page' ) )
+				: 10 );
 
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
-		$total        = $this->dbhandler->bm_count( 'CUSTOMERS' );
-		$customers    = $this->dbhandler->get_all_result( 'CUSTOMERS', '*', 1, 'results', $offset, $per_page, 'id', 'Desc' );
+
+		// Search filter.
+		$where      = 1;
+		$additional = '';
+		if ( ! empty( $_REQUEST['s'] ) ) {
+			$search      = '%' . $GLOBALS['wpdb']->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND customer_email LIKE %s', $search );
+		}
+
+		$count_results = $this->dbhandler->get_all_result( 'CUSTOMERS', 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );
+		$total         = is_array( $count_results ) ? count( $count_results ) : 0;
+		$customers     = $this->dbhandler->get_all_result( 'CUSTOMERS', '*', $where, 'results', $offset, $per_page, 'id', 'Desc', $additional );
 
 		$this->items = array();
 		if ( ! empty( $customers ) ) {
@@ -105,9 +144,7 @@ class BM_Customers_List_Table extends WP_List_Table {
 				$this->items[] = array(
 					'id'             => $customer->id,
 					'serial'         => $i,
-					'customer_name'  => isset( $customer->customer_name ) ? $customer->customer_name : '',
 					'customer_email' => isset( $customer->customer_email ) ? $customer->customer_email : '',
-					'is_active'      => isset( $customer->is_active ) ? $customer->is_active : 0,
 				);
 				$i++;
 			}
@@ -117,7 +154,7 @@ class BM_Customers_List_Table extends WP_List_Table {
 			array(
 				'total_items' => $total,
 				'per_page'    => $per_page,
-				'total_pages' => ceil( $total / $per_page ),
+				'total_pages' => ceil( $total / max( 1, $per_page ) ),
 			)
 		);
 
@@ -140,40 +177,11 @@ class BM_Customers_List_Table extends WP_List_Table {
 			case 'serial':
 				return esc_html( $item['serial'] );
 
-			case 'customer_name':
-				return sprintf(
-					'<span title="%s">%s</span>',
-					esc_attr( $item['customer_name'] ),
-					esc_html( mb_strimwidth( $item['customer_name'], 0, 60, '...' ) )
-				);
-
 			case 'customer_email':
 				return sprintf(
 					'<span title="%s">%s</span>',
 					esc_attr( $item['customer_email'] ),
 					esc_html( mb_strimwidth( $item['customer_email'], 0, 60, '...' ) )
-				);
-
-			case 'profile':
-				return sprintf(
-					'<a href="admin.php?page=bm_customer_profile&id=%s" title="%s"><i class="fa fa-user-circle-o" style="font-size:18px;vertical-align: middle;"></i></a>',
-					esc_attr( $item['id'] ),
-					esc_attr__( 'Check profile', 'service-booking' )
-				);
-
-			case 'is_active':
-				$checked = checked( $item['is_active'], '1', false );
-				return sprintf(
-					'<div class="bm-checkbox-td"><input name="customer_is_active" type="checkbox" id="customer_is_active_%1$s" class="regular-text auto-checkbox bm_toggle" %2$s onchange="bm_change_customer_visibility(this)"><label for="customer_is_active_%1$s"></label></div>',
-					esc_attr( $item['id'] ),
-					$checked
-				);
-
-			case 'actions':
-				return sprintf(
-					'<button type="button" name="editcust" class="edit-button" id="editcust" title="%s" value="%s"><i class="fa fa-edit" aria-hidden="true"></i></button>',
-					esc_attr__( 'Edit', 'service-booking' ),
-					esc_attr( $item['id'] )
 				);
 
 			default:

@@ -178,10 +178,10 @@ jQuery(document).ready(function ($) {
     // Initialization sequence
     function init() {
         if ($('#search_fullcalendar_by_service').length) {
-            intitializeMultiselect('search_fullcalendar_by_service');
+            initializeMultiselect('search_fullcalendar_by_service');
         }
         if ($('#search_fullcalendar_by_category').length) {
-            intitializeMultiselect('search_fullcalendar_by_category');
+            initializeMultiselect('search_fullcalendar_by_category');
         }
 
         dateRangePicker = initializeDateRangePicker();

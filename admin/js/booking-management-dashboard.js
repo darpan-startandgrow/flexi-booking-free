@@ -94,7 +94,7 @@ function bm_open_dashboard_table_tabs(evt, tabName) {
 		case 'tab2':
 			var data = { 'action': 'bm_fetch_saved_order_search', 'module': 'dashboard_all_orders', 'nonce': bm_ajax_object.nonce };
 			jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-				var saved_search = jQuery.parseJSON(response);
+				var saved_search = JSON.parse(response);
 				if (saved_search != null && saved_search != "") {
 					if (typeof (saved_search.global_search) != "undefined") {
 						jQuery('#dashboard_global_search').val(saved_search.global_search ? saved_search.global_search : '');
@@ -162,7 +162,7 @@ function bm_fetch_booking_counts($this = null) {
 
 	var data = { 'action': 'bm_fetch_booking_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			if (typeof (jsondata.booking_type) != "undefined") {
 				if (jsondata.booking_type == '') {

@@ -1,5 +1,4 @@
 <?php
-$is_pro         = Booking_Management_Limits::is_pro_active();
 $vouchers_table = new BM_Vouchers_List_Table();
 $vouchers_table->prepare_items();
 ?>
@@ -22,7 +21,6 @@ $vouchers_table->prepare_items();
     </form>
 </div>
 
-<?php if ( ! $is_pro ) { ?>
 <div style="margin-top: 15px; padding: 12px 16px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 3px;">
     <p style="margin: 0;">
         <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
@@ -31,6 +29,5 @@ $vouchers_table->prepare_items();
         <small><?php echo esc_html( Booking_Management_Limits::get_limit_message( 'voucher_redemption' ) ); ?></small>
     </p>
 </div>
-<?php } ?>
 
 </div>

@@ -11,8 +11,7 @@
  * @subpackage Booking_Management/admin/partials
  */
 
-$is_pro = Booking_Management_Limits::is_pro_active();
-$table  = new BM_Email_Records_List_Table();
+$table = new BM_Email_Records_List_Table();
 $table->prepare_items();
 ?>
 
@@ -27,7 +26,6 @@ $table->prepare_items();
 	</form>
 </div>
 
-<?php if ( ! $is_pro ) : ?>
 <div style="margin-top: 15px; padding: 12px 16px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 3px;">
 	<p style="margin: 0;">
 		<span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
@@ -36,7 +34,6 @@ $table->prepare_items();
 		<small><?php esc_html_e( 'Upgrade to Pro to resend emails with CC/BCC, attachments, and full customization.', 'service-booking' ); ?></small>
 	</p>
 </div>
-<?php endif; ?>
 
 <div class="loader_modal"></div>
 </div>

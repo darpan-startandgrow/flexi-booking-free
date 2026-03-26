@@ -988,8 +988,6 @@ input {
 
 .tab-wrap * {
     box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box
 }
 
 .tab-wrap .tablink {
@@ -1096,49 +1094,6 @@ input {
     display: inline;
 }
 
-.tab-wrap {
-    width: 100%;
-    margin: 0 auto;
-}
-
-.tab-wrap .tab-head {
-    text-align: center;
-    width: 100%;
-    margin: 0px;
-    padding-left: 0px;
-}
-
-.tab-wrap * {
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box
-}
-
-.tab-wrap .tablink {
-    display: table-cell;
-    border-bottom: 2px solid transparent;
-    padding: 8px;
-    color: #333;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.tab-wrap .tablink.tab-active {
-    border-color: #2B00D7;
-    color: #2B00D7;
-}
-
-.tab-wrap .tabcontent {
-    display: none;
-    padding-top: 20px;
-    font-size: 15px;
-    color: rgba(0, 0, 0, 0.87);
-}
-
-.tab-wrap .tabcontent.active {
-    display: block
-}
-
 #cust_personal_data input,
 #cust_personal_data select,
 #cust_personal_data textarea {
@@ -1166,4 +1121,37 @@ input {
     color: #ebf5ff;
     background: #2ab5e3;
     border: none;
+}
+/* ===== Responsive Design - Tablet ===== */
+@media screen and (max-width: 782px) {
+    .customer-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row-inline {
+        flex-direction: column;
+    }
+
+    .form-row-section {
+        width: 100%;
+    }
+
+    .contactPage.tab-wrap .tablink {
+        display: block;
+        text-align: left;
+    }
+}
+
+/* ===== Responsive Design - Mobile ===== */
+@media screen and (max-width: 480px) {
+    .tab-wrap .tablink {
+        display: block;
+        text-align: left;
+        padding: 6px;
+        font-size: 13px;
+    }
+
+    .tab-wrap .tab-head {
+        text-align: left;
+    }
 }

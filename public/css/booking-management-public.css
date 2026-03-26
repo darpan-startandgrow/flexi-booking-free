@@ -3,6 +3,17 @@
  * included in this file.
  */
 
+/* ===== CSS Custom Properties ===== */
+:root {
+    --bm-color-primary: #2E465C;
+    --bm-color-accent: #2B00D7;
+    --bm-color-text: #333;
+    --bm-color-text-light: #727374;
+    --bm-color-border: #B7BDC2;
+    --bm-color-bg-light: #f9f9f9;
+    --bm-border-radius: 8px;
+}
+
 *,
 ::after,
 ::before {
@@ -29,10 +40,6 @@ body {
     line-height: initial !important;
 }
 
-
-/* .ms-options ul li {
-     line-height: 33px !important;
- } */
 
 a {
     text-decoration: none;
@@ -193,59 +200,6 @@ a {
     display: inline;
 }
 
-
-/*input[type=checkbox] {
-      opacity: 0;
-  }
-  
-  input[type=checkbox]+label {
-  
-      position: relative;
-      cursor: pointer;
-      font-size: 16px;
-      color: #6d6d6d;
-  }
-  
-  input[type=checkbox]+label::before {
-      content: '';
-      position: absolute;
-      left: -25px;
-      top: 0px;
-      width: 18px;
-      height: 18px;
-      display: block;
-      background: white;
-      border: 2px solid #2E465C;
-      border-radius: 2px;
-  }
-  
-  input[type=checkbox]+label::after {
-      content: ' ';
-      position: absolute;
-      left: -23px;
-      top: 2px;
-      width: 13px;
-      height: 13px;
-      display: block;
-      z-index: 1;
-  
-      background: url('../partials/image/check.png') no-repeat center center;
-      background-size: cover;
-      -ms-transition: all .2s ease;
-      -webkit-transition: all .2s ease;
-      transition: all .3s ease;
-      -ms-transform: scale(0);
-      -webkit-transform: scale(0);
-      transform: scale(0);
-      opacity: 0;
-  }
-  
-  input[type=checkbox]:checked+label::after {
-      -ms-transform: scale(1);
-      -webkit-transform: scale(1);
-      transform: scale(1);
-      opacity: 1;
-  }*/
 
 input[type=radio] {
     opacity: 0;

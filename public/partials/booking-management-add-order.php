@@ -556,11 +556,11 @@ if ( filter_input( INPUT_POST, 'savefrontorder' ) ) {
                                                     window.dataLayer = window.dataLayer || [];
                                                     dataLayer.push({
                                                         'event': 'purchase',
-                                                        'ecommerce': <?php echo json_encode( $ga_purchase_data ); ?>
+                                                        'ecommerce': <?php echo wp_json_encode( $ga_purchase_data ); ?>
                                                     });
                                                     
                                                     if (typeof gtag !== 'undefined') {
-                                                        gtag('event', 'purchase', <?php echo json_encode( $ga_purchase_data ); ?>);
+                                                        gtag('event', 'purchase', <?php echo wp_json_encode( $ga_purchase_data ); ?>);
                                                     }
                                                     </script>
                                                     <?php

@@ -56,12 +56,68 @@ class BM_Categories_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
+			'cb'           => '<input type="checkbox" />',
 			'serial'       => esc_html__( 'Serial No', 'service-booking' ),
 			'cat_name'     => esc_html__( 'Name', 'service-booking' ),
 			'cat_in_front' => esc_html__( 'Show in Frontend', 'service-booking' ),
 			'shortcode'    => esc_html__( 'Single category shortcode', 'service-booking' ),
 			'actions'      => esc_html__( 'Actions', 'service-booking' ),
 		);
+	}
+
+	/**
+	 * Checkbox column for bulk actions.
+	 *
+	 * @param array $item Row data.
+	 * @return string
+	 */
+	public function column_cb( $item ) {
+		return sprintf( '<input type="checkbox" name="category_ids[]" value="%s" />', esc_attr( $item['id'] ) );
+	}
+
+	/**
+	 * Bulk actions available in the dropdown.
+	 *
+	 * @return array
+	 */
+	public function get_bulk_actions() {
+		return array(
+			'bulk-delete'     => esc_html__( 'Delete', 'service-booking' ),
+			'bulk-show-front' => esc_html__( 'Show in Frontend', 'service-booking' ),
+			'bulk-hide-front' => esc_html__( 'Hide from Frontend', 'service-booking' ),
+		);
+	}
+
+	/**
+	 * Process bulk actions.
+	 */
+	public function process_bulk_action() {
+		$action = $this->current_action();
+		if ( ! in_array( $action, array( 'bulk-delete', 'bulk-show-front', 'bulk-hide-front' ), true ) ) {
+			return;
+		}
+
+		if ( ! isset( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ), 'bulk-categories' ) ) {
+			return;
+		}
+
+		$ids = isset( $_REQUEST['category_ids'] ) ? array_map( 'absint', (array) $_REQUEST['category_ids'] ) : array();
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		foreach ( $ids as $id ) {
+			if ( $id <= 0 ) {
+				continue;
+			}
+			if ( 'bulk-delete' === $action ) {
+				$this->dbhandler->remove_row( 'CATEGORY', 'id', $id, '%d' );
+			} elseif ( 'bulk-show-front' === $action ) {
+				$this->dbhandler->update_row( 'CATEGORY', 'id', $id, array( 'cat_in_front' => 1 ), '%d', '%d' );
+			} elseif ( 'bulk-hide-front' === $action ) {
+				$this->dbhandler->update_row( 'CATEGORY', 'id', $id, array( 'cat_in_front' => 0 ), '%d', '%d' );
+			}
+		}
 	}
 
 	/**
@@ -76,18 +132,55 @@ class BM_Categories_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Extra table nav with filters.
+	 *
+	 * @param string $which 'top' or 'bottom'.
+	 */
+	protected function extra_tablenav( $which ) {
+		if ( 'top' !== $which ) {
+			return;
+		}
+
+		$visibility_filter = isset( $_REQUEST['visibility_filter'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['visibility_filter'] ) ) : '';
+
+		echo '<div class="alignleft actions">';
+		echo '<select name="visibility_filter">';
+		echo '<option value="">' . esc_html__( 'All Visibility', 'service-booking' ) . '</option>';
+		printf( '<option value="1"%s>%s</option>', selected( $visibility_filter, '1', false ), esc_html__( 'Visible', 'service-booking' ) );
+		printf( '<option value="0"%s>%s</option>', selected( $visibility_filter, '0', false ), esc_html__( 'Hidden', 'service-booking' ) );
+		echo '</select>';
+		submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false );
+		echo '</div>';
+	}
+
+	/**
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
-		$per_page = ! empty( $this->dbhandler->get_global_option_value( 'bm_categories_per_page' ) )
-			? absint( $this->dbhandler->get_global_option_value( 'bm_categories_per_page' ) )
-			: 10;
+		$this->process_bulk_action();
+
+		$per_page = ! empty( $_REQUEST['per_page'] )
+			? absint( $_REQUEST['per_page'] )
+			: ( ! empty( $this->dbhandler->get_global_option_value( 'bm_categories_per_page' ) )
+				? absint( $this->dbhandler->get_global_option_value( 'bm_categories_per_page' ) )
+				: 10 );
 
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
-		$total        = $this->dbhandler->bm_count( 'CATEGORY' );
 
-		$categories = $this->dbhandler->get_all_result( 'CATEGORY', '*', 1, 'results', $offset, $per_page, 'cat_position', false );
+		// Build WHERE clause for filters.
+		$where      = 1;
+		$additional = '';
+
+		if ( isset( $_REQUEST['visibility_filter'] ) && '' !== $_REQUEST['visibility_filter'] ) {
+			$vis         = absint( $_REQUEST['visibility_filter'] );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND cat_in_front = %d', $vis );
+		}
+
+		$count_results = $this->dbhandler->get_all_result( 'CATEGORY', 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );
+		$total         = is_array( $count_results ) ? count( $count_results ) : 0;
+
+		$categories = $this->dbhandler->get_all_result( 'CATEGORY', '*', $where, 'results', $offset, $per_page, 'cat_position', false, $additional );
 
 		$this->items = array();
 		if ( ! empty( $categories ) ) {
@@ -107,7 +200,7 @@ class BM_Categories_List_Table extends WP_List_Table {
 			array(
 				'total_items' => $total,
 				'per_page'    => $per_page,
-				'total_pages' => ceil( $total / $per_page ),
+				'total_pages' => ceil( $total / max( 1, $per_page ) ),
 			)
 		);
 
@@ -162,10 +255,8 @@ class BM_Categories_List_Table extends WP_List_Table {
 
 			case 'actions':
 				return sprintf(
-					'<button type="button" name="editcat" class="edit-button" id="editcat" title="%1$s" value="%3$s"><i class="fa fa-edit" aria-hidden="true"></i></button>
-					<button type="button" name="delcat" class="delete-button" id="delcat" title="%2$s" value="%3$s"><i class="fa fa-trash" aria-hidden="true" style="color:red"></i></button>',
+					'<button type="button" name="editcat" class="edit-button" id="editcat" title="%1$s" value="%2$s"><i class="fa fa-edit" aria-hidden="true"></i></button>',
 					esc_attr__( 'Edit', 'service-booking' ),
-					esc_attr__( 'Delete', 'service-booking' ),
 					esc_attr( $item['id'] )
 				);
 

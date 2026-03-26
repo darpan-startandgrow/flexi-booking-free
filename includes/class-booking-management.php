@@ -84,6 +84,9 @@ class Booking_Management {
 		 */
 		do_action( 'sg_booking_init_pro_connections' );
 
+		// Initialize hybrid architecture components.
+		$this->init_event_system();
+
 		// ✅ Initialize the API
         $this->init_api();
 
@@ -180,6 +183,19 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-license-manager.php';
 
 		/**
+		 * Hybrid architecture classes for performance and scalability.
+		 *
+		 * - Event Dispatcher: Event-driven architecture for decoupled processing.
+		 * - Cache Manager:    Unified caching layer (Redis/Memcached/Transients).
+		 * - Async Queue:      Background job processor for heavy tasks.
+		 *
+		 * @since 1.2.0
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-event-dispatcher.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-cache-manager.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-async-queue.php';
+
+		/**
 		 * Core REST API for the Lite plugin's own frontend.
 		 * Separate from the React v2 API in class-booking-api.php.
 		 */
@@ -265,23 +281,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_set_serice_price', $plugin_admin, 'bm_set_serice_price' );
 		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price', $plugin_admin, 'bm_set_bulk_serice_price' );
 
-		// Pro-only service management AJAX hooks: stopsales, saleswitch, max capacity, variable time slots.
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$this->loader->add_action( 'wp_ajax_bm_get_serice_stopsales', $plugin_admin, 'bm_get_serice_stopsales' );
-			$this->loader->add_action( 'wp_ajax_bm_get_service_saleswitch', $plugin_admin, 'bm_get_service_saleswitch' );
-			$this->loader->add_action( 'wp_ajax_bm_set_serice_stopsales', $plugin_admin, 'bm_set_serice_stopsales' );
-			$this->loader->add_action( 'wp_ajax_bm_set_service_saleswitch', $plugin_admin, 'bm_set_service_saleswitch' );
-			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_stopsales', $plugin_admin, 'bm_set_bulk_serice_stopsales' );
-			$this->loader->add_action( 'wp_ajax_bm_set_bulk_service_saleswitch', $plugin_admin, 'bm_set_bulk_service_saleswitch' );
-			$this->loader->add_action( 'wp_ajax_bm_get_service_max_cap', $plugin_admin, 'bm_get_service_max_cap' );
-			$this->loader->add_action( 'wp_ajax_bm_set_serice_max_cap', $plugin_admin, 'bm_set_serice_max_cap' );
-			$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_max_cap', $plugin_admin, 'bm_set_bulk_serice_max_cap' );
-			$this->loader->add_action( 'wp_ajax_bm_get_service_time_slots', $plugin_admin, 'bm_get_service_time_slots' );
-			$this->loader->add_action( 'wp_ajax_bm_get_specific_time_slot', $plugin_admin, 'bm_get_specific_time_slot' );
-			$this->loader->add_action( 'wp_ajax_bm_set_variable_time_slot', $plugin_admin, 'bm_set_variable_time_slot' );
-			$this->loader->add_action( 'wp_ajax_bm_remove_variable_time_slot', $plugin_admin, 'bm_remove_variable_time_slot' );
-		}
-
 		$this->loader->add_action( 'wp_ajax_bm_save_field_and_setting', $plugin_admin, 'bm_save_field_and_setting' );
 		$this->loader->add_action( 'wp_ajax_bm_get_all_field_labels', $plugin_admin, 'bm_get_all_field_labels' );
 		$this->loader->add_action( 'wp_ajax_bm_get_field_settings', $plugin_admin, 'bm_get_field_settings' );
@@ -290,10 +289,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_preview_form', $plugin_admin, 'bm_fetch_preview_form' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_template_listing', $plugin_admin, 'bm_fetch_template_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_template', $plugin_admin, 'bm_remove_template' );
-		// SMTP test — Pro only (SMTP class not present in Lite).
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$this->loader->add_action( 'wp_ajax_bm_test_smtp', $plugin_admin, 'bm_check_smtp_connection' );
-		}
 		$this->loader->add_action( 'wp_ajax_bm_fetch_timezone', $plugin_admin, 'bm_fetch_timezone' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_product_details', $plugin_admin, 'bm_fetch_ordered_product_details' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_service_details', $plugin_admin, 'bm_fetch_ordered_service_details' );
@@ -315,12 +310,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_price_for_backend_order', $plugin_admin, 'bm_fetch_service_price_for_backend_order' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status_to_complete_or_cancelled', $plugin_admin, 'bm_change_order_status_to_complete_or_cancelled' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status', $plugin_admin, 'bm_change_order_status' );
-
-		// Manage Columns — Pro only.
-		if ( Booking_Management_Limits::can_manage_columns() ) {
-			$this->loader->add_action( 'wp_ajax_bm_fetch_columns_screen_options', $plugin_admin, 'bm_fetch_columns_screen_options' );
-			$this->loader->add_action( 'wp_ajax_bm_save_columns_screen_options', $plugin_admin, 'bm_save_columns_screen_options' );
-		}
 
 		$this->loader->add_action( 'wp_ajax_bm_fetch_order_as_per_search', $plugin_admin, 'bm_fetch_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_archived_order_as_per_search', $plugin_admin, 'bm_fetch_archived_order_as_per_search' );
@@ -345,11 +334,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
 
-		// Customer visibility toggle — Pro only (free shows read-only listing).
-		if ( Booking_Management_Limits::can_create_customer() ) {
-			$this->loader->add_action( 'wp_ajax_bm_change_customer_visibility', $plugin_admin, 'bm_change_customer_visibility' );
-		}
-
 		$this->loader->add_filter( 'flexibooking_cancel_booking', $plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
 		$this->loader->add_filter( 'flexibooking_update_status_as_completed', $plugin_admin, 'bm_flexibooking_update_status_as_completed', 10, 1 );
@@ -363,12 +347,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_remove_process', $plugin_admin, 'bm_remove_notification_process' );
 		$this->loader->add_action( 'wp_ajax_bm_change_process_visibility', $plugin_admin, 'bm_change_notification_process_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_template_visibility', $plugin_admin, 'bm_change_email_template_visibility' );
-
-		// Book-on-request AJAX — Pro only (free version is direct booking only).
-		if ( Booking_Management_Limits::is_pro_active() ) {
-			$this->loader->add_action( 'wp_ajax_bm_cancel_bor_order', $plugin_admin, 'bm_cancel_book_on_request_order' );
-			$this->loader->add_action( 'wp_ajax_bm_approve_bor_order', $plugin_admin, 'bm_approve_book_on_request_order' );
-		}
 
 		$this->loader->add_action( 'wp_ajax_bm_update_transaction', $plugin_admin, 'bm_update_order_transaction' );
 		$this->loader->add_action( 'wp_ajax_bm_save_order_transaction', $plugin_admin, 'bm_save_order_transaction' );
@@ -424,6 +402,19 @@ class Booking_Management {
 		$this->loader->add_action( 'pre_post_update', $plugin_admin, 'bm_prevent_expired_woocommerce_order_updates', 10, 2 );
 		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_flexi_admin_notice' );
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_admin, 'bm_fetch_states_by_country' );
+
+		/**
+		 * Fires after the Lite admin hooks are registered.
+		 *
+		 * Use this hook to register custom admin AJAX handlers,
+		 * add filters, or extend admin functionality.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param Booking_Management_Loader $loader       The hook loader instance.
+		 * @param Booking_Management_Admin  $plugin_admin The admin class instance.
+		 */
+		do_action( 'sg_booking_register_admin_hooks', $this->loader, $plugin_admin );
 
 	}
 
@@ -496,16 +487,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_checkout_options', $plugin_public, 'bm_fetch_available_checkout_options' );
 		$this->loader->add_action( 'wp_ajax_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
-
-		// Voucher redemption AJAX hooks — Pro only.
-		if ( Booking_Management_Limits::can_redeem_voucher() ) {
-			$this->loader->add_action( 'wp_ajax_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-			$this->loader->add_action( 'wp_ajax_nopriv_check_voucher_validity', $plugin_public, 'bm_check_if_valid_voucher' );
-			$this->loader->add_action( 'wp_ajax_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-			$this->loader->add_action( 'wp_ajax_nopriv_fetch_available_timeslots', $plugin_public, 'bm_get_valid_available_voucher_timeslots' );
-			$this->loader->add_action( 'wp_ajax_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
-			$this->loader->add_action( 'wp_ajax_nopriv_confirm_voucher_redemption', $plugin_public, 'bm_get_confirm_and_redeem_voucher' );
-		}
 
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_public, 'bm_fetch_states_by_country' );
 		$this->loader->add_action( 'wp_ajax_nopriv_get_states', $plugin_public, 'bm_fetch_states_by_country' );
@@ -627,5 +608,32 @@ class Booking_Management {
 	 */
 	public function get_version() {
          return $this->version;
+	}
+
+	/**
+	 * Initialize the event-driven architecture components.
+	 *
+	 * Sets up the Event Dispatcher with default async events and
+	 * ensures the Async Queue cron is scheduled.
+	 *
+	 * @since 1.2.0
+	 * @access private
+	 */
+	private function init_event_system() {
+		// Register default async events (email, PDF, analytics, webhooks).
+		SG_Event_Dispatcher::register_default_events();
+
+		// Ensure the queue processor cron is active.
+		SG_Async_Queue::get_instance()->ensure_scheduled();
+
+		/**
+		 * Fires after the event system is initialized.
+		 *
+		 * Use this hook to register custom event listeners or
+		 * mark additional events as asynchronous.
+		 *
+		 * @since 1.2.0
+		 */
+		do_action( 'sg_booking_event_system_init' );
 	}
 }

@@ -192,10 +192,10 @@ jQuery(document).ready(function ($) {
     // Initialization sequence
     function init() {
         if ($('#search_timeslot_fullcalendar_by_service').length) {
-            intitializeMultiselect('search_timeslot_fullcalendar_by_service');
+            initializeMultiselect('search_timeslot_fullcalendar_by_service');
         }
         if ($('#search_timeslot_fullcalendar_by_category').length) {
-            intitializeMultiselect('search_timeslot_fullcalendar_by_category');
+            initializeMultiselect('search_timeslot_fullcalendar_by_category');
         }
 
         dateRangePicker = initializePlannerDateRangePicker();
@@ -370,7 +370,7 @@ jQuery(document).on('click', '.get_slot_details', function (e) {
 	var data = { 'action': 'bm_fetch_service_planner_time_slots', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.loader_modal').hide();
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status;
 		var data = jsondata.data;
 

@@ -12830,6 +12830,17 @@ class BM_Request {
      * @author Darpan
      */
     public function bm_process_payment_data( $booking_key, $checkout_key, $method_id, $gift = false ) {
+		/**
+		 * Fires before payment processing begins.
+		 *
+		 * @since 1.2.0
+		 * @param string $booking_key  The booking key.
+		 * @param string $checkout_key The checkout key.
+		 * @param string $method_id    The payment method ID.
+		 * @param bool   $gift         Whether the booking is a gift.
+		 */
+		do_action( 'sg_booking_before_payment_processing', $booking_key, $checkout_key, $method_id, $gift );
+
          $dbhandler     = new BM_DBhandler();
         $bookable_extra = $this->bm_is_selected_extra_service_bookable( $booking_key );
         $intentStatuses = array( 'processing', 'requires_payment_method', 'requires_confirmation', 'requires_action', 'requires_capture', 'succeeded' );
@@ -12868,6 +12879,16 @@ class BM_Request {
 				}
 			}
 		}
+
+		/**
+		 * Fires after payment processing completes.
+		 *
+		 * @since 1.2.0
+		 * @param string $process_status The result status.
+		 * @param string $booking_key    The booking key.
+		 * @param string $checkout_key   The checkout key.
+		 */
+		do_action( 'sg_booking_after_payment_processing', $process_status, $booking_key, $checkout_key );
 
 		return $process_status;
 	} // end bm_process_payment_data()
@@ -13065,8 +13086,16 @@ class BM_Request {
 
 					if ( $booking_type == 'on_request' ) {
 						do_action( 'flexibooking_set_process_new_request', $booking_id );
+						// Event-driven dispatch for async/microservice processing.
+						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+							SG_Event_Dispatcher::dispatch( 'booking.request_created', array( 'booking_id' => $booking_id, 'booking_type' => 'on_request' ) );
+						}
 					} elseif ( $booking_type == 'direct' ) {
 						do_action( 'flexibooking_set_process_new_order', $booking_id );
+						// Event-driven dispatch for async/microservice processing.
+						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+							SG_Event_Dispatcher::dispatch( 'booking.confirmed', array( 'booking_id' => $booking_id, 'booking_type' => 'direct' ) );
+						}
 					}
 
 					$this->bm_unset_session( 'flexi_current_payment_session' );
@@ -13095,6 +13124,20 @@ class BM_Request {
 		if ( $process_status !== 'success' ) {
 			$this->bm_remove_order_data_after_failed_payment( $customer_id, $booking_id );
 			$this->bm_unset_session( 'flexi_current_payment_session' );
+
+			// Event-driven dispatch for failed payment processing.
+			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+				SG_Event_Dispatcher::dispatch( 'booking.failed', array( 'booking_id' => $booking_id, 'customer_id' => $customer_id ) );
+			}
+		} else {
+			// Event-driven dispatch for successful payment.
+			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+				SG_Event_Dispatcher::dispatch( 'payment.received', array(
+					'booking_id'     => $booking_id,
+					'transaction_id' => $transaction_id,
+					'paid_amount'    => $paid_amount,
+				) );
+			}
 		}
 
 		return $process_status;
@@ -13525,6 +13568,10 @@ class BM_Request {
 						$transaction_data['refund_status'] = 'succeeded';
 
 						do_action( 'flexibooking_set_process_failed_order_refund', $booking_key );
+						// Event-driven dispatch for failed order refund.
+						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+							SG_Event_Dispatcher::dispatch( 'booking.failed_refund', array( 'booking_key' => $booking_key, 'transaction_id' => $transaction_id ) );
+						}
 						$is_cancelled = true;
 					} else {
 						$transaction_data['refund_status'] = 'failed';
@@ -13538,6 +13585,10 @@ class BM_Request {
 						$transaction_data['refund_status'] = 'succeeded';
 
 						do_action( 'flexibooking_set_process_failed_order_refund', $booking_key );
+						// Event-driven dispatch for failed order refund (succeeded path).
+						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+							SG_Event_Dispatcher::dispatch( 'booking.failed_refund', array( 'booking_key' => $booking_key, 'transaction_id' => $transaction_id, 'refund_id' => $refund['id'] ?? '' ) );
+						}
 						$is_cancelled = true;
 					} else {
 						$transaction_data['refund_status'] = 'failed';
@@ -13861,10 +13912,21 @@ class BM_Request {
 
 		if ( $cancelled ) {
 			do_action( 'flexibooking_set_process_cancel_order', $booking_id );
+
+			// Event-driven dispatch for booking cancellation.
+			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+				SG_Event_Dispatcher::dispatch( 'booking.cancelled', array( 'booking_id' => $booking_id ) );
+			}
+
 			$refund_id = apply_filters( 'flexibooking_refund_cancelled_order', $booking_id );
 
 			if ( ! empty( $refund_id ) ) {
 				do_action( 'flexibooking_set_process_order_refund', $booking_id, $refund_id );
+
+				// Event-driven dispatch for refund processing.
+				if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+					SG_Event_Dispatcher::dispatch( 'payment.refunded', array( 'booking_id' => $booking_id, 'refund_id' => $refund_id ) );
+				}
 			}
 
 			$dbhandler->update_global_option_value( 'bm_is_booking_cancelled-' . $booking_id, 1 );
@@ -13962,6 +14024,12 @@ class BM_Request {
 
 		if ( $approved ) {
 			do_action( 'flexibooking_set_process_approved_order', $booking_id );
+
+			// Event-driven dispatch for booking approval.
+			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+				SG_Event_Dispatcher::dispatch( 'booking.approved', array( 'booking_id' => $booking_id ) );
+			}
+
 			$voucher_code = $dbhandler->get_value( 'VOUCHERS', 'code', $booking_id, 'booking_id' );
 
 			if ( ! empty( $voucher_code ) ) {

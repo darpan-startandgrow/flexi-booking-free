@@ -87,7 +87,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function is_pro_active() {
-		return (bool) apply_filters( 'sg_booking_is_pro_active', false );
+		return false;
 	}
 
 	/**
@@ -99,10 +99,6 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_voucher() {
-		if ( self::is_pro_active() ) {
-			return true;
-		}
-
 		$dbhandler = new BM_DBhandler();
 		$count     = $dbhandler->bm_count( 'VOUCHERS' );
 
@@ -112,13 +108,9 @@ class Booking_Management_Limits {
 	/**
 	 * Get the remaining voucher count for the free version.
 	 *
-	 * @return int Remaining vouchers allowed (-1 if unlimited/Pro).
+	 * @return int Remaining vouchers allowed.
 	 */
 	public static function get_remaining_vouchers() {
-		if ( self::is_pro_active() ) {
-			return -1;
-		}
-
 		$dbhandler = new BM_DBhandler();
 		$count     = (int) $dbhandler->bm_count( 'VOUCHERS' );
 		$remaining = self::FREE_VOUCHER_LIMIT - $count;
@@ -135,7 +127,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_add_custom_field() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -148,9 +140,6 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_delete_field( $field_name = '' ) {
-		if ( self::is_pro_active() ) {
-			return true;
-		}
 		return ! in_array( $field_name, self::FREE_DEFAULT_FIELD_NAMES, true );
 	}
 
@@ -163,7 +152,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_form() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -175,10 +164,6 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_notification_process() {
-		if ( self::is_pro_active() ) {
-			return true;
-		}
-
 		$dbhandler = new BM_DBhandler();
 		$count     = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
 
@@ -188,13 +173,9 @@ class Booking_Management_Limits {
 	/**
 	 * Get the remaining notification process count for the free version.
 	 *
-	 * @return int Remaining processes allowed (-1 if unlimited/Pro).
+	 * @return int Remaining processes allowed.
 	 */
 	public static function get_remaining_notification_processes() {
-		if ( self::is_pro_active() ) {
-			return -1;
-		}
-
 		$dbhandler = new BM_DBhandler();
 		$count     = (int) $dbhandler->bm_count( 'EVENTNOTIFICATION' );
 		$remaining = self::FREE_NOTIFICATION_PROCESS_LIMIT - $count;
@@ -213,10 +194,6 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_mail_template( $template_type = '' ) {
-		if ( self::is_pro_active() ) {
-			return true;
-		}
-
 		// Check template type restriction.
 		if ( ! empty( $template_type ) && ! in_array( $template_type, self::FREE_MAIL_TEMPLATE_TYPES, true ) ) {
 			return false;
@@ -231,13 +208,9 @@ class Booking_Management_Limits {
 	/**
 	 * Get the remaining mail template count for the free version.
 	 *
-	 * @return int Remaining templates allowed (-1 if unlimited/Pro).
+	 * @return int Remaining templates allowed.
 	 */
 	public static function get_remaining_mail_templates() {
-		if ( self::is_pro_active() ) {
-			return -1;
-		}
-
 		$dbhandler = new BM_DBhandler();
 		$count     = (int) $dbhandler->bm_count( 'EMAIL_TMPL' );
 		$remaining = self::FREE_MAIL_TEMPLATE_LIMIT - $count;
@@ -254,7 +227,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_qr_scanning() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -266,7 +239,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_pdf_customizer() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -278,7 +251,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_price_modules() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -290,7 +263,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_coupons() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -302,7 +275,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_full_analytics() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -314,7 +287,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_manage_columns() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -326,7 +299,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_advanced_time_slots() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -338,7 +311,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_advanced_global_settings() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -350,7 +323,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_stop_sales() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -362,7 +335,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_saleswitch() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -374,7 +347,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_edit_max_capacity() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -386,7 +359,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_age_settings() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -398,7 +371,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_customer() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -410,7 +383,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_resend_email() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -422,7 +395,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_ticket_scanner() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -434,7 +407,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_resend_ticket() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -446,7 +419,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_payment_logs() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -458,7 +431,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_smtp() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -470,7 +443,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_advanced_dashboard() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**
@@ -482,7 +455,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_redeem_voucher() {
-		return self::is_pro_active();
+		return false;
 	}
 
 	/**

@@ -2,9 +2,28 @@
 class BM_Email
 {
 
+	/**
+	 * Cached DB handler instance to avoid repeated instantiation.
+	 *
+	 * @var BM_DBhandler|null
+	 */
+	private $dbhandler = null;
+
+	/**
+	 * Get or create a cached BM_DBhandler instance.
+	 *
+	 * @return BM_DBhandler
+	 */
+	private function get_dbhandler() {
+		if ( null === $this->dbhandler ) {
+			$this->dbhandler = new BM_DBhandler();
+		}
+		return $this->dbhandler;
+	}
+
 
 	public function bm_send_notification_to_shop_admin( $subject, $message, $booking_id ) {
-		$dbhandler           = new BM_DBhandler();
+		$dbhandler           = $this->get_dbhandler();
 		$bmrequests          = new BM_Request();
 		$from_email_address  = $this->bm_get_from_email();
 		$admin_email_address = $this->bm_get_admin_email();
@@ -28,18 +47,83 @@ class BM_Email
 			$bmrequests->bm_restore_locale( $old_locale );
 		}
 
+		/**
+		 * Filters the admin notification email subject.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$subject = apply_filters( 'sg_booking_admin_email_subject', $subject, $booking_id );
+
+		/**
+		 * Filters the admin notification email body.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $message    The email HTML body.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$message = apply_filters( 'sg_booking_admin_email_content', $message, $booking_id );
+
+		/**
+		 * Filters the admin notification email headers.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $headers    The email headers string.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$headers = apply_filters( 'sg_booking_admin_email_headers', $headers, $booking_id );
+
+		/**
+		 * Filters the admin notification email attachments.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $attachment_urls Array of attachment file paths.
+		 * @param int   $booking_id     The booking ID.
+		 */
+		$attachment_urls = apply_filters( 'sg_booking_admin_email_attachments', $attachment_urls, $booking_id );
+
+		/**
+		 * Fires before the admin notification email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $admin_email_address The recipient email address.
+		 * @param string $subject             The email subject.
+		 * @param string $message             The email body.
+		 * @param int    $booking_id          The booking ID.
+		 */
+		do_action( 'sg_booking_before_admin_email', $admin_email_address, $subject, $message, $booking_id );
+
 		if ( is_string( $admin_email_address ) ) {
-			return wp_mail( maybe_unserialize( $admin_email_address ), $subject, $message, $headers, $attachment_urls );
+			$result = wp_mail( maybe_unserialize( $admin_email_address ), $subject, $message, $headers, $attachment_urls );
 		} else {
-			return wp_mail( $admin_email_address, $subject, $message, $headers, $attachment_urls );
+			$result = wp_mail( $admin_email_address, $subject, $message, $headers, $attachment_urls );
 		}
+
+		/**
+		 * Fires after the admin notification email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param bool   $result     Whether wp_mail() succeeded.
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		do_action( 'sg_booking_after_admin_email', $result, $subject, $booking_id );
+
+		return $result;
 	}//end bm_send_notification_to_shop_admin()
 
 
 	public function bm_send_email_to_customer( $subject, $message, $booking_id ) {
 		$bmrequests         = new BM_Request();
 		$from_email_address = $this->bm_get_from_email();
-		$dbhandler          = new BM_DBhandler();
+		$dbhandler          = $this->get_dbhandler();
 		$booking_refrence   = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
 		// $old_locale         = $bmrequests->bm_switch_locale_by_booking_reference( $booking_refrence );
 		$headers         = "MIME-Version: 1.0\r\n";
@@ -53,14 +137,80 @@ class BM_Email
 		// if( $old_locale ){
 		// $bmrequests->bm_restore_locale( $old_locale );
 		// }
-		return wp_mail( $customer_email, $subject, $message, $headers, $attachment_urls );
+
+		/**
+		 * Filters the customer email subject.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$subject = apply_filters( 'sg_booking_customer_email_subject', $subject, $booking_id );
+
+		/**
+		 * Filters the customer email body.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $message    The email HTML body.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$message = apply_filters( 'sg_booking_customer_email_content', $message, $booking_id );
+
+		/**
+		 * Filters the customer email headers.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $headers    The email headers string.
+		 * @param int    $booking_id The booking ID.
+		 */
+		$headers = apply_filters( 'sg_booking_customer_email_headers', $headers, $booking_id );
+
+		/**
+		 * Filters the customer email attachments.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param array $attachment_urls Array of attachment file paths.
+		 * @param int   $booking_id     The booking ID.
+		 */
+		$attachment_urls = apply_filters( 'sg_booking_customer_email_attachments', $attachment_urls, $booking_id );
+
+		/**
+		 * Fires before the customer email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $customer_email The customer email address.
+		 * @param string $subject        The email subject.
+		 * @param string $message        The email body.
+		 * @param int    $booking_id     The booking ID.
+		 */
+		do_action( 'sg_booking_before_customer_email', $customer_email, $subject, $message, $booking_id );
+
+		$result = wp_mail( $customer_email, $subject, $message, $headers, $attachment_urls );
+
+		/**
+		 * Fires after the customer email is sent.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param bool   $result     Whether wp_mail() succeeded.
+		 * @param string $subject    The email subject.
+		 * @param int    $booking_id The booking ID.
+		 */
+		do_action( 'sg_booking_after_customer_email', $result, $subject, $booking_id );
+
+		return $result;
 	}//end bm_send_email_to_customer()
 
 
 	public function bm_send_voucher_email_to_recipient( $subject, $message, $booking_id, $send_voucher_pdf = true ) {
 		$bmrequests         = new BM_Request();
 		$from_email_address = $this->bm_get_from_email();
-		$dbhandler          = new BM_DBhandler();
+		$dbhandler          = $this->get_dbhandler();
 		$booking_refrence   = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
 		$old_locale         = $bmrequests->bm_switch_locale_by_booking_reference( $booking_refrence );
 
@@ -81,7 +231,7 @@ class BM_Email
 
 
 	public function bm_get_template_email_content( $template_id, $booking_id, $customer = false ) {
-		$dbhandler = new BM_DBhandler();
+		$dbhandler = $this->get_dbhandler();
 		$language  = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 		$back_lang = $dbhandler->get_global_option_value( 'bm_flexi_current_language_backend', '' );
 		$language  = ! empty( $back_lang ) ? $back_lang : $language;
@@ -99,7 +249,7 @@ class BM_Email
 
 
 	public function bm_get_template_email_subject( $template_id, $booking_id, $customer = false ) {
-		$dbhandler = new BM_DBhandler();
+		$dbhandler = $this->get_dbhandler();
 		$language  = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 		$back_lang = $dbhandler->get_global_option_value( 'bm_flexi_current_language_backend', '' );
 		$language  = ! empty( $back_lang ) ? $back_lang : $language;
@@ -128,12 +278,23 @@ class BM_Email
 			}
 		}
 
+		/**
+		 * Filters the final email content after placeholder replacement.
+		 *
+		 * @since 1.1.0
+		 *
+		 * @param string $message    The processed email body.
+		 * @param int    $booking_id The booking ID.
+		 * @param bool   $customer   Whether this is a customer email.
+		 */
+		$message = apply_filters( 'sg_booking_email_content_filtered', $message, $booking_id, $customer );
+
 		return $message;
 	}//end bm_filter_email_content()
 
 
 	public function bm_get_from_email() {
-		$dbhandler     = new BM_DBhandler();
+		$dbhandler     = $this->get_dbhandler();
 		$email_address = '';
 
 		if ( $dbhandler->get_global_option_value( 'bm_enable_smtp' ) == 1 ) {
@@ -147,7 +308,7 @@ class BM_Email
 
 
 	public function bm_get_from_name() {
-		$dbhandler = new BM_DBhandler();
+		$dbhandler = $this->get_dbhandler();
 		$from_name = '';
 
 		if ( $dbhandler->get_global_option_value( 'bm_enable_smtp' ) == 1 ) {
@@ -169,7 +330,7 @@ class BM_Email
 
 
 	public function bm_get_admin_email() {
-		$dbhandler     = new BM_DBhandler();
+		$dbhandler     = $this->get_dbhandler();
 		$email_address = array( get_option( 'admin_email' ) );
 		$extra_emails  = maybe_unserialize( $dbhandler->get_global_option_value( 'bm_shop_admin_email' ) );
 
