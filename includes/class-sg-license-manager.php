@@ -363,6 +363,16 @@ class SG_License_Manager {
 	public function activate_license( $license_key, $item_id = '' ) {
 		$license_key = sanitize_text_field( $license_key );
 
+		/**
+		 * Fires before a license activation attempt.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param string $license_key The license key being activated.
+		 * @param string $item_id     The product/plan ID.
+		 */
+		do_action( 'sg_license_before_activation', $license_key, $item_id );
+
 		update_option( self::OPTION_LICENSE_KEY, $license_key );
 		delete_transient( self::TRANSIENT_KEY );
 
@@ -377,10 +387,23 @@ class SG_License_Manager {
 			$valid = $this->validate_license( $license_key, $item_id );
 		}
 
-		update_option( self::OPTION_LICENSE_STATUS, $valid ? 'active' : 'invalid' );
+		$status = $valid ? 'active' : 'invalid';
+		update_option( self::OPTION_LICENSE_STATUS, $status );
 
 		// Cache the activation result.
 		set_transient( self::TRANSIENT_KEY, $valid ? 1 : 0, self::CACHE_DURATION );
+
+		/**
+		 * Fires after a license activation attempt completes.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param string $license_key The license key.
+		 * @param bool   $valid       Whether activation succeeded.
+		 * @param string $status      The new license status ('active' or 'invalid').
+		 * @param string $provider    The license provider used ('edd', 'freemius', 'custom').
+		 */
+		do_action( 'sg_license_after_activation', $license_key, $valid, $status, $provider );
 
 		return $valid;
 	}
@@ -394,6 +417,16 @@ class SG_License_Manager {
 		$license_key = $this->get_license_key();
 		$provider    = $this->get_provider();
 
+		/**
+		 * Fires before a license deactivation attempt.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param string $license_key The license key being deactivated.
+		 * @param string $provider    The license provider ('edd', 'freemius', 'custom').
+		 */
+		do_action( 'sg_license_before_deactivation', $license_key, $provider );
+
 		// Tell the remote server to release this site.
 		if ( ! empty( $license_key ) && 'edd' === $provider ) {
 			$this->edd_deactivate( $license_key );
@@ -403,6 +436,16 @@ class SG_License_Manager {
 		delete_option( self::OPTION_LICENSE_EXPIRY );
 		update_option( self::OPTION_LICENSE_STATUS, 'inactive' );
 		delete_transient( self::TRANSIENT_KEY );
+
+		/**
+		 * Fires after a license is deactivated.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param string $license_key The license key that was deactivated.
+		 * @param string $provider    The license provider.
+		 */
+		do_action( 'sg_license_after_deactivation', $license_key, $provider );
 	}
 
 	// ------------------------------------------------------------------
@@ -442,7 +485,21 @@ class SG_License_Manager {
 	 * @return bool
 	 */
 	public function is_license_active() {
-		return 'active' === $this->get_license_status();
+		$is_active = ( 'active' === $this->get_license_status() );
+
+		/**
+		 * Filter the license active status.
+		 *
+		 * Allows external plugins to override the license check
+		 * (e.g., during testing or custom license integration).
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param bool   $is_active   Whether the license is active.
+		 * @param string $license_key The stored license key.
+		 * @param string $status      The raw status string.
+		 */
+		return (bool) apply_filters( 'sg_license_is_active', $is_active, $this->get_license_key(), $this->get_license_status() );
 	}
 
 	// ------------------------------------------------------------------
@@ -595,6 +652,29 @@ class SG_License_Manager {
 			return;
 		}
 
+		/**
+		 * Filter whether to display the license notice.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param bool   $show   Whether to show the notice. Default true.
+		 * @param string $status The current license status.
+		 * @param string $screen The current admin screen ID.
+		 */
+		$show = apply_filters( 'sg_license_show_notice', true, $status, $screen->id );
+		if ( ! $show ) {
+			return;
+		}
+
+		/**
+		 * Fires before the license admin notice is displayed.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param string $status The license status ('invalid' or 'expired').
+		 */
+		do_action( 'sg_license_before_notice', $status );
+
 		?>
 		<div class="notice notice-warning is-dismissible">
 			<p>
@@ -610,6 +690,15 @@ class SG_License_Manager {
 			</p>
 		</div>
 		<?php
+
+		/**
+		 * Fires after the license admin notice is displayed.
+		 *
+		 * @since 1.2.0
+		 *
+		 * @param string $status The license status.
+		 */
+		do_action( 'sg_license_after_notice', $status );
 	}
 }
 

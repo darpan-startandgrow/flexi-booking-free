@@ -25,13 +25,25 @@ class Booking_Management_Deactivator {
 
 
     /**
-     * Short Description. (use period)
+     * Deactivation cleanup.
      *
-     * Long Description.
+     * Unschedules the async queue cron event and fires a
+     * deactivation hook for extensions.
      *
      * @since 1.0.0
      */
     public static function deactivate() {
+        // Unschedule the async queue processor.
+        if ( class_exists( 'SG_Async_Queue' ) ) {
+            SG_Async_Queue::unschedule();
+        }
+
+        /**
+         * Fires during plugin deactivation.
+         *
+         * @since 1.2.0
+         */
+        do_action( 'sg_booking_deactivated' );
     }/**end deactivate()*/
 
 

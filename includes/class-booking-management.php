@@ -84,6 +84,9 @@ class Booking_Management {
 		 */
 		do_action( 'sg_booking_init_pro_connections' );
 
+		// Initialize hybrid architecture components.
+		$this->init_event_system();
+
 		// ✅ Initialize the API
         $this->init_api();
 
@@ -178,6 +181,19 @@ class Booking_Management {
 		 * The Pro plugin uses this to verify its license status.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-license-manager.php';
+
+		/**
+		 * Hybrid architecture classes for performance and scalability.
+		 *
+		 * - Event Dispatcher: Event-driven architecture for decoupled processing.
+		 * - Cache Manager:    Unified caching layer (Redis/Memcached/Transients).
+		 * - Async Queue:      Background job processor for heavy tasks.
+		 *
+		 * @since 1.2.0
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-event-dispatcher.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-cache-manager.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-async-queue.php';
 
 		/**
 		 * Core REST API for the Lite plugin's own frontend.
@@ -592,5 +608,32 @@ class Booking_Management {
 	 */
 	public function get_version() {
          return $this->version;
+	}
+
+	/**
+	 * Initialize the event-driven architecture components.
+	 *
+	 * Sets up the Event Dispatcher with default async events and
+	 * ensures the Async Queue cron is scheduled.
+	 *
+	 * @since 1.2.0
+	 * @access private
+	 */
+	private function init_event_system() {
+		// Register default async events (email, PDF, analytics, webhooks).
+		SG_Event_Dispatcher::register_default_events();
+
+		// Ensure the queue processor cron is active.
+		SG_Async_Queue::get_instance()->ensure_scheduled();
+
+		/**
+		 * Fires after the event system is initialized.
+		 *
+		 * Use this hook to register custom event listeners or
+		 * mark additional events as asynchronous.
+		 *
+		 * @since 1.2.0
+		 */
+		do_action( 'sg_booking_event_system_init' );
 	}
 }
