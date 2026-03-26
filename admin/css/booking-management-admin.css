@@ -3260,6 +3260,34 @@ input.copytextTooltip::selection {
     min-width: auto !important;
 }
 
+#service_records_listing .wp-list-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#service_records_listing .wp-list-table thead th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#service_records_listing .wp-list-table td,
+#service_records_listing .wp-list-table th {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+#service_records_listing .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+#service_records_listing .tablenav .actions select {
+    min-width: 140px;
+}
+
 #approveorder {
     background: #019d07;
     color: #fff;

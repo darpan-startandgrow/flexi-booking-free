@@ -22,10 +22,6 @@ $id                 = filter_input( INPUT_GET, 'id', FILTER_VALIDATE_INT );
 $service_extra_id   = filter_input( INPUT_POST, 'svc_extra_id', FILTER_VALIDATE_INT );
 $extra_id           = filter_input( INPUT_GET, 'extra_id', FILTER_VALIDATE_INT );
 $currency_symbol    = $bmrequests->bm_get_currency_symbol( $dbhandler->get_global_option_value( 'bm_booking_currency', 'EUR' ) );
-$stopsales_limit    = $dbhandler->get_global_option_value( 'bm_allowed_stopsales', 0 );
-$stopsales_limit    = !empty( $stopsales_limit ) ? $stopsales_limit : 24;
-$saleswitch_limit   = $dbhandler->get_global_option_value( 'bm_allowed_saleswitch', 0 );
-$saleswitch_limit   = !empty( $saleswitch_limit ) ? $saleswitch_limit : 24;
 $new_wc_price       = 0;
 $price_modules      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', '*', 1, 'results' );
 $image_quality      = intval( $dbhandler->get_global_option_value( 'bm_image_quality', '90' ) );
@@ -160,34 +156,14 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
     $exclude = array( '_wpnonce', '_wp_http_referer', 'savesvc', 'upsvc' );
 
-    $data = array(
-        'service_name'            => isset( $_POST['service_name'] ) ? ucfirst( filter_input( INPUT_POST, 'service_name' ) ) : '',
-        'service_calendar_title'  => isset( $_POST['service_calendar_title'] ) ? ucfirst( filter_input( INPUT_POST, 'service_calendar_title' ) ) : '',
-        'service_category'        => isset( $_POST['service_category'] ) ? filter_input( INPUT_POST, 'service_category', FILTER_VALIDATE_INT ) : null,
-        'service_duration'        => isset( $_POST['service_duration'] ) ? filter_input( INPUT_POST, 'service_duration' ) : null,
-        'service_operation'       => isset( $_POST['service_operation'] ) ? filter_input( INPUT_POST, 'service_operation' ) : null,
-        'service_unavailability'  => isset( $_POST['service_unavailability'] ) ? filter_input( INPUT_POST, 'service_unavailability', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-        'service_options'         => isset( $_POST['service_options'] ) && array_filter( filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) ) ? filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-        'default_max_cap'         => !empty( $_POST['default_max_cap'] ) ? filter_input( INPUT_POST, 'default_max_cap' ) : 1,
-        'default_stopsales'       => isset( $_POST['default_stopsales'] ) ? filter_input( INPUT_POST, 'default_stopsales' ) : null,
-        'default_saleswitch'      => isset( $_POST['default_saleswitch'] ) ? filter_input( INPUT_POST, 'default_saleswitch' ) : null,
-        'is_only_book_on_request' => isset( $_POST['is_only_book_on_request'] ) ? 1 : 0,
-        'is_service_front'        => isset( $_POST['is_service_front'] ) ? 1 : 0,
-        'show_stopsales_data'     => isset( $_POST['show_stopsales_data'] ) ? 1 : 0,
-        'service_short_desc'      => isset( $_POST['service_short_desc'] ) ? filter_input( INPUT_POST, 'service_short_desc' ) : null,
-        'service_desc'            => isset( $_POST['service_desc'] ) ? filter_input( INPUT_POST, 'service_desc' ) : null,
-        'default_price'           => isset( $_POST['default_price'] ) ? filter_input( INPUT_POST, 'default_price' ) : null,
-        'external_price_module'   => isset( $_POST['external_price_module'] ) ? filter_input( INPUT_POST, 'external_price_module' ) : null,
-        'service_image_guid'      => isset( $_POST['svc_image_id'] ) ? filter_input( INPUT_POST, 'svc_image_id' ) : 0,
-        'is_linked_wc_product'    => isset( $_POST['is_linked_wc_product'] ) ? 1 : 0,
-        'wc_product'              => isset( $_POST['is_linked_wc_product'] ) ? filter_input( INPUT_POST, 'wc_product' ) : null,
-        'service_settings'        => isset( $_POST['service_settings'] ) ? filter_input( INPUT_POST, 'service_settings', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-    );
+    require __DIR__ . '/save-service-details.php';
+    require __DIR__ . '/save-unavailability.php';
+    require __DIR__ . '/save-gallery.php';
+    require __DIR__ . '/save-prices.php';
 
-    $svc_gallery = array(
-        'module_type' => isset( $svc_identifier ) ? $svc_identifier : '',
-        'image_guid'  => isset( $_POST['svc_gallery_image_id'] ) ? filter_input( INPUT_POST, 'svc_gallery_image_id' ) : null,
-    );
+    $data = array_merge( $service_details_data, $unavailability_data );
+
+    $svc_gallery = $gallery_data;
 
     $time_data = array(
         'total_slots'  => isset( $_POST['total_time_slots'] ) ? filter_input( INPUT_POST, 'total_time_slots' ) : null,
@@ -209,24 +185,7 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
     );
 
     if ( ( filter_input( INPUT_POST, 'savesvc' ) ) ) {
-        if ( isset( $_POST['variable_svc_prices'] ) ) {
-            $data['variable_svc_prices'] = filter_input( INPUT_POST, 'variable_svc_prices', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_svc_price_modules'] ) ) {
-            $data['variable_svc_price_modules'] = filter_input( INPUT_POST, 'variable_svc_price_modules', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_stopsales'] ) ) {
-            $data['variable_stopsales'] = filter_input( INPUT_POST, 'variable_stopsales', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_saleswitch'] ) ) {
-            $data['variable_saleswitch'] = filter_input( INPUT_POST, 'variable_saleswitch', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_max_cap'] ) ) {
-            $data['variable_max_cap'] = filter_input( INPUT_POST, 'variable_max_cap', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_time_slots'] ) ) {
-            $data['variable_time_slots'] = filter_input( INPUT_POST, 'variable_time_slots', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
+        $data = array_merge( $data, $prices_data );
 
         $service_post = $bmrequests->sanitize_request( $data, $svc_identifier, $exclude );
 
@@ -304,12 +263,6 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 				$data['variable_svc_prices'] = null;
 
 				$data['variable_svc_price_modules'] = null;
-			}
-			if ( ( filter_input( INPUT_POST, 'default_stopsales' ) != filter_input( INPUT_POST, 'old_default_stopsales' ) ) ) {
-				$data['variable_stopsales'] = null;
-			}
-			if ( ( filter_input( INPUT_POST, 'default_saleswitch' ) != filter_input( INPUT_POST, 'old_default_saleswitch' ) ) ) {
-				$data['variable_saleswitch'] = null;
 			}
 			if ( ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) ) {
 				$data['variable_max_cap'] = null;
@@ -522,6 +475,18 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) != 0 ? 'active' : ''; ?>" id="extra_button" onclick="openSection(event, 'service_extra')"><?php esc_html_e( 'Extra', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="price_calendar_button" onclick="openSection(event, 'price_calendar')"><?php esc_html_e( 'Prices', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Unavailability and other settings', 'service-booking' ); ?></button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Stop Sales', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Stop Sales', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Sale Switch', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Sale Switch', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Default Max Capacity', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Default Max Capacity', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Time Slots', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Time Slots', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
             </div>
 
         <tbody>
@@ -789,44 +754,6 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                 }
                             }
                             ?>
-                        </td>
-                    </tr>
-                    <input type="hidden" name="old_default_stopsales" id="old_default_stopsales">
-                    <input type="hidden" name="old_default_saleswitch" id="old_default_saleswitch">
-                    <tr>
-                        <th scope="row"><label for="default_stopsales"><?php esc_html_e( 'Default Stopsales (in hrs)', 'service-booking' ); ?></label></th>
-                        <td>
-                            <select name="default_stopsales" id="default_stopsales" class="regular-text" onchange="addStopsalesInfo()">
-                                <option value="<?php echo esc_attr( 0 ); ?>"><?php esc_html_e( 'Select Stopsales Duration', 'service-booking' ); ?></option>
-                                <?php for ( $i=0.5; $i<=$stopsales_limit; $i+=0.5 ) { ?>
-                                    <option value="<?php echo esc_attr( $i ); ?>" <?php isset( $svc_row ) && isset( $svc_row->default_stopsales ) ? selected( esc_attr( $svc_row->default_stopsales ), $i ) : ''; ?>><?php echo esc_html( $bmrequests->bm_convert_float_to_time_string( $i ) ); ?></option>
-                                <?php } ?>
-                            </select>
-                            <span class="info_text">
-                                <?php esc_html_e( 'If stopsales of a service is 4 hours, then the service is not bookable until 4 hours from the current time ( if current time is 10AM, product will be bookable for slots available after 2PM )', 'service-booking' ); ?>
-                            </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="default_saleswitch"><?php esc_html_e( 'Default Saleswitch (in hrs)', 'service-booking' ); ?></label></th>
-                        <td>
-                            <select name="default_saleswitch" id="default_saleswitch" class="regular-text" onchange="addSaleswitchInfo()">
-                                <option value="<?php echo esc_attr( 0 ); ?>"><?php esc_html_e( 'Select Saleswitch Duration', 'service-booking' ); ?></option>
-                                <?php for ( $i=0.5; $i<=$saleswitch_limit; $i+=0.5 ) { ?>
-                                    <option value="<?php echo esc_attr( $i ); ?>" <?php isset( $svc_row ) && isset( $svc_row->default_saleswitch ) ? selected( esc_attr( $svc_row->default_saleswitch ), $i ) : ''; ?>><?php echo esc_html( $bmrequests->bm_convert_float_to_time_string( $i ) ); ?></option>
-                                <?php } ?>
-                            </select>
-                            <span class="info_text">
-                                <?php esc_html_e( 'If saleswicth of a service is 4 hours, then until 4 hours from the service bookable time, the bookings are eligible for book on request service, after that, only direct booking is allowed', 'service-booking' ); ?>
-                            </span>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row"><?php esc_html_e( 'Book on request only ?', 'service-booking' ); ?></th>
-                        <td class="bm-checkbox-td">
-                            <input name="is_only_book_on_request" type="checkbox" id="is_only_book_on_request" class="regular-text bm_toggle" <?php isset( $svc_row ) && isset( $svc_row->is_only_book_on_request ) ? checked( esc_attr( $svc_row->is_only_book_on_request ), 1 ) : ''; ?>>
-                            <label for="is_only_book_on_request"></label>
                         </td>
                     </tr>
 
@@ -1523,13 +1450,6 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                             ?>
                          class="regular-text bm_toggle">
                          <label for="is_service_front"></label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e( 'Show stopsales info in frontend ?', 'service-booking' ); ?></th>
-                        <td class="bm-checkbox-td">
-                            <input name="show_stopsales_data" type="checkbox" id="show_stopsales_data" class="regular-text bm_toggle" <?php isset( $svc_row ) && isset( $svc_row->show_stopsales_data ) ? checked( esc_attr( $svc_row->show_stopsales_data ), 1 ) : ''; ?>>
-                            <label for="show_stopsales_data"></label>
                         </td>
                     </tr>
                     <tr>

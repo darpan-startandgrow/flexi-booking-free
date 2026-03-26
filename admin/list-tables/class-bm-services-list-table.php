@@ -171,7 +171,7 @@ class BM_Services_List_Table extends WP_List_Table {
 		printf( '<option value="0"%s>%s</option>', selected( $visibility_filter, '0', false ), esc_html__( 'Hidden', 'service-booking' ) );
 		echo '</select>';
 
-		submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false );
+		submit_button( __( 'Apply', 'service-booking' ), '', 'filter_action', false );
 		echo '</div>';
 	}
 
