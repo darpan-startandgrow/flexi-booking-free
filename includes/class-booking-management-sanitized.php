@@ -1225,4 +1225,80 @@ class BM_Sanitizer {
 	} //end get_sanitized_coupon_field()
 
 
+
+	/**
+	 * Sanitize global extra fields.
+	 *
+	 * @since 1.5.0
+	 * @param string $field Field name.
+	 * @param mixed  $value Field value.
+	 * @return mixed Sanitized value.
+	 */
+	public function get_sanitized_global_extra_field( $field, $value ) {
+		switch ( $field ) {
+			case 'id':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'extra_name':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'extra_duration':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'extra_operation':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'extra_price':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'extra_max_cap':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'is_extra_service_front':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'is_linked_wc_extrasvc':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'svcextra_wc_product':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'extra_desc':
+				$value = wp_kses_post( $value );
+				break;
+			default:
+				$value = sanitize_text_field( $value );
+		} //end switch
+
+		return $value;
+	} //end get_sanitized_global_extra_field()
+
+
+	/**
+	 * Sanitize service–global-extra junction fields.
+	 *
+	 * @since 1.5.0
+	 * @param string $field Field name.
+	 * @param mixed  $value Field value.
+	 * @return mixed Sanitized value.
+	 */
+	public function get_sanitized_service_global_extra_field( $field, $value ) {
+		switch ( $field ) {
+			case 'id':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'service_id':
+				$value = sanitize_text_field( $value );
+				break;
+			case 'global_extra_id':
+				$value = sanitize_text_field( $value );
+				break;
+			default:
+				$value = sanitize_text_field( $value );
+		} //end switch
+
+		return $value;
+	} //end get_sanitized_service_global_extra_field()
+
+
 }//end class

@@ -530,6 +530,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) == 0 ? 'active' : ''; ?>" onclick="openSection(event, 'service_details')"><?php esc_html_e( 'Service Details', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="gallery_button" onclick="openSection(event, 'service_gallery')"><?php esc_html_e( 'Gallery', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) != 0 ? 'active' : ''; ?>" id="extra_button" onclick="openSection(event, 'service_extra')"><?php esc_html_e( 'Extra', 'service-booking' ); ?></button>
+                <button type="button" class="tablinks" id="shared_extra_button" onclick="openSection(event, 'service_shared_extra')"><?php esc_html_e( 'Shared Extras', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="price_calendar_button" onclick="openSection(event, 'price_calendar')"><?php esc_html_e( 'Prices', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Availability', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Stop Sales', 'service-booking' ); ?>">
@@ -1233,6 +1234,121 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                         <?php } ?>
 
                     </table>
+                </div>
+
+                <!-- ══════ SHARED EXTRAS TAB ══════ -->
+                <div id="service_shared_extra" class="tabcontent">
+                    <?php if ( $id > 0 ) : ?>
+                        <?php
+                        // Fetch linked global extras for this service.
+                        $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                        $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                        $all_global_extras = $dbhandler->get_all_result( 'GLOBAL_EXTRA', '*', 1, 'results' );
+                        ?>
+
+                        <?php
+                        // ── Handle link action ──
+                        if ( isset( $_POST['bm_svc_link_shared_extra'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce_svc_shared'] ?? '' ) ), 'bm_svc_shared_extra_nonce' ) ) {
+                            $link_ge_id = absint( $_POST['link_global_extra_id'] ?? 0 );
+                            if ( $link_ge_id > 0 && ! in_array( $link_ge_id, array_map( 'intval', $linked_ge_ids ), true ) ) {
+                                $dbhandler->insert_row( 'SERVICE_GLOBAL_EXTRA', array( 'service_id' => $id, 'global_extra_id' => $link_ge_id ) );
+                                echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared extra linked.', 'service-booking' ) . '</div>';
+                                // Refresh.
+                                $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                                $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                            }
+                        }
+                        // ── Handle unlink action ──
+                        if ( isset( $_POST['bm_svc_unlink_shared_extra'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce_svc_shared'] ?? '' ) ), 'bm_svc_shared_extra_nonce' ) ) {
+                            $unlink_ge_id = absint( $_POST['unlink_global_extra_id'] ?? 0 );
+                            if ( $unlink_ge_id > 0 ) {
+                                global $wpdb;
+                                $junction_table = ( new Booking_Management_Activator() )->get_db_table_name( 'SERVICE_GLOBAL_EXTRA' );
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- targeted junction delete
+                                $wpdb->query( $wpdb->prepare( "DELETE FROM `" . esc_sql( $junction_table ) . "` WHERE service_id = %d AND global_extra_id = %d", $id, $unlink_ge_id ) );
+                                echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared extra unlinked.', 'service-booking' ) . '</div>';
+                                $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                                $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                            }
+                        }
+                        ?>
+
+                        <h3><?php esc_html_e( 'Linked Shared Extras', 'service-booking' ); ?></h3>
+
+                        <?php if ( ! empty( $linked_ge_ids ) ) : ?>
+                            <table class="wp-list-table widefat striped">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Name', 'service-booking' ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php echo sprintf( esc_html__( 'Price (%s)', 'service-booking' ), esc_html( $currency_symbol ) ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Max Capacity (Pool)', 'service-booking' ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Services Sharing', 'service-booking' ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ( $linked_ge_ids as $ge_id ) :
+                                        $ge_row = $dbhandler->get_row( 'GLOBAL_EXTRA', $ge_id );
+                                        if ( ! $ge_row ) continue;
+                                        $ge_service_count = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', 'id', array( 'global_extra_id' => $ge_id ), 'results' );
+                                        $svc_count = is_array( $ge_service_count ) ? count( $ge_service_count ) : 0;
+                                    ?>
+                                        <tr>
+                                            <td style="text-align:center;"><?php echo esc_html( $ge_row->extra_name ); ?></td>
+                                            <td style="text-align:center;"><?php echo esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ge_row->extra_price, true ) ); ?></td>
+                                            <td style="text-align:center;"><?php echo esc_html( $ge_row->extra_max_cap ); ?></td>
+                                            <td style="text-align:center;">
+                                                <span class="bm-shared-badge bm-shared-badge--amber" title="<?php esc_attr_e( 'Number of services sharing this extra', 'service-booking' ); ?>">
+                                                    <span class="dashicons dashicons-share"></span> <?php echo esc_html( $svc_count ); ?>
+                                                </span>
+                                            </td>
+                                            <td style="text-align:center;">
+                                                <form method="post" style="display:inline;">
+                                                    <?php wp_nonce_field( 'bm_svc_shared_extra_nonce', '_wpnonce_svc_shared' ); ?>
+                                                    <input type="hidden" name="unlink_global_extra_id" value="<?php echo esc_attr( $ge_id ); ?>" />
+                                                    <button type="submit" name="bm_svc_unlink_shared_extra" class="delete-button" onclick="return confirm('<?php esc_attr_e( 'Unlink this shared extra from this service?', 'service-booking' ); ?>');" title="<?php esc_attr_e( 'Unlink', 'service-booking' ); ?>"><i class="fa fa-chain-broken" aria-hidden="true" style="color:red;"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php else : ?>
+                            <p><?php esc_html_e( 'No shared extras linked to this service yet.', 'service-booking' ); ?></p>
+                        <?php endif; ?>
+
+                        <hr style="margin:20px 0;" />
+                        <h3><?php esc_html_e( 'Link a Shared Extra', 'service-booking' ); ?></h3>
+                        <?php
+                        // Available (unlinked) global extras.
+                        $available_ge = array();
+                        if ( ! empty( $all_global_extras ) ) {
+                            foreach ( $all_global_extras as $ge ) {
+                                if ( ! in_array( (int) $ge->id, array_map( 'intval', $linked_ge_ids ), true ) ) {
+                                    $available_ge[] = $ge;
+                                }
+                            }
+                        }
+                        ?>
+                        <?php if ( ! empty( $available_ge ) ) : ?>
+                            <form method="post">
+                                <?php wp_nonce_field( 'bm_svc_shared_extra_nonce', '_wpnonce_svc_shared' ); ?>
+                                <select name="link_global_extra_id" class="regular-text">
+                                    <option value=""><?php esc_html_e( '— Select shared extra —', 'service-booking' ); ?></option>
+                                    <?php foreach ( $available_ge as $ge ) : ?>
+                                        <option value="<?php echo esc_attr( $ge->id ); ?>"><?php echo esc_html( $ge->extra_name ) . ' (' . esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ge->extra_price, true ) ) . ')'; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input type="submit" name="bm_svc_link_shared_extra" class="button button-primary" value="<?php esc_attr_e( 'Link', 'service-booking' ); ?>" />
+                            </form>
+                        <?php else : ?>
+                            <p><?php esc_html_e( 'All shared extras are already linked to this service, or none exist yet.', 'service-booking' ); ?>
+                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=bm_shared_extras' ) ); ?>"><?php esc_html_e( 'Create one in the Shared Extras dashboard.', 'service-booking' ); ?></a>
+                            </p>
+                        <?php endif; ?>
+                    <?php else : ?>
+                        <p><?php esc_html_e( 'Save the service first, then you can link shared extras.', 'service-booking' ); ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <input type="hidden" id="has_variable_price_module" value="0">

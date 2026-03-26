@@ -643,6 +643,7 @@ class Booking_Management_Admin {
 
 		add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
+		add_submenu_page( 'bm_home', __( 'Shared Extras', 'service-booking' ), __( 'Shared Extras', 'service-booking' ), 'manage_options', 'bm_shared_extras', array( $this, 'bm_shared_extras' ) );
 		add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
 		add_submenu_page( '', __( 'Add Category', 'service-booking' ), __( 'Add Category', 'service-booking' ), 'manage_options', 'bm_add_category', array( $this, 'bm_add_category' ) );
 
@@ -809,6 +810,11 @@ class Booking_Management_Admin {
 	public function bm_all_categories() {
 		include 'partials/booking-management-category-listing.php';
 	}//end bm_all_categories()
+
+
+	public function bm_shared_extras() {
+		include 'partials/booking-management-shared-extras.php';
+	}//end bm_shared_extras()
 
 
 	public function bm_add_category() {

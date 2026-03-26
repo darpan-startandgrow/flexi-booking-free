@@ -10626,9 +10626,16 @@ class BM_Request {
 						$total_extra_rows = $extra_rows;
 					}
 
+					// Also include global shared extras linked via the junction table.
+					$shared_extras = $this->bm_fetch_linked_global_extras_for_service( $service_id );
+					if ( ! empty( $shared_extras ) ) {
+						$total_extra_rows = isset( $total_extra_rows ) ? array_merge( $total_extra_rows, $shared_extras ) : $shared_extras;
+					}
+
 					if ( isset( $total_extra_rows ) && ! empty( $total_extra_rows ) ) {
 						foreach ( $total_extra_rows as $key => $extra_service ) {
-							$cap_left = $this->bm_fetch_extra_service_cap_left_by_extra_service_id_and_date( $extra_service->id, $extra_service->extra_max_cap, 0, $date );
+							$max_cap  = isset( $extra_service->extra_max_cap ) ? $extra_service->extra_max_cap : 0;
+							$cap_left = $this->bm_fetch_extra_service_cap_left_by_extra_service_id_and_date( $extra_service->id, $max_cap, 0, $date );
 
 							if ( $cap_left > 0 ) {
 								$extras[ $key ]           = $extra_service;
@@ -10644,6 +10651,37 @@ class BM_Request {
 
 		return $extras;
 	}//end bm_fetch_backend_new_order_extra_services()
+
+
+	/**
+	 * Fetch global extras linked to a service via the junction table.
+	 *
+	 * Returns an array of global-extra row objects with a synthetic `id` prefixed
+	 * by 'ge_' so they don't collide with legacy EXTRA ids.
+	 *
+	 * @since 1.5.0
+	 * @param int $service_id Service ID.
+	 * @return array Array of global extra objects.
+	 */
+	public function bm_fetch_linked_global_extras_for_service( $service_id ) {
+		$dbhandler = new BM_DBhandler();
+		$result    = array();
+
+		$links = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $service_id ), 'results' );
+		if ( ! empty( $links ) ) {
+			foreach ( $links as $link ) {
+				$ge = $dbhandler->get_row( 'GLOBAL_EXTRA', $link->global_extra_id );
+				if ( $ge && isset( $ge->is_extra_service_front ) ) {
+					// Mark as shared so capacity tracking can use the global pool.
+					$ge->_is_shared_extra   = true;
+					$ge->_global_extra_id   = $ge->id;
+					$result[] = $ge;
+				}
+			}
+		}
+
+		return $result;
+	}//end bm_fetch_linked_global_extras_for_service()
 
 
 	/**
