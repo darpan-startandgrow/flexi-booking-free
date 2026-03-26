@@ -1,5 +1,4 @@
 <?php
-$is_pro                = Booking_Management_Limits::is_pro_active();
 $dbhandler             = new BM_DBhandler();
 $bmrequests            = new BM_Request();
 $user_id               = get_current_user_id();
@@ -46,14 +45,10 @@ $orders_table->prepare_items();
     <div class="order_listing_top">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'All Orders', 'service-booking' ); ?></h2>
         <span style="float: left;">
-            <?php if ( $is_pro ) : ?>
-                <a href="admin.php?page=bm_add_order" class="button button-primary" title="<?php esc_html_e( 'Add Order', 'service-booking' ); ?>"><?php esc_html_e( 'Add Order', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></a>
-            <?php else : ?>
-                <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Add Order — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Add Order — Pro Feature', 'service-booking' ); ?>">
-                    <?php esc_html_e( 'Add Order', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i>
-                    <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
-                </button>
-            <?php endif; ?>
+            <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Add Order — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Add Order — Pro Feature', 'service-booking' ); ?>">
+                <?php esc_html_e( 'Add Order', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i>
+                <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+            </button>
         </span>
 
         <?php if ( !empty( $booking_data ) && is_array( $booking_data ) ) { ?>
@@ -76,14 +71,6 @@ $orders_table->prepare_items();
                         <i class="fa fa-search order_listing_search_icon" id="order_listing_search_icon" data-title="<?php esc_html_e( 'Click to search', 'service-booking' ); ?>"></i>
                     </span>
                 </span>
-                <?php if ( $is_pro ) { ?>
-                <a href="javascript:void(0);" class="button button-primary edit_order_columns" title="<?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>">
-                    <span>
-                        <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
-                        <i class="fa fa-plus" aria-hidden="true" style="color:#fff;"></i>
-                    </span>
-                </a>
-                <?php } else { ?>
                 <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Manage Columns — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Manage Columns — Pro Feature', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
@@ -91,22 +78,12 @@ $orders_table->prepare_items();
                         <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
                     </span>
                 </button>
-                <?php } ?>
-                <?php if ( $is_pro ) { ?>
-                <a href="javascript:void(0);" class="button button-primary export_order_records" title="<?php esc_html_e( 'Csv Export', 'service-booking' ); ?>">
-                    <span>
-                        <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
-                        <img src="<?php echo esc_url( $plugin_path . 'images/export.png' ); ?>" class="options" alt="options" width="15px" height="15px" style="position:relative;top:3px;">
-                    </span>
-                </a>
-                <?php } else { ?>
                 <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Csv Export — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Csv Export — Pro Feature', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
                         <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
                     </span>
                 </button>
-                <?php } ?>
             </div>
 
             <div class="order_advanced_search_box" id="order_advanced_search_box" style="display: none;">
@@ -208,21 +185,6 @@ $orders_table->prepare_items();
     <ul id="attachments-list"></ul>
 </div>
 
-<?php if ( $is_pro ) { ?>
-<div id="order_columns_modal" class="modaloverlay">
-    <div class="modal manageorderboxmodal animate__animated animate__flipInX">
-        <span class="close" onclick="closeModal('order_columns_modal')">&times;</span>
-        <h4 style="background:#5EA8ED ; margin:0px; padding:12px;color:#fff;font-size:16px;"><?php esc_html_e( 'Select Columns', 'service-booking' ); ?></h4>
-        <div class="modalcontentbox2 manageorderbox modal-body" id="order_columns"></div>
-        <div class="bookbtnbar">
-            <div class="bookbtn bgcolor textwhite text-center" id="order_column_button">
-                <a href="#" id="column_button_tag" class="submit_columns"><?php esc_html_e( 'Save', 'service-booking' ); ?></a>
-            </div>
-        </div>
-        <div class="column_errortext" style="display :none;"></div>
-    </div>
-</div>
-<?php } ?>
 
 <div id="order_export_modal" class="modaloverlay2">
     <div class="modal animate__animated animate__flipInX">

@@ -1,5 +1,4 @@
 <?php
-$is_pro         = Booking_Management_Limits::is_pro_active();
 $checkins_table = new BM_Checkins_List_Table();
 $checkins_table->prepare_items();
 
@@ -33,17 +32,11 @@ $plugin_path = plugin_dir_url( __FILE__ );
             <?php esc_html_e( 'Manual Check-in', 'service-booking' ); ?>
         </button>
 
-        <?php if ( $is_pro ) : ?>
-            <button id="ticket-scanner-btn" class="button button-primary">
-                <span class="dashicons dashicons-scanner"></span><?php esc_html_e( 'Ticket Scanner', 'service-booking' ); ?>
-            </button>
-        <?php else : ?>
-            <button class="button" disabled title="<?php esc_attr_e( 'QR Ticket Scanner — Pro Feature', 'service-booking' ); ?>">
-                <span class="dashicons dashicons-lock" style="vertical-align: middle; color: #ffb300;"></span>
-                <?php esc_html_e( 'Ticket Scanner', 'service-booking' ); ?>
-                <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
-            </button>
-        <?php endif; ?>
+        <button class="button" disabled title="<?php esc_attr_e( 'QR Ticket Scanner — Pro Feature', 'service-booking' ); ?>">
+            <span class="dashicons dashicons-lock" style="vertical-align: middle; color: #ffb300;"></span>
+            <?php esc_html_e( 'Ticket Scanner', 'service-booking' ); ?>
+            <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+        </button>
     </div>
 
     <form method="get">
@@ -95,26 +88,6 @@ $plugin_path = plugin_dir_url( __FILE__ );
     </div>
 </div>
 
-<?php if ( $is_pro ) : ?>
-<!-- Ticket Scanner Modal — Pro Only -->
-<div id="scanner-modal" class="checkin-default-modal" style="display:none;">
-    <div class="modal-content animate__animated animate__flipInX">
-        <span class="close">&times;</span>
-        <h2><?php esc_html_e( 'Ticket Scanner', 'service-booking' ); ?></h2>
-        <div class="scanner-container">
-            <video id="scanner-video" width="100%" playsinline></video>
-            <canvas id="scanner-canvas" style="display:none;"></canvas>
-            <div id="scanner-result"></div>
-        </div>
-        <div class="scanner-controls">
-            <button id="start-scan" class="button button-primary"><?php esc_html_e( 'Start Scan', 'service-booking' ); ?></button>
-            <button id="stop-scan" class="button"><?php esc_html_e( 'Stop Scan', 'service-booking' ); ?></button>
-        </div>
-    </div>
-</div>
-<?php endif; ?>
-
-<?php if ( ! $is_pro ) : ?>
 <div style="margin-top: 15px; padding: 12px 16px; background: #fff8e1; border-left: 4px solid #ffb300; border-radius: 3px;">
     <p style="margin: 0;">
         <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
@@ -123,7 +96,6 @@ $plugin_path = plugin_dir_url( __FILE__ );
         <small><?php esc_html_e( 'Upgrade to Pro for QR Ticket Scanner, Resend Ticket Email, Manage Columns, Advanced Search Filters, and CSV Export.', 'service-booking' ); ?></small>
     </p>
 </div>
-<?php endif; ?>
 
 <div class="popup-message-overlay" id="popup-message-overlay"></div>
 <div class="popup-message-container animate__animated animate__flipInX" id="popup-message-container">
