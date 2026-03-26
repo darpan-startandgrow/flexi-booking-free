@@ -184,7 +184,7 @@ function bm_sort_service_listing(ids = [], pagenum = 1) {
 
     var data = { 'action': 'bm_sort_service_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
     jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-        var jsondata = jQuery.parseJSON(response);
+        var jsondata = JSON.parse(response);
         var status = jsondata.status ? jsondata.status : '';
         if (status == true) {
             jQuery(".service_records").html('');
@@ -307,7 +307,7 @@ jQuery(document).on('click', '#delsvc', function () {
 
 		var data = { 'action': 'bm_remove_service', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == true) {
 				jQuery(".service_records").html('');
@@ -370,7 +370,7 @@ function bm_change_service_visibility($this) {
 		var service_id = id.split('_')[5];
 		var data = { 'action': 'bm_change_service_visibility', 'id': service_id, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -395,7 +395,7 @@ function bm_change_extra_service_visibility($this) {
 		var extra_id = id.split('_')[6];
 		var data = { 'action': 'bm_change_extra_service_visibility', 'id': extra_id, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -426,7 +426,7 @@ jQuery(document).on('click', '#deltemplate', function () {
 
 		var data = { 'action': 'bm_remove_template', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				jQuery(".template_records").html('');
 				jQuery(".template_pagination").html('');
@@ -480,7 +480,7 @@ jQuery(document).on('click', '#delprocess', function () {
 
 		var data = { 'action': 'bm_remove_process', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				jQuery(".notification_process_records").html('');
 				jQuery(".notification_process_pagination").html('');
@@ -533,7 +533,7 @@ function bm_sort_category_listing(ids = [], pagenum = 1) {
 
 	var data = { 'action': 'bm_sort_category_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		if (status == true) {
 			jQuery(".category_records").html('');
@@ -605,7 +605,7 @@ function bm_change_category_visibility($this) {
 		var category_id = id.split('_')[5];
 		var data = { 'action': 'bm_change_category_visibility', 'id': category_id, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -631,7 +631,7 @@ function bm_change_customer_visibility($this) {
 		var customer_id = id.split('_')[3];
 		var data = { 'action': 'bm_change_customer_visibility', 'id': customer_id, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -660,7 +660,7 @@ jQuery(document).on('click', '#delcat', function () {
 		}
 		var data = { 'action': 'bm_remove_category', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == true) {
 				jQuery(".category_records").html('');
@@ -737,7 +737,7 @@ jQuery(document).on('click', '#delmodule', function () {
 
 		var data = { 'action': 'bm_remove_price_module', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var removeable_status = jsondata.is_removeable ? jsondata.is_removeable : '';
 
@@ -2408,9 +2408,9 @@ jQuery(document).ready(function ($) {
 						var id = getUrlParameter('id');
 						var data = { 'action': 'bm_get_specific_time_slot', 'id': id, 'date': date, 'nonce': bm_ajax_object.nonce };
 						jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-							if (jQuery.parseJSON(response).status == true) {
+							if (JSON.parse(response).status == true) {
 
-								var slot_data = jQuery.parseJSON(response).slot_data;
+								var slot_data = JSON.parse(response).slot_data;
 
 								if (slot_data.total_slots != 0) {
 									var time_slot_html = '';
@@ -4310,7 +4310,7 @@ function remove_time_slot(date) {
 			var data = { 'action': 'bm_remove_variable_time_slot', 'id': getUrlParameter('id'), 'date': date, 'nonce': bm_ajax_object.nonce };
 			jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 
-				var jsondata = jQuery.parseJSON(response);
+				var jsondata = JSON.parse(response);
 				var dates = jsondata.dates;
 				var slot_id = jsondata.slot_ids;
 				var date_array = [];
@@ -4452,7 +4452,7 @@ function edit_calendar_service_price(values = [], type = '') {
 	var data = { 'action': type == 'single' ? 'bm_set_serice_price' : 'bm_set_bulk_serice_price', 'data': values, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.bm-set_price-spiner').hide();
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status;
 
 		if (status == true) {
@@ -4529,7 +4529,7 @@ function edit_calendar_service_price_module(values = [], type = '') {
 	var data = { 'action': type == 'single' ? 'bm_set_serice_price_module' : 'bm_set_bulk_serice_price_module', 'data': values, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.bm-set_price-spiner').hide();
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status;
 
 		if (status == true) {
@@ -4628,10 +4628,10 @@ function edit_calendar_service_stopsales(values = [], type = '') {
 	var data = { 'action': type == 'single' ? 'bm_set_serice_stopsales' : 'bm_set_bulk_serice_stopsales', 'data': values, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.bm-set_stopsales-spiner').hide();
-		if (jQuery.parseJSON(response).status == true) {
-			if (jQuery.parseJSON(response).default_stopsales != 0) jQuery('#old_default_stopsales').attr('value', jQuery.parseJSON(response).default_stopsales);
+		if (JSON.parse(response).status == true) {
+			if (JSON.parse(response).default_stopsales != 0) jQuery('#old_default_stopsales').attr('value', JSON.parse(response).default_stopsales);
 			jQuery('select[name^="default_stopsales"] option:selected').attr("selected", null);
-			if (jQuery.parseJSON(response).default_stopsales != 0) jQuery('select[name^="default_stopsales"] option[value="' + jQuery.parseJSON(response).default_stopsales + '"]').attr("selected", "selected");
+			if (JSON.parse(response).default_stopsales != 0) jQuery('select[name^="default_stopsales"] option[value="' + JSON.parse(response).default_stopsales + '"]').attr("selected", "selected");
 
 			setTimeout(function () {
 				jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
@@ -4643,7 +4643,7 @@ function edit_calendar_service_stopsales(values = [], type = '') {
 					var year = jQuery(this).parent().data('year');
 					var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-					var jsondata = jQuery.parseJSON(response);
+					var jsondata = JSON.parse(response);
 					var stopsales = jsondata.default_stopsales;
 
 					if (jsondata.variable_stopsales != null && jsondata.variable_stopsales != '') {
@@ -4706,10 +4706,10 @@ function edit_calendar_service_saleswitch(values = [], type = '') {
 	var data = { 'action': type == 'single' ? 'bm_set_service_saleswitch' : 'bm_set_bulk_service_saleswitch', 'data': values, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.bm-set_saleswitch-spiner').hide();
-		if (jQuery.parseJSON(response).status == true) {
-			if (jQuery.parseJSON(response).default_saleswitch != 0) jQuery('#old_default_saleswitch').attr('value', jQuery.parseJSON(response).default_saleswitch);
+		if (JSON.parse(response).status == true) {
+			if (JSON.parse(response).default_saleswitch != 0) jQuery('#old_default_saleswitch').attr('value', JSON.parse(response).default_saleswitch);
 			jQuery('select[name^="default_saleswitch"] option:selected').attr("selected", null);
-			if (jQuery.parseJSON(response).default_saleswitch != 0) jQuery('select[name^="default_saleswitch"] option[value="' + jQuery.parseJSON(response).default_saleswitch + '"]').attr("selected", "selected");
+			if (JSON.parse(response).default_saleswitch != 0) jQuery('select[name^="default_saleswitch"] option[value="' + JSON.parse(response).default_saleswitch + '"]').attr("selected", "selected");
 
 			setTimeout(function () {
 				jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
@@ -4721,7 +4721,7 @@ function edit_calendar_service_saleswitch(values = [], type = '') {
 					var year = jQuery(this).parent().data('year');
 					var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-					var jsondata = jQuery.parseJSON(response);
+					var jsondata = JSON.parse(response);
 					var saleswitch = jsondata.default_saleswitch;
 
 					if (jsondata.variable_saleswitch != null && jsondata.variable_saleswitch != '') {
@@ -4784,9 +4784,9 @@ function edit_calendar_service_max_cap(values = [], type = '') {
 	var data = { 'action': type == 'single' ? 'bm_set_serice_max_cap' : 'bm_set_bulk_serice_max_cap', 'data': values, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.bm-capacity-spiner').hide();
-		if (jQuery.parseJSON(response).status == true) {
-			jQuery('#old_default_max_cap').attr('value', jQuery.parseJSON(response).default_max_cap);
-			jQuery('#default_max_cap').attr('value', jQuery.parseJSON(response).default_max_cap);
+		if (JSON.parse(response).status == true) {
+			jQuery('#old_default_max_cap').attr('value', JSON.parse(response).default_max_cap);
+			jQuery('#default_max_cap').attr('value', JSON.parse(response).default_max_cap);
 
 			setTimeout(function () {
 				jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
@@ -4798,7 +4798,7 @@ function edit_calendar_service_max_cap(values = [], type = '') {
 					var year = jQuery(this).parent().data('year');
 					var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-					var jsondata = jQuery.parseJSON(response);
+					var jsondata = JSON.parse(response);
 					var capacity = jsondata.default_max_cap;
 
 					if (jsondata.variable_max_cap != null && jsondata.variable_max_cap != '') {
@@ -4848,7 +4848,7 @@ function edit_calendar_service_variable_time_slots(values = []) {
 	var data = { 'action': 'bm_set_variable_time_slot', 'data': values, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var slot_data = jsondata.variable_slot_data;
 		var date_array = [];
 		var slot_ids = [];
@@ -4924,7 +4924,7 @@ function bm_get_service_price() {
 		};
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status;
 			var default_price = jsondata.default_price;
 			var variable_price_obj = jsondata.variable_price.price || '';
@@ -5075,7 +5075,7 @@ function bm_get_service_stopsales() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'action': 'bm_get_serice_stopsales', 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			if (jQuery.parseJSON(response).status == true) {
+			if (JSON.parse(response).status == true) {
 				setTimeout(function () {
 					jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
 						var date = jQuery(this).text();
@@ -5086,7 +5086,7 @@ function bm_get_service_stopsales() {
 						var year = jQuery(this).parent().data('year');
 						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-						var jsondata = jQuery.parseJSON(response);
+						var jsondata = JSON.parse(response);
 						var stopsales = jsondata.default_stopsales;
 
 						if (jsondata.variable_stopsales != null && jsondata.variable_stopsales != '') {
@@ -5216,7 +5216,7 @@ function bm_get_service_saleswitch() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'action': 'bm_get_service_saleswitch', 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			if (jQuery.parseJSON(response).status == true) {
+			if (JSON.parse(response).status == true) {
 				setTimeout(function () {
 					jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
 						var date = jQuery(this).text();
@@ -5227,7 +5227,7 @@ function bm_get_service_saleswitch() {
 						var year = jQuery(this).parent().data('year');
 						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-						var jsondata = jQuery.parseJSON(response);
+						var jsondata = JSON.parse(response);
 						var saleswitch = jsondata.default_saleswitch;
 
 						if (jsondata.variable_saleswitch != null && jsondata.variable_saleswitch != '') {
@@ -5360,7 +5360,7 @@ function bm_get_service_max_cap() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'action': 'bm_get_service_max_cap', 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			if (jQuery.parseJSON(response).status == true) {
+			if (JSON.parse(response).status == true) {
 				setTimeout(function () {
 					jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
 						var date = jQuery(this).text();
@@ -5371,7 +5371,7 @@ function bm_get_service_max_cap() {
 						var year = jQuery(this).parent().data('year');
 						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-						var jsondata = jQuery.parseJSON(response);
+						var jsondata = JSON.parse(response);
 						var capacity = jsondata.default_max_cap;
 
 						if (jsondata.variable_max_cap != null && jsondata.variable_max_cap != '') {
@@ -5485,7 +5485,7 @@ function bm_get_service_time_slots() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'action': 'bm_get_service_time_slots', 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var dates = jsondata.dates;
 			var slot_id = jsondata.slot_ids;
 			var date_array = [];
@@ -5677,7 +5677,7 @@ function get_fieldkey_and_order(type) {
 
 	var data = { 'action': 'bm_get_fieldkey_and_order', 'type': type, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var data = jQuery.parseJSON(response);
+		var data = JSON.parse(response);
 		if (data.length != 0) {
 			var type = data.type;
 			var ordering = data.ordering;
@@ -6374,7 +6374,7 @@ function checkFieldKey($this) {
 
 	var data = { 'action': 'bm_check_if_existing_field_key', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata != '' && jsondata != null) {
 			var status = jsondata.status;
 			var is_existing = jsondata.is_existing;
@@ -6411,7 +6411,7 @@ function check_if_any_primary_email($this) {
 
 	var data = { 'action': 'bm_get_primary_email_field_key', 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		jQuery('#active_emails_details').html('');
 
 		if (jsondata != '' && jsondata != null) {
@@ -6430,7 +6430,7 @@ function check_if_any_primary_email($this) {
 				if (confirm(bm_normal_object.are_you_sure)) {
 					var data = { 'action': 'bm_save_non_primary_email_as_primary', 'field_key': field_key, 'nonce': bm_ajax_object.nonce };
 					jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-						var jsondata = jQuery.parseJSON(response);
+						var jsondata = JSON.parse(response);
 						if (jsondata != '' && jsondata != null) {
 							var status = jsondata.status;
 							if (status == true) {
@@ -6499,7 +6499,7 @@ jQuery(document).on('click', '.save_primary_email', function () {
 
 		var data = { 'action': 'bm_save_primary_email_field_key', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata != '' && jsondata != null) {
 				var status = jsondata.status;
 				if (status == true) {
@@ -6614,7 +6614,7 @@ jQuery(document).ready(function ($) {
 				if (id != 0) {
 					var data = { 'action': 'bm_remove_field', 'id': id, 'nonce': bm_ajax_object.nonce };
 					jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-						if (jQuery.parseJSON(response).status == 'deleted') {
+						if (JSON.parse(response).status == 'deleted') {
 							showMessage(bm_success_object.field_remove_success, 'success');
 							// jQuery(".field_successtext").html(bm_success_object.field_remove_success);
 							// jQuery(".field_successtext").show();
@@ -6700,7 +6700,7 @@ function saveField(id) {
 			if (response != '' && response != null) {
 
 				var crossSign = "✕";
-				var jsonData = jQuery.parseJSON(response);
+				var jsonData = JSON.parse(response);
 				var field = jsonData.data;
 				var status = jsonData.status;
 				var is_default = jsonData.is_default;
@@ -6848,9 +6848,9 @@ function bm_get_all_field_labels(ordering = []) {
 
 	var data = { 'action': 'bm_get_all_field_labels', 'ordering': ordering, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		if (jQuery.parseJSON(response) != null) {
+		if (JSON.parse(response) != null) {
 			jQuery(".content_body").html('');
-			var fields = jQuery.parseJSON(response);
+			var fields = JSON.parse(response);
 			var crossSign = "✕";
 			var fieldBox = '';
 
@@ -6903,8 +6903,8 @@ function get_field_Settings(id) {
 
 	var data = { 'action': 'bm_get_field_settings', 'id': id, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		if (jQuery.parseJSON(response) != null) {
-			var settings = jQuery.parseJSON(response);
+		if (JSON.parse(response) != null) {
+			var settings = JSON.parse(response);
 			if (settings.length != 0) {
 				showFieldSettings(settings.common.field_type, settings.common.field_key, settings.common.ordering, settings.common.field_position, settings.common.primary_mail_key, settings);
 			} else {
@@ -7161,7 +7161,7 @@ function bm_fetch_timezone() {
 	var country_code = jQuery('#bm_booking_country').val();
 	var data = { 'action': 'bm_fetch_timezone', 'country_code': country_code, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		jQuery('#bm_booking_time_zone').html('');
 
 		if (jsondata.status == true) {
@@ -7245,7 +7245,7 @@ jQuery(document).on('click', '#show-product-dialog', function (e) {
 		jQuery('#booked_service_details').html('');
 
 		if (response != null && response != '') {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 
 			if (jsondata.status == true) {
 				var products = jsondata.products;
@@ -7333,7 +7333,7 @@ function saveProductChanges() {
 		var data = { 'action': 'bm_save_product_order', 'post': updatedProducts, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			if (response != null && response != '') {
-				var jsondata = jQuery.parseJSON(response);
+				var jsondata = JSON.parse(response);
 				var products = jsondata.products;
 				if (products.length !== 0) {
 					products.forEach(function (product) {
@@ -7383,7 +7383,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-customer-dialog", function () {
 		var data = { 'action': 'bm_fetch_customer_data_for_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			$("#customer-list").empty();
 
 			if (jsondata.status == true) {
@@ -7418,7 +7418,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-failed-order-customer-dialog", function () {
 		var data = { 'action': 'bm_fetch_customer_data_for_failed_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			$("#customer-list").empty();
 
 			if (jsondata.status == true) {
@@ -7453,7 +7453,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-archived-order-customer-dialog", function () {
 		var data = { 'action': 'bm_fetch_customer_data_for_archived_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			$("#customer-list").empty();
 
 			if (jsondata.status == true) {
@@ -7488,7 +7488,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-order-attachments", function () {
 		var data = { 'action': 'bm_fetch_attachments_for_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			$("#attachments-list").empty();
 
@@ -7523,7 +7523,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-archived-order-attachments", function () {
 		var data = { 'action': 'bm_fetch_attachments_for_archived_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			$("#attachments-list").empty();
 
@@ -7558,7 +7558,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-failed-order-attachments", function () {
 		var data = { 'action': 'bm_fetch_attachments_for_failed_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			$("#attachments-list").empty();
 
@@ -7593,7 +7593,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-order-ticket", function () {
 		var data = { 'action': 'bm_fetch_attachments_for_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			$("#ticket-list").empty();
 
@@ -7644,7 +7644,7 @@ function bm_fetch_bookable_services(category_id) {
 	if (category_id !== '') {
 		var data = { 'action': 'bm_fetch_bookable_services_by_category_id_and_date', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			jQuery('#service_id').html('');
 
 			if (jsondata.status == true) {
@@ -7695,7 +7695,7 @@ function bm_fetch_service_time_slots_by_service_id(service_id) {
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			jQuery('#booking_slots').html('');
-			var slots = jQuery.parseJSON(response);
+			var slots = JSON.parse(response);
 
 			if (slots != null && slots.length != 0) {
 				jQuery('#booking_slots').prop('disabled', false);
@@ -7738,7 +7738,7 @@ function bm_fetch_bookable_no_of_slots_by_slot($this) {
 		var data = { 'action': 'bm_fetch_mincap_and_cap_left', 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 
 			if (jsondata.status == true) {
 				var slot_info = jsondata.slot_info ? jsondata.slot_info : {};
@@ -7807,7 +7807,7 @@ function bm_fetch_svc_total_price() {
 		var data = { 'action': 'bm_fetch_service_price_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				if (typeof (jsondata.price) != "undefined" && jsondata.price != null) {
 					var price = jsondata.price;
@@ -7861,7 +7861,7 @@ function bm_fetch_service_extra() {
 		var data = { 'action': 'bm_fetch_service_extras_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			if (response) {
-				var extras = jQuery.parseJSON(response);
+				var extras = JSON.parse(response);
 				if (extras.length != 0) {
 					jQuery.each(extras, function (index, extra) {
 						addExtraService(index, extra);
@@ -7899,7 +7899,7 @@ function bm_fetch_service_price_discount_module() {
 
 		var data = { 'action': 'bm_fetch_discount_module_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var html = jsondata.html ? jsondata.html : '';
 
@@ -8305,7 +8305,7 @@ function bm_change_order_status_to_complete_or_cancelled($this) {
 			var data = { 'action': 'bm_change_order_status_to_complete_or_cancelled', 'post': post, 'nonce': bm_ajax_object.nonce };
 
 			jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-				var jsondata = jQuery.parseJSON(response);
+				var jsondata = JSON.parse(response);
 				if (jsondata.status == true) {
 					location.reload();
 				} else {
@@ -8333,7 +8333,7 @@ function bm_change_order_status($this) {
 		var data = { 'action': 'bm_change_order_status', 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				location.reload();
 			} else {
@@ -8427,7 +8427,7 @@ function sortable_columns(id) {
 
 			var data = { 'action': 'bm_save_columns_screen_options', 'post': post, 'nonce': bm_ajax_object.nonce };
 			jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-				var jsondata = jQuery.parseJSON(response);
+				var jsondata = JSON.parse(response);
 				if (jsondata.status == true) {
 					// location.reload();
 				} else {
@@ -8479,7 +8479,7 @@ jQuery(document).on('click', '.submit_columns', function (e) {
 	if (jQuery('#available_columns input:checkbox:checked').length > 0) {
 		var data = { 'action': 'bm_save_columns_screen_options', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				jQuery('#order_columns_modal').removeClass('active-modal');
 				jQuery('#order_columns').html('');
@@ -8506,7 +8506,7 @@ jQuery(document).ready(function ($) {
 	if (current_screen == 'flexibooking_page_bm_all_orders') {
 		var data = { 'action': 'bm_fetch_saved_order_search', 'module': 'orders', 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var saved_search = jQuery.parseJSON(response);
+			var saved_search = JSON.parse(response);
 			if (saved_search != null && saved_search != "") {
 				if (typeof (saved_search.global_search) != "undefined") {
 					$('#global_search').val(saved_search.global_search ? saved_search.global_search : '');
@@ -8569,7 +8569,7 @@ jQuery(document).ready(function ($) {
 	if (current_screen == 'flexibooking_page_bm_check_ins') {
 		var data = { 'action': 'bm_fetch_saved_checkin_search', 'module': 'checkin', 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var saved_search = jQuery.parseJSON(response);
+			var saved_search = JSON.parse(response);
 			if (saved_search != null && saved_search != "") {
 				if (typeof (saved_search.global_search) != "undefined") {
 					$('#checkin_global_search').val(saved_search.global_search ? saved_search.global_search : '');
@@ -8597,7 +8597,7 @@ jQuery(document).ready(function ($) {
 	if (current_screen == 'toplevel_page_bm_home') {
 		var data = { 'action': 'bm_fetch_saved_order_search', 'module': 'dashboard_upcoming_orders', 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var saved_search = jQuery.parseJSON(response);
+			var saved_search = JSON.parse(response);
 			if (saved_search != null && saved_search != "") {
 				if (typeof (saved_search.service_from) != "undefined") {
 					$('#dashboard_upcoming_orders_service_from').val(saved_search.service_from ? saved_search.service_from : '');
@@ -8666,14 +8666,14 @@ jQuery(document).ready(function ($) {
 		}
 	});
 
-	intitializeMultiselect('search_order_by_category_id');
-	intitializeMultiselect('search_order_by_service_id');
-	intitializeMultiselect('checkin_service_advanced_filter');
-	intitializeMultiselect('order_status_filter');
-    intitializeMultiselect('payment_status_filter');
-	intitializeMultiselect('service_filter');
-    intitializeMultiselect('category_filter');
-	intitializeMultiselect('manual_checkin_service');
+	initializeMultiselect('search_order_by_category_id');
+	initializeMultiselect('search_order_by_service_id');
+	initializeMultiselect('checkin_service_advanced_filter');
+	initializeMultiselect('order_status_filter');
+    initializeMultiselect('payment_status_filter');
+	initializeMultiselect('service_filter');
+    initializeMultiselect('category_filter');
+	initializeMultiselect('manual_checkin_service');
 
 	service_from = $("#service_from")
 		.datepicker({
@@ -8940,7 +8940,7 @@ function bm_fetch_customer_and_total_booked_slot_counts(type = '') {
 
 	var data = { 'action': 'bm_fetch_customer_and_total_booked_slot_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery('.slots_booked_count').text(jsondata.slots_booked_count ? jsondata.slots_booked_count : '0');
 			jQuery('.total_customers_count').text(jsondata.total_customers_count ? jsondata.total_customers_count : '0');
@@ -8963,7 +8963,7 @@ function bm_fetch_booking_status_counts() {
 
 	var data = { 'action': 'bm_fetch_booking_status_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true && typeof (jsondata.labels) != "undefined" && typeof (jsondata.data) != "undefined") {
 			destroyChart();
 			renderStatusChart(jsondata.labels, jsondata.data);
@@ -8988,7 +8988,7 @@ function destroyChart() {
 function bm_fetch_booking_overview() {
 	var data = { 'action': 'bm_fetch_booking_overview', 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (typeof (jsondata.comparison) != "undefined" && typeof (jsondata.data) != "undefined") {
 			jQuery(document).find('.booking_increase_percent').html(jsondata.comparison);
 			jQuery(document).find('.booking_overview_data').html(jsondata.data);
@@ -9080,7 +9080,7 @@ function bm_dashboard_order_data_global_search(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_dashoboard_order_global_search', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashboard_all_orders").html('');
 			jQuery("#dashboard_all_orders_pagination").html('');
@@ -9168,7 +9168,7 @@ function bm_fetch_upcoming_orders(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_upcoming_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashboard_upcoming_orders").html('');
 			jQuery("#dashboard_upcoming_orders_pagination").html('');
@@ -9249,7 +9249,7 @@ function bm_fetch_dashboard_weekly_orders(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_dashboard_weekly_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashoboard_weekly_orders").html('');
 			jQuery("#dashoboard_weekly_orders_pagination").html('');
@@ -9326,7 +9326,7 @@ function bm_fetch_cat_wise_orders(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_cat_wise_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashoboard_cat_wise_orders").html('');
 			jQuery("#dashoboard_cat_wise_orders_pagination").html('');
@@ -9404,7 +9404,7 @@ function bm_fetch_service_wise_revenue(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_service_wise_revenue', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashboard_revenue_orders").html('');
 			jQuery("#dashboard_revenue_orders_pagination").html('');
@@ -9467,7 +9467,7 @@ function bm_fetch_datewise_revenue_orders(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_datewise_revenue_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashboard_datewise_revenue_orders").html('');
 			jQuery("#dashboard_datewise_revenue_orders_pagination").html('');
@@ -9529,7 +9529,7 @@ function bm_fetch_customer_wise_revenue_orders(pagenum = '', type = '') {
 
 	var data = { 'action': 'bm_fetch_customer_wise_revenue_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".dashboard_customer_wise_revenue_orders").html('');
 			jQuery("#dashboard_customer_wise_revenue_orders_pagination").html('');
@@ -9773,7 +9773,7 @@ function bm_search_order_data(type = '') {
 
 	var data = { 'action': 'bm_fetch_order_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".order_records").html('');
 			jQuery("#order_pagination").html('');
@@ -10026,7 +10026,7 @@ function bm_fetch_archived_order_as_per_search(type = '') {
 
 	var data = { 'action': 'bm_fetch_archived_order_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".order_records").html('');
 			jQuery("#order_pagination").html('');
@@ -10264,7 +10264,7 @@ function bm_search_checkin_data(type = '') {
 
 	var data = { 'action': 'bm_fetch_checkin_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".checkin_records").html('');
 			jQuery("#checkin_pagination").html('');
@@ -10452,7 +10452,7 @@ function bm_fetch_failed_order_as_per_search(type = '') {
 
 	var data = { 'action': 'bm_fetch_failed_order_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".order_records").html('');
 			jQuery("#order_pagination").html('');
@@ -10689,7 +10689,7 @@ jQuery(document).on('click', '.export_order_records', function (e) {
 	var data = { 'action': 'bm_fetch_export_order_modal_html', 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('#export_orders').html('');
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var html = jsondata.html ? jsondata.html : '';
 
@@ -10778,7 +10778,7 @@ function fetchAndExportData(moduleType, type, startPage = 0, endPage = 0) {
 
     jQuery.post(bm_ajax_object.ajax_url, data, function(response) {
         jQuery('#order_export_modal, #checkin_export_modal').removeClass('active-modal');
-		var response = jQuery.parseJSON(response);
+		var response = JSON.parse(response);
 
         const status = response.status || false;
         const orders = response.orders || [];
@@ -10808,7 +10808,7 @@ jQuery(document).on('click', '.export_checkin_records', function (e) {
 	var data = { 'action': 'bm_export_checkin_options_html', 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('#export_checkin').html('');
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var html = jsondata.html ? jsondata.html : '';
 
@@ -11390,7 +11390,7 @@ jQuery(document).ready(function ($) {
 		} else if (getUrlParameter('id') != '' && $('#is_condition').is(':checked')) {
 			var total = $('.condition_field').length;
 			for (var i = 0; i < total; i++) {
-				intitializeMultiselect('condition_values_' + i);
+				initializeMultiselect('condition_values_' + i);
 			}
 		}
 	}
@@ -11415,13 +11415,13 @@ function bm_return_value_for_event_condition_type(a, b) {
 
 	var data = { 'action': 'bm_fetch_event_condition_value', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var value = jsondata.value ? jsondata.value : '';
 
 		if (status == true) {
 			jQuery('#condition_values_' + b).html(value);
-			intitializeMultiselect('condition_values_' + b);
+			initializeMultiselect('condition_values_' + b);
 		} else {
 			alert(bm_error_object.event_type_value_error);
 		}
@@ -11431,7 +11431,7 @@ function bm_return_value_for_event_condition_type(a, b) {
 
 
 // Multiselect
-function intitializeMultiselect(a) {
+function initializeMultiselect(a) {
 	var placeholder = bm_normal_object.choose_option;
 
 	if(a == 'order_status_filter' || a == 'filter_order_status') {
@@ -11497,7 +11497,7 @@ function bm_change_process_visibility($this) {
 	if (confirm(bm_normal_object.change_pro_visibility)) {
 		var data = { 'action': 'bm_change_process_visibility', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == 'error') {
 				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
@@ -11530,7 +11530,7 @@ function bm_update_transaction($this) {
 	var data = { 'action': 'bm_update_transaction', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('#edit_transaction').html('');
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var is_active = jsondata.is_active ? jsondata.is_active : 0;
 		var html = jsondata.html ? jsondata.html : '';
@@ -11618,7 +11618,7 @@ function bm_approve_bor_order($this) {
 	if (confirm(bm_normal_object.approve_bor_order)) {
 		var data = { 'action': 'bm_approve_bor_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == true) {
 				showMessage(bm_success_object.order_approve_success, 'success');
@@ -11643,7 +11643,7 @@ function bm_cancel_bor_order($this) {
 	if (confirm(bm_normal_object.cancel_bor_order)) {
 		var data = { 'action': 'bm_cancel_bor_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == true) {
 				showMessage(bm_success_object.order_cancel_success, 'success');
@@ -11672,7 +11672,7 @@ function bm_change_template_visibility($this) {
 	if (confirm(bm_normal_object.change_tmpl_visibility)) {
 		var data = { 'action': 'bm_change_template_visibility', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == 'error') {
 				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
@@ -11899,7 +11899,7 @@ function bm_open_email_body($this, $module_type = '') {
 
 	var data = { 'action': 'bm_open_email_body', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var to = jsondata.to ? jsondata.to : '';
 		var cc = jsondata.cc ? jsondata.cc : '';
 		var bcc = jsondata.bcc ? jsondata.bcc : '';
@@ -12030,7 +12030,7 @@ function bm_resend_email(type='') {
 		jQuery('#resend_email_modal').removeClass('active-modal');
 		sessionStorage.removeItem("current_resend_mail_id");
 		jQuery('#resend_email_attachment').val('');
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		if (status == true) {
 			showMessage(bm_success_object.mail_send_success, 'success');
@@ -12143,7 +12143,7 @@ function add_email_attachment() {
 			processData: false,
 			contentType: false,
 			success: function (response) {
-				var jsondata = jQuery.parseJSON(response);
+				var jsondata = JSON.parse(response);
 				var status = jsondata.status ? jsondata.status : '';
 				var guids = jsondata.guids ? jsondata.guids : [];
 
@@ -12210,7 +12210,7 @@ function remove_email_attachmment($this) {
 	if (confirm(bm_normal_object.sure_remove_attchmnt)) {
 		var data = { 'action': 'bm_remove_email_attachment', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var guids = jsondata.guids ? jsondata.guids : [];
 
@@ -12544,7 +12544,7 @@ function bm_fetch_template_listing(pagenum = '') {
 
 	var data = { 'action': 'bm_fetch_template_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".template_records").html('');
 			jQuery(".template_pagination").html('');
@@ -12595,7 +12595,7 @@ function bm_fetch_price_module_listing(pagenum = '') {
 
 	var data = { 'action': 'bm_fetch_price_module_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".price_module_records").html('');
 			jQuery(".price_module_pagination").html('');
@@ -12640,7 +12640,7 @@ function bm_fetch_notification_processes_listing(pagenum = '') {
 
 	var data = { 'action': 'bm_fetch_notification_processes_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		if (jsondata.status == true) {
 			jQuery(".notification_process_records").html('');
 			jQuery(".notification_process_pagination").html('');
@@ -12729,7 +12729,7 @@ function change_flexi_language($this) {
 
 	var data = { 'action': 'bm_flexi_set_lang', 'post': post, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 
 		if (status == true) {

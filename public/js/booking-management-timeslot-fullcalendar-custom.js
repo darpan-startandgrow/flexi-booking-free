@@ -192,10 +192,10 @@ jQuery(document).ready(function ($) {
     // Initialization sequence
     function init() {
         if ($('#search_timeslot_fullcalendar_by_service').length) {
-            intitializeMultiselect('search_timeslot_fullcalendar_by_service');
+            initializeMultiselect('search_timeslot_fullcalendar_by_service');
         }
         if ($('#search_timeslot_fullcalendar_by_category').length) {
-            intitializeMultiselect('search_timeslot_fullcalendar_by_category');
+            initializeMultiselect('search_timeslot_fullcalendar_by_category');
         }
 
         dateRangePicker = initializeTimeslotDateRangePicker();
@@ -342,7 +342,7 @@ jQuery(document).on('click', '#timeslot_fullcalendar_slot_value', function () {
             jQuery('#timeslot-capacity-dialog .loader_modal').hide();
             jQuery('#timeslot-capacity-dialog .timeslot-dialog-content').html(bm_error_object.server_error);
         },
-        complete: () => jQuery('.imeslot-capacity-dialogr .loader_modal').hide()
+        complete: () => jQuery('#timeslot-capacity-dialog .loader_modal').hide()
     });
 });
 

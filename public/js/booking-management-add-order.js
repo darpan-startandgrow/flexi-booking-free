@@ -78,7 +78,7 @@ jQuery(document).on('click', '#check_checkout_discount', function (e) {
 		var data = { 'action': 'bm_check_backend_discount', 'post': formData, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			jQuery('.loader_modal').hide();
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var data = jsondata.data ? jsondata.data : '';
 			var negative_discount = jsondata.negative_discount ? jsondata.negative_discount : 0;
@@ -121,7 +121,7 @@ jQuery(document).on('click', '#reset_checkout_discount', function (e) {
 	var data = { 'action': 'bm_reset_backend_discount', 'booking_key': booking_key, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.loader_modal').hide();
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var data = jsondata.data ? jsondata.data : '';
 
@@ -246,7 +246,7 @@ function bm_fetch_bookable_services(category_id) {
 	if (category_id !== '') {
 		var data = { 'action': 'bm_fetch_bookable_services_by_category_id_and_date', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			jQuery('#service_id').html('');
 
 			if (jsondata.status == true) {
@@ -295,7 +295,7 @@ function bm_fetch_service_time_slots_by_service_id(service_id) {
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			jQuery('#booking_slots').html('');
-			var slots = jQuery.parseJSON(response);
+			var slots = JSON.parse(response);
 
 			if (slots != null && slots.length != 0) {
 				jQuery('#booking_slots').prop('disabled', false);
@@ -388,7 +388,7 @@ function bm_fetch_bookable_no_of_slots_by_slot($this) {
 		var data = { 'action': 'bm_fetch_mincap_and_cap_left', 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 
 			if (jsondata.status == true) {
 				var slot_info = jsondata.slot_info ? jsondata.slot_info : {};
@@ -436,7 +436,7 @@ function bm_fetch_svc_total_price() {
 		var data = { 'action': 'bm_fetch_service_price_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				if (typeof (jsondata.price) != "undefined" && jsondata.price != null) {
 					var price = jsondata.price;
@@ -487,7 +487,7 @@ function bm_fetch_service_extra() {
 		var data = { 'action': 'bm_fetch_service_extras_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			if (response) {
-				var extras = jQuery.parseJSON(response);
+				var extras = JSON.parse(response);
 				console.log(extras);
 				if (extras.length > 0) {
 					jQuery.each(extras, function (index, extra) {
@@ -524,7 +524,7 @@ function bm_fetch_service_price_discount_module() {
 
 		var data = { 'action': 'bm_fetch_discount_module_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var html = jsondata.html ? jsondata.html : '';
 

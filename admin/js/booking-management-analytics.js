@@ -878,8 +878,8 @@ function populateOrdersFilters(filters) {
             $select.val(selectedValues);
         }
 
-        if (typeof intitializeMultiselect === 'function') {
-            intitializeMultiselect(selectId);
+        if (typeof initializeMultiselect === 'function') {
+            initializeMultiselect(selectId);
         }
     }
 
@@ -910,8 +910,8 @@ function bm_reset_orders_filters() {
     });
 
     ['filter_customers', 'filter_services', 'filter_order_status', 'filter_payment_status', 'filter_emails'].forEach(function(id) {
-        if (typeof intitializeMultiselect === 'function') {
-            intitializeMultiselect(id);
+        if (typeof initializeMultiselect === 'function') {
+            initializeMultiselect(id);
         }
     });
 

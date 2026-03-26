@@ -78,7 +78,7 @@ jQuery(document).on('click', '#check_checkout_discount', function (e) {
 		var data = { 'action': 'bm_check_backend_discount', 'post': formData, 'nonce': bm_ajax_object.nonce };
 		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 			jQuery('.loader_modal').hide();
-			var jsondata = jQuery.parseJSON(response);
+			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var data = jsondata.data ? jsondata.data : '';
 			var negative_discount = jsondata.negative_discount ? jsondata.negative_discount : 0;
@@ -123,7 +123,7 @@ jQuery(document).on('click', '#reset_checkout_discount', function (e) {
 	var data = { 'action': 'bm_reset_backend_discount', 'booking_key': booking_key, 'nonce': bm_ajax_object.nonce };
 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
 		jQuery('.loader_modal').hide();
-		var jsondata = jQuery.parseJSON(response);
+		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var data = jsondata.data ? jsondata.data : '';
 
