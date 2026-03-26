@@ -770,8 +770,14 @@ class Booking_Management_Rest_API {
 		$service_id   = $request->get_param( 'service_id' );
 		$booking_date = $request->get_param( 'booking_date' );
 
-		$transient_key = 'sg_ts_' . $service_id . '_' . $booking_date;
-		$cached        = get_transient( $transient_key );
+		// Check cache — use SG_Cache_Manager if available, otherwise fall back to transients.
+		$cache_key = 'ts_' . $service_id . '_' . $booking_date;
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			$cached = SG_Cache_Manager::get_instance()->get( $cache_key );
+		} else {
+			$transient_key = 'sg_ts_' . $service_id . '_' . $booking_date;
+			$cached        = get_transient( $transient_key );
+		}
 
 		if ( false !== $cached ) {
 			return rest_ensure_response( $cached );
@@ -822,8 +828,12 @@ class Booking_Management_Rest_API {
 			}
 		}
 
-		// Cache for 5 minutes.
-		set_transient( $transient_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+		// Cache for 5 minutes — use SG_Cache_Manager if available.
+		if ( class_exists( 'SG_Cache_Manager' ) ) {
+			SG_Cache_Manager::get_instance()->set( $cache_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+		} else {
+			set_transient( $transient_key, $timeslots, 5 * MINUTE_IN_SECONDS );
+		}
 
 		/**
 		 * Filters the timeslots response before sending to client.
@@ -980,6 +990,12 @@ class Booking_Management_Rest_API {
 			// Invalidate timeslot cache.
 			$this->invalidate_timeslot_cache( $service_id, $booking_date );
 
+			// Invalidate services/categories API cache.
+			if ( class_exists( 'SG_Cache_Manager' ) ) {
+				$cache = SG_Cache_Manager::get_instance();
+				$cache->delete( 'api_categories' );
+			}
+
 			/**
 			 * Fires after a booking has been successfully saved.
 			 *
@@ -989,6 +1005,18 @@ class Booking_Management_Rest_API {
 			 * @param array $booking_data The booking data that was inserted.
 			 */
 			do_action( 'bm_after_booking_saved', $booking_id, $booking_data );
+
+			// Event-driven dispatch for REST API booking creation.
+			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
+				SG_Event_Dispatcher::dispatch( 'booking.confirmed', array(
+					'booking_id'   => $booking_id,
+					'service_id'   => $service_id,
+					'booking_date' => $booking_date,
+					'slot_id'      => $slot_id,
+					'quantity'     => $quantity,
+					'source'       => 'rest_api',
+				) );
+			}
 
 			return rest_ensure_response( array(
 				'success'    => true,
