@@ -573,6 +573,38 @@ class Booking_Management_Activator {
 
 		$this->migrate_closures_to_availability_periods();
 
+		// --- Global Extras tables ---
+		$table_name = $this->get_db_table_name( 'GLOBAL_EXTRA' );
+		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`extra_name` varchar(255) DEFAULT NULL,
+		`extra_desc` longtext DEFAULT NULL,
+		`extra_price` float(50) DEFAULT NULL,
+		`extra_duration` float(24) DEFAULT NULL,
+		`extra_operation` float(24) DEFAULT NULL,
+		`extra_max_cap` int(100) NOT NULL DEFAULT 1,
+		`is_extra_service_front` int(11) DEFAULT 1,
+		`is_linked_wc_extrasvc` int(11) DEFAULT 0,
+		`svcextra_wc_product` int(11) DEFAULT NULL,
+		`extras_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		`extras_updated_at` datetime DEFAULT NULL,
+		PRIMARY KEY (`id`)
+		)$charset_collate;";
+		dbDelta( $sql );
+
+		$table_name = $this->get_db_table_name( 'SERVICE_GLOBAL_EXTRA' );
+		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`service_id` int(11) NOT NULL,
+		`global_extra_id` int(11) NOT NULL,
+		PRIMARY KEY (`id`),
+		KEY `idx_sge_service_id` (`service_id`),
+		KEY `idx_sge_global_extra_id` (`global_extra_id`)
+		)$charset_collate;";
+		dbDelta( $sql );
+
+		$this->migrate_legacy_global_extras();
+
 		$this->add_error_column_to_emails();
 		$this->create_default_form_fields();
 		$this->create_default_email_templates();
@@ -664,6 +696,12 @@ class Booking_Management_Activator {
 				break;
 			case 'AVAILABILITY_PERIOD':
 				$table_name = $plugin_prefix . 'availability_periods';
+				break;
+			case 'GLOBAL_EXTRA':
+				$table_name = $plugin_prefix . 'global_extras';
+				break;
+			case 'SERVICE_GLOBAL_EXTRA':
+				$table_name = $plugin_prefix . 'service_global_extras';
 				break;
 			default:
 				$classname = "BM_Helper_$identifier";
@@ -757,6 +795,12 @@ class Booking_Management_Activator {
 				$unique_field_name = 'id';
 				break;
 			case 'AVAILABILITY_PERIOD':
+				$unique_field_name = 'id';
+				break;
+			case 'GLOBAL_EXTRA':
+				$unique_field_name = 'id';
+				break;
+			case 'SERVICE_GLOBAL_EXTRA':
 				$unique_field_name = 'id';
 				break;
 			default:
@@ -1820,6 +1864,65 @@ class Booking_Management_Activator {
 		return $format;
 	} //end get_field_format_type_COUPON()
 
+
+	public function get_field_format_type_GLOBAL_EXTRA( $field ) {
+		switch ( $field ) {
+			case 'id':
+				$format = '%d';
+				break;
+			case 'extra_name':
+				$format = '%s';
+				break;
+			case 'extra_desc':
+				$format = '%s';
+				break;
+			case 'extra_price':
+				$format = '%f';
+				break;
+			case 'extra_duration':
+				$format = '%f';
+				break;
+			case 'extra_operation':
+				$format = '%f';
+				break;
+			case 'extra_max_cap':
+				$format = '%d';
+				break;
+			case 'is_extra_service_front':
+				$format = '%d';
+				break;
+			case 'is_linked_wc_extrasvc':
+				$format = '%d';
+				break;
+			case 'svcextra_wc_product':
+				$format = '%d';
+				break;
+			default:
+				$format = '%s';
+		}
+
+		return $format;
+	} //end get_field_format_type_GLOBAL_EXTRA()
+
+
+	public function get_field_format_type_SERVICE_GLOBAL_EXTRA( $field ) {
+		switch ( $field ) {
+			case 'id':
+				$format = '%d';
+				break;
+			case 'service_id':
+				$format = '%d';
+				break;
+			case 'global_extra_id':
+				$format = '%d';
+				break;
+			default:
+				$format = '%d';
+		}
+
+		return $format;
+	} //end get_field_format_type_SERVICE_GLOBAL_EXTRA()
+
 	/**
 	 * Migrate legacy closure date-ranges to availability_periods table.
 	 *
@@ -2141,6 +2244,76 @@ class Booking_Management_Activator {
 			update_option( 'bm_qr_scanner_page_id', $qr_scanner_page_id );
 		}
 	} //end bm_create_custom_pages()
+
+
+	/**
+	 * Migrate legacy global extras (is_global=1 in service_extras) to the new
+	 * global_extras table and create junction records in service_global_extras.
+	 *
+	 * Runs once; controlled by the bm_global_extras_migrated option.
+	 *
+	 * @since 1.5.0
+	 */
+	private function migrate_legacy_global_extras() {
+		global $wpdb;
+
+		if ( get_option( 'bm_global_extras_migrated', '0' ) === '1' ) {
+			return;
+		}
+
+		$extra_table          = $this->get_db_table_name( 'EXTRA' );
+		$global_extra_table   = $this->get_db_table_name( 'GLOBAL_EXTRA' );
+		$junction_table       = $this->get_db_table_name( 'SERVICE_GLOBAL_EXTRA' );
+		$service_table        = $this->get_db_table_name( 'SERVICE' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
+		$legacy_globals = $wpdb->get_results( "SELECT * FROM `" . esc_sql( $extra_table ) . "` WHERE is_global = 1" );
+
+		if ( ! empty( $legacy_globals ) ) {
+			// Get all service IDs.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
+			$all_services = $wpdb->get_col( "SELECT id FROM `" . esc_sql( $service_table ) . "`" );
+
+			foreach ( $legacy_globals as $legacy ) {
+				// Insert into global_extras.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
+				$wpdb->insert(
+					$global_extra_table,
+					array(
+						'extra_name'             => $legacy->extra_name,
+						'extra_desc'             => $legacy->extra_desc,
+						'extra_price'            => $legacy->extra_price,
+						'extra_duration'         => $legacy->extra_duration,
+						'extra_operation'        => $legacy->extra_operation,
+						'extra_max_cap'          => $legacy->extra_max_cap,
+						'is_extra_service_front' => $legacy->is_extra_service_front,
+						'is_linked_wc_extrasvc'  => $legacy->is_linked_wc_extrasvc,
+						'svcextra_wc_product'    => $legacy->svcextra_wc_product,
+					),
+					array( '%s', '%s', '%f', '%f', '%f', '%d', '%d', '%d', '%d' )
+				);
+
+				$new_global_id = $wpdb->insert_id;
+
+				if ( $new_global_id && ! empty( $all_services ) ) {
+					// Link to all services (legacy global extras were available to all).
+					foreach ( $all_services as $svc_id ) {
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
+						$wpdb->insert(
+							$junction_table,
+							array(
+								'service_id'      => absint( $svc_id ),
+								'global_extra_id' => absint( $new_global_id ),
+							),
+							array( '%d', '%d' )
+						);
+					}
+				}
+			}
+		}
+
+		update_option( 'bm_global_extras_migrated', '1' );
+	}
 
 
 }//end class
