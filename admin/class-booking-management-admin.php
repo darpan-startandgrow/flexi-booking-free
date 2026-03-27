@@ -917,12 +917,12 @@ class Booking_Management_Admin {
 	}//end bm_fields()
 
 	public function bm_email_templates() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-email-template-listing.php';
 	}//end bm_email_templates()
 
 
 	public function bm_add_template() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-add-email-template.php';
 	}//end bm_add_template()
 
 	public function bm_all_notification_processes() {
