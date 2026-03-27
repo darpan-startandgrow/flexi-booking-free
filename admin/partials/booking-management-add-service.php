@@ -12,7 +12,7 @@
  */
 function bm_save_availability_periods( $service_id, $new_periods = array(), $existing_ids = array() ) {
     global $wpdb;
-    $activator  = new BM_Activator();
+    $activator  = new Booking_Management_Activator();
     $table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
 
     // Delete periods that were removed by the user.

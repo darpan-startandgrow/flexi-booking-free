@@ -16380,6 +16380,21 @@ class Booking_Management_Admin {
 
 
 	/**
+	 * Ensure admin page title is never null to prevent strip_tags() deprecation.
+	 *
+	 * WordPress core calls strip_tags() on the page title in admin-header.php.
+	 * On PHP 8.1+ passing null triggers a deprecation warning.
+	 *
+	 * @since 1.3.0
+	 * @param string $admin_title The admin page title.
+	 * @return string
+	 */
+	public function bm_ensure_admin_title( $admin_title ) {
+		return is_string( $admin_title ) ? $admin_title : '';
+	}//end bm_ensure_admin_title()
+
+
+	/**
 	 * Check if existing email
 	 *
 	 * @author Darpan

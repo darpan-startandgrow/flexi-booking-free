@@ -2142,7 +2142,6 @@ span.bm_stripe_failed::before {
     border-radius: 8px;
     padding: 2%;
     margin-top: 20px;
-    width: 95%;
     margin-right: 1%;
     padding-bottom: 4%;
 }
@@ -2251,14 +2250,12 @@ input[type=time] {
     max-width: 20em !important;
 }
 
-.sg-admin-main-box .wp-core-ui .button,
+.sg-admin-main-box .wp-core-ui .button-primary,
 .wp-core-ui .button-secondary i {
     color: #fff !important;
 }
 
-.sg-admin-main-box .button-secondary:hover,
-.wp-core-ui .button.hover,
-.wp-core-ui .button:hover {
+.sg-admin-main-box .button-secondary:hover {
     background: #195587 !important;
     color: #fff !important;
 }
@@ -2270,8 +2267,8 @@ input[type=time] {
 }
 
 .sg-admin-main-box .alternate,
-.striped>tbody>:nth-child(odd),
-ul.striped>:nth-child(odd) {
+.sg-admin-main-box .striped>tbody>:nth-child(odd),
+.sg-admin-main-box ul.striped>:nth-child(odd) {
     background: none !important;
 }
 
@@ -2285,20 +2282,10 @@ ul.striped>:nth-child(odd) {
 }
 
 .sg-admin-main-box #menu-management .menu-edit,
-#menu-settings-column .accordion-container,
-.comment-ays,
-.feature-filter,
-.imgedit-group,
-.manage-menus,
-.menu-item-handle,
-.popular-tags,
-.stuffbox,
-.widget-inside,
-.widget-top,
-.widgets-holder-wrap,
-.wp-editor-container,
-p.popular-tags,
-table.widefat {
+.sg-admin-main-box .accordion-container,
+.sg-admin-main-box .stuffbox,
+.sg-admin-main-box .wp-editor-container,
+.sg-admin-main-box table.widefat {
     border: 1px solid #f0f0f0;
 }
 
@@ -2420,8 +2407,8 @@ table.widefat {
     /* margin-bottom: 10px; */
 }
 
-.sg-admin-main-box .wp-core-ui .button,
-.wp-core-ui .button-secondary i {
+.sg-admin-main-box .wp-core-ui .button-primary,
+.sg-admin-main-box .wp-core-ui .button-secondary i {
     color: #fff !important;
     font-size: 12px;
 }

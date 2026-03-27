@@ -8696,7 +8696,7 @@ class BM_Request {
 	 */
 	public function bm_service_has_availability_periods( $service_id ) {
 		global $wpdb;
-		$activator  = new BM_Activator();
+		$activator  = new Booking_Management_Activator();
 		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
@@ -8717,7 +8717,7 @@ class BM_Request {
 	 */
 	public function bm_date_in_availability_period( $service_id, $date ) {
 		global $wpdb;
-		$activator  = new BM_Activator();
+		$activator  = new Booking_Management_Activator();
 		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
@@ -8741,7 +8741,7 @@ class BM_Request {
 	 */
 	public function bm_get_availability_periods( $service_id ) {
 		global $wpdb;
-		$activator  = new BM_Activator();
+		$activator  = new Booking_Management_Activator();
 		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only query

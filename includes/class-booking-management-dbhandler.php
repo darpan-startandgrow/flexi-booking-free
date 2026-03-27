@@ -294,7 +294,13 @@ class BM_DBhandler {
 			}
 		} elseif ( $where == 1 ) {
 			if ( $additional != '' ) {
-				$qry .= ' ' . $additional;
+				// If $additional starts with AND/OR, prepend 1 so the WHERE clause is valid.
+				$trimmed = ltrim( $additional );
+				if ( stripos( $trimmed, 'AND ' ) === 0 || stripos( $trimmed, 'OR ' ) === 0 ) {
+					$qry .= ' 1 ' . $additional;
+				} else {
+					$qry .= ' ' . $additional;
+				}
 			} else {
 				$qry .= ' 1';
 			}
@@ -436,7 +442,13 @@ class BM_DBhandler {
 		}
 
 		if ( $additional != '' ) {
-			$qry .= ' ' . $additional;
+			$trimmed = ltrim( $additional );
+			// If query has no WHERE clause yet but $additional starts with AND/OR, add WHERE 1.
+			if ( strpos( $qry, ' WHERE ' ) === false && ( stripos( $trimmed, 'AND ' ) === 0 || stripos( $trimmed, 'OR ' ) === 0 ) ) {
+				$qry .= ' WHERE 1 ' . $additional;
+			} else {
+				$qry .= ' ' . $additional;
+			}
 		}
 
 		if ( $sort_by ) {
