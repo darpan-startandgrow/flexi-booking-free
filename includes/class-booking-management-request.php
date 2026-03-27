@@ -8695,13 +8695,12 @@ class BM_Request {
 	 * @return bool
 	 */
 	public function bm_service_has_availability_periods( $service_id ) {
-		global $wpdb;
-		$activator  = new Booking_Management_Activator();
-		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
-		$count = (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d", absint( $service_id ) )
+		$dbhandler = new BM_DBhandler();
+		$count     = (int) $dbhandler->get_all_result(
+			'AVAILABILITY_PERIOD',
+			'COUNT(*)',
+			array( 'service_id' => absint( $service_id ) ),
+			'var'
 		);
 
 		return $count > 0;
@@ -8716,18 +8715,21 @@ class BM_Request {
 	 * @return bool
 	 */
 	public function bm_date_in_availability_period( $service_id, $date ) {
-		global $wpdb;
-		$activator  = new Booking_Management_Activator();
-		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
-		$count = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d AND %s BETWEEN date_start AND date_end",
-				absint( $service_id ),
-				sanitize_text_field( $date )
-			)
+		$dbhandler = new BM_DBhandler();
+		$where     = array(
+			'ap.service_id' => array( '=' => absint( $service_id ) ),
+			'ap.date_start' => array( '<=' => sanitize_text_field( $date ) ),
+			'ap.date_end'   => array( '>=' => sanitize_text_field( $date ) ),
 		);
+
+		$result = $dbhandler->get_results_with_join(
+			array( 'AVAILABILITY_PERIOD', 'ap' ),
+			'COUNT(*) AS cnt',
+			array(),
+			$where,
+			'row'
+		);
+		$count = $result ? (int) $result->cnt : 0;
 
 		return $count > 0;
 	}
@@ -8740,16 +8742,16 @@ class BM_Request {
 	 * @return array Array of period objects with date_start, date_end, id.
 	 */
 	public function bm_get_availability_periods( $service_id ) {
-		global $wpdb;
-		$activator  = new Booking_Management_Activator();
-		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only query
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT id, date_start, date_end FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d ORDER BY date_start ASC",
-				absint( $service_id )
-			)
+		$dbhandler = new BM_DBhandler();
+		$results   = $dbhandler->get_all_result(
+			'AVAILABILITY_PERIOD',
+			'id, date_start, date_end',
+			array( 'service_id' => absint( $service_id ) ),
+			'results',
+			0,
+			false,
+			'date_start',
+			false
 		);
 
 		return ! empty( $results ) ? $results : array();

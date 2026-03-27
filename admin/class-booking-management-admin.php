@@ -11119,9 +11119,9 @@ class Booking_Management_Admin {
      * @return float
      */
     private function bm_get_daily_metric_value( $date, $metric ) {
-        global $wpdb;
         $dbhandler          = new BM_DBhandler();
-        $transactions_table = $wpdb->prefix . 'sgbm_transactions';
+        $activator          = new Booking_Management_Activator();
+        $transactions_table = $activator->get_db_table_name( 'TRANSACTIONS' );
 
         $metric_map = array(
             'total_sales'         => 'SUM(b.total_cost)',
