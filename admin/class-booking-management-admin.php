@@ -913,7 +913,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_fields() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-field-listing.php';
 	}//end bm_fields()
 
 	public function bm_email_templates() {
