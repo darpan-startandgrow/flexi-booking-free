@@ -2149,10 +2149,10 @@ span.bm_stripe_failed::before {
 .fields_listing_screen {
     min-height: 900px !important;
 }
-.postbox .inside h2,
-.wrap [class$=icon32]+h2,
-.wrap h1,
-.wrap>h2:first-child {
+.sg-admin-main-box .postbox .inside h2,
+.sg-admin-main-box .wrap [class$=icon32]+h2,
+.sg-admin-main-box .wrap h1,
+.sg-admin-main-box .wrap>h2:first-child {
     padding: 0px !important;
     font-size: 20px !important;
     text-decoration: none !important;
@@ -2258,12 +2258,6 @@ input[type=time] {
 .sg-admin-main-box .button-secondary:hover {
     background: #195587 !important;
     color: #fff !important;
-}
-.sg-admin-main-box .listing_table .title {
-    margin: 0px;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 15px;
 }
 
 .sg-admin-main-box .alternate,
@@ -4090,5 +4084,64 @@ pre {
 .bm-customer-inactive {
     background: #ffebee;
     color: #c62828;
+}
+
+/* ============================================================
+   Admin UI Enhancements — Consistent list table styling
+   ============================================================ */
+
+/* Listing page header row */
+.sg-admin-main-box .listing_table .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Title baseline inside listing pages */
+.sg-admin-main-box .listing_table .title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    border-bottom: none;
+    padding-bottom: 0 !important;
+    line-height: 1.4;
+}
+
+/* Better table cell padding */
+.sg-admin-main-box .wp-list-table td,
+.sg-admin-main-box .wp-list-table th {
+    padding: 10px 12px;
+}
+
+/* Table header background */
+.sg-admin-main-box .wp-list-table thead th,
+.sg-admin-main-box .wp-list-table thead td {
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 13px;
+    color: #1d2327;
+}
+
+/* Hover effect on table rows */
+.sg-admin-main-box .wp-list-table tbody tr:hover {
+    background: #f0f6fc;
+}
+
+/* Filter / actions area tidy spacing */
+.sg-admin-main-box .tablenav .actions {
+    padding: 4px 0;
+}
+
+/* Screen options & pagination area */
+.sg-admin-main-box .tablenav-pages {
+    margin: 8px 0;
+}
+
+/* Clean search box alignment */
+.sg-admin-main-box .search-box {
+    margin-bottom: 10px;
 }
 }
