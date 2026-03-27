@@ -1678,3 +1678,120 @@ $queue->push( 'email.send', [
     'body'    => $email_html,
 ] );
 ```
+
+---
+
+## Email Records Hooks
+
+### `sg_booking_before_email_records_page` *(action)*
+
+Fired before the email records admin page renders.
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_before_email_records_page', function () {
+    // Track page views, load additional resources, etc.
+} );
+```
+
+---
+
+### `sg_booking_after_email_records_page` *(action)*
+
+Fired after the email records admin page renders.
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_after_email_records_page', function () {
+    // Add custom footer content, scripts, etc.
+} );
+```
+
+---
+
+### `sg_booking_before_email_records_bulk_delete` *(action)*
+
+Fired before email records are bulk-deleted. Allows archiving or logging before deletion.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$ids` | `array` | Array of email record IDs about to be deleted. |
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_before_email_records_bulk_delete', function ( $ids ) {
+    // Archive email records before deletion.
+    foreach ( $ids as $id ) {
+        my_archive_email_record( $id );
+    }
+} );
+```
+
+---
+
+### `sg_booking_after_email_records_bulk_delete` *(action)*
+
+Fired after email records have been bulk-deleted.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$ids` | `array` | Array of email record IDs that were deleted. |
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_after_email_records_bulk_delete', function ( $ids ) {
+    // Log the deletion event.
+    error_log( 'Deleted email records: ' . implode( ', ', $ids ) );
+} );
+```
+
+---
+
+### `sg_booking_email_records_query_additional` *(filter)*
+
+Filters the additional WHERE clause for the email records list table SQL query. Allows adding custom conditions.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$additional` | `string` | Raw SQL additional WHERE conditions. |
+
+**Return:** `string`
+
+**Usage:**
+
+```php
+add_filter( 'sg_booking_email_records_query_additional', function ( $additional ) {
+    // Only show emails from the last 30 days.
+    global $wpdb;
+    $additional .= $wpdb->prepare( ' AND e.created_at >= %s', gmdate( 'Y-m-d', strtotime( '-30 days' ) ) );
+    return $additional;
+} );
+```
+
+---
+
+### `sg_booking_email_records_items` *(filter)*
+
+Filters the email records items array before they are displayed in the list table.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$items` | `array` | Array of email record row data (each item is an associative array). |
+
+**Return:** `array`
+
+**Usage:**
+
+```php
+add_filter( 'sg_booking_email_records_items', function ( $items ) {
+    // Add custom data to each item.
+    foreach ( $items as &$item ) {
+        $item['custom_note'] = get_custom_note_for_email( $item['id'] );
+    }
+    return $items;
+} );
+```

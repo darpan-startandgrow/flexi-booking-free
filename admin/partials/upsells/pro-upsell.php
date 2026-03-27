@@ -65,7 +65,7 @@ $feature_map = array(
 		'description' => __( 'Design custom mail templates for booking confirmations, cancellations, reminders, and more.', 'service-booking' ),
 		'icon'        => 'dashicons-email',
 	),
-	'bm_fields'                     => array(
+	'sg-booking-forms'              => array(
 		'title'       => __( 'Custom Fields', 'service-booking' ),
 		'description' => __( 'Create entirely new custom booking fields to collect additional information from your customers.', 'service-booking' ),
 		'icon'        => 'dashicons-forms',
