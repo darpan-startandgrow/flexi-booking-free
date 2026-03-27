@@ -3,10 +3,42 @@
  *
  * Handles manual check-in modal, search, bulk check-in processing,
  * view details, and status-change dropdown in the list table.
+ * Uses REST API endpoints (sg-booking/v1/checkins/*).
  * QR scanner, export, and resend-email are Pro-only features.
  *
  * @since 1.3.0
  */
+
+/**
+ * Helper: make a REST API request.
+ *
+ * @param {string} endpoint  REST path relative to sg-booking/v1/ (e.g. 'checkins/status').
+ * @param {string} method    HTTP method (GET, POST, etc.).
+ * @param {object} data      Request body / query params.
+ * @return {jQuery.jqXHR}
+ */
+function bmRestRequest(endpoint, method, data) {
+    var url = bm_ajax_object.rest_url + endpoint;
+
+    var settings = {
+        url: url,
+        method: method,
+        dataType: 'json',
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+        }
+    };
+
+    if (method === 'GET') {
+        settings.data = data;
+    } else {
+        settings.contentType = 'application/json';
+        settings.data = JSON.stringify(data);
+    }
+
+    return jQuery.ajax(settings);
+}
+
 jQuery(document).ready(function($) {
 
     // ─── Close modals ──────────────────────────────────────────────────
@@ -18,17 +50,16 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.view-details', function(e) {
         e.preventDefault();
         var bookingId = $(this).data('id');
-        $.post(bm_ajax_object.ajax_url, {
-            action: 'manual_checkin_view_details',
-            booking_id: bookingId,
-            nonce: bm_ajax_object.nonce
-        }, function(response) {
-            if (response.success) {
-                $('#order-details-content').html(response.data);
+        bmRestRequest('checkins/details/' + bookingId, 'GET', {}).done(function(response) {
+            if (response && response.html) {
+                $('#order-details-content').html(response.html);
                 $('#order-details-modal').show();
             } else {
-                showMessage(response.data ? response.data : 'Server error', 'error');
+                showMessage('Server error', 'error');
             }
+        }).fail(function(xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+            showMessage(msg, 'error');
         });
     });
 
@@ -39,20 +70,17 @@ jQuery(document).ready(function($) {
         var newStatus = $(this).val();
 
         if (newStatus) {
-            $.post(bm_ajax_object.ajax_url, {
-                action: 'update_checkin_status',
+            bmRestRequest('checkins/status', 'POST', {
                 booking_id: bookingId,
                 checkin_id: checkinId,
-                new_status: newStatus,
-                nonce: bm_ajax_object.nonce
-            }, function(response) {
-                if (response.success) {
-                    showMessage(typeof bm_success_object !== 'undefined' && bm_success_object.status_successfully_changed ? bm_success_object.status_successfully_changed : 'Status updated.', 'success');
-                    window.location.reload();
-                } else {
-                    showMessage(response.data ? response.data : 'Server error', 'error');
-                    window.location.reload();
-                }
+                new_status: newStatus
+            }).done(function(response) {
+                showMessage(typeof bm_success_object !== 'undefined' && bm_success_object.status_successfully_changed ? bm_success_object.status_successfully_changed : 'Status updated.', 'success');
+                window.location.reload();
+            }).fail(function(xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+                showMessage(msg, 'error');
+                window.location.reload();
             });
         }
     });
@@ -61,18 +89,15 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.bm-checkin-action', function() {
         var id = $(this).data('id');
         if (!id) return;
-        $.post(bm_ajax_object.ajax_url, {
-            action: 'update_checkin_status',
+        bmRestRequest('checkins/status', 'POST', {
             checkin_id: id,
             booking_id: 0,
-            new_status: 'checked_in',
-            nonce: bm_ajax_object.nonce
-        }, function(response) {
-            if (response.success) {
-                window.location.reload();
-            } else {
-                showMessage(response.data ? response.data : 'Error', 'error');
-            }
+            new_status: 'checked_in'
+        }).done(function() {
+            window.location.reload();
+        }).fail(function(xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error';
+            showMessage(msg, 'error');
         });
     });
 
@@ -153,22 +178,24 @@ jQuery(document).ready(function($) {
             }
         }
 
-        $.post(bm_ajax_object.ajax_url, {
-            action: 'manual_checkin_check',
+        bmRestRequest('checkins/search', 'POST', {
             search_type: searchType,
-            search_value: searchValue,
-            nonce: bm_ajax_object.nonce
-        }, function(response) {
-            if (response.success) {
-                $('#manual_checkin-result').html(response.data);
+            search_value: searchValue
+        }).done(function(response) {
+            if (response && response.html) {
+                $('#manual_checkin-result').html(response.html);
                 if (typeof $.fn.DataTable !== 'undefined') {
                     $('.manual_checkin_records_table').DataTable();
                 }
                 $('.manual-cherckin-buttons').removeClass('hidden');
             } else {
-                $('#manual_checkin-error').html(response.data ? response.data : 'Server error');
+                $('#manual_checkin-error').html('No results found');
                 $('.manual-cherckin-buttons').addClass('hidden');
             }
+        }).fail(function(xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+            $('#manual_checkin-error').html(msg);
+            $('.manual-cherckin-buttons').addClass('hidden');
         });
     });
 });
@@ -230,29 +257,25 @@ function bm_checkin_manually() {
     jQuery('#resendProcess').removeClass('hidden');
     jQuery('#manual-checkin-button').prop('disabled', true);
 
-    jQuery.post(bm_ajax_object.ajax_url, {
-        action: 'manual_checkin_process',
+    bmRestRequest('checkins/process', 'POST', {
         search_type: searchType,
         search_value: searchValue,
-        booking_ids: bookingIds,
-        nonce: bm_ajax_object.nonce
-    }, function(response) {
+        booking_ids: bookingIds
+    }).done(function(response) {
         jQuery('#resendProcess').addClass('hidden');
         jQuery('.manual-cherckin-buttons').addClass('hidden');
 
-        if (response.success) {
-            jQuery('#manual_checkin-result').html('<p class="success">' + response.data.message + '</p>');
-            setTimeout(function() {
-                jQuery('#manual_checkin-modal').hide();
-                window.location.reload();
-            }, 2000);
-        } else {
-            jQuery('#manual_checkin-error').html(response.data ? response.data : 'Server error');
-        }
-    }).fail(function() {
+        var message = (response && response.message) ? response.message : 'Check-in complete';
+        jQuery('#manual_checkin-result').html('<p class="success">' + message + '</p>');
+        setTimeout(function() {
+            jQuery('#manual_checkin-modal').hide();
+            window.location.reload();
+        }, 2000);
+    }).fail(function(xhr) {
         jQuery('#resendProcess').addClass('hidden');
         jQuery('.manual-cherckin-buttons').addClass('hidden');
-        jQuery('#manual_checkin-error').html(typeof bm_error_object !== 'undefined' ? bm_error_object.server_error : 'Server error');
+        var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+        jQuery('#manual_checkin-error').html(msg);
     });
 }
 
@@ -274,20 +297,17 @@ jQuery(document).on('click', '.bm-view-details', function(e) {
     var bookingId = jQuery(this).data('id');
     if (!bookingId) return;
 
-    jQuery.post(bm_ajax_object.ajax_url, {
-        action: 'manual_checkin_view_details',
-        booking_id: bookingId,
-        nonce: bm_ajax_object.nonce
-    }, function(response) {
+    bmRestRequest('checkins/details/' + bookingId, 'GET', {}).done(function(response) {
         jQuery('#loader_modal').hide();
-        if (response.success) {
-            jQuery('.checkin-order-details-container').html(response.data);
+        if (response && response.html) {
+            jQuery('.checkin-order-details-container').html(response.html);
         } else {
-            jQuery('.checkin-order-details-container').html(response.data ? response.data : 'Server error');
+            jQuery('.checkin-order-details-container').html('No data found');
         }
-    }).fail(function() {
+    }).fail(function(xhr) {
         jQuery('#loader_modal').hide();
-        jQuery('.checkin-order-details-container').html(typeof bm_error_object !== 'undefined' ? bm_error_object.server_error : 'Server error');
+        var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+        jQuery('.checkin-order-details-container').html(msg);
     });
 });
 

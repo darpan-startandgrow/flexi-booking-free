@@ -410,12 +410,6 @@ class Booking_Management {
 		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_flexi_admin_notice' );
 		$this->loader->add_action( 'wp_ajax_get_states', $plugin_admin, 'bm_fetch_states_by_country' );
 
-		// Check-in AJAX handlers (free version: manual check-in only).
-		$this->loader->add_action( 'wp_ajax_manual_checkin_process', $plugin_admin, 'bm_manual_checkin_process' );
-		$this->loader->add_action( 'wp_ajax_manual_checkin_check', $plugin_admin, 'bm_manual_checkin_check' );
-		$this->loader->add_action( 'wp_ajax_update_checkin_status', $plugin_admin, 'bm_update_checkin_status' );
-		$this->loader->add_action( 'wp_ajax_manual_checkin_view_details', $plugin_admin, 'bm_manual_checkin_view_details' );
-
 		/**
 		 * Fires after the Lite admin hooks are registered.
 		 *

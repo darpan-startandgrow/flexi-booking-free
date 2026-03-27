@@ -623,6 +623,8 @@ class Booking_Management_Admin {
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'ajax-nonce' ),
+					'rest_url' => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
+					'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 				)
 			);
 
