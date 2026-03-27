@@ -265,7 +265,7 @@ class BM_Email_Records_List_Table extends WP_List_Table {
 				$module_ids   = array_unique( $module_ids );
 				$placeholders = implode( ', ', array_fill( 0, count( $module_ids ), '%d' ) );
 				$activator    = new Booking_Management_Activator();
-				$emails_table = $activator->get_db_table_name( 'EMAILS' );
+				$emails_table = esc_sql( $activator->get_db_table_name( 'EMAILS' ) );
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- placeholders are safe.
 				$count_sql    = $GLOBALS['wpdb']->prepare(
 					"SELECT module_id, mail_to, mail_type, COUNT(*) as cnt FROM $emails_table WHERE module_id IN ($placeholders) GROUP BY module_id, mail_to, mail_type",
