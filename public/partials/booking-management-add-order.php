@@ -652,7 +652,7 @@ wp_localize_script(
 
 ?>
 
-<div class="sg-admin-main-box sg-booking-generic-content-box">
+<div class="sg-booking-generic-content-box">
 <div class="wrap">
     <form role="form" method="post" id="order_form">
         <h1 class="sg-heading"><?php !empty( $id ) ? esc_html_e( 'Booking Details', 'service-booking' ) : esc_html_e( 'Add Order', 'service-booking' ); ?></h1>

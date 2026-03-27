@@ -55,7 +55,7 @@ function bm_save_availability_periods( $service_id, $new_periods = array(), $exi
 $can_add = apply_filters( 'booking_management_can_add_service', true );
 
 if ( !$can_add ) {
-    echo '<div class="sg-admin-main-box"><div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'Free version limit reached (20 services). Upgrade to Pro for unlimited services.', 'service-booking' ) . '</p></div></div></div>';
+    echo '<div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'Free version limit reached (20 services). Upgrade to Pro for unlimited services.', 'service-booking' ) . '</p></div></div>';
     return;
 }
 
@@ -523,7 +523,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
 
 ?>
 
-<div class="sg-admin-main-box" id="service-records-main-box">
+
     <div class="wrap">
         <form role="form" method="post" enctype="multipart/form-data" class="service_page_form">
             <div class="tab" id="serviceTabs">
@@ -1746,4 +1746,3 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
     </div>
 
     <div class="loader_modal"></div>
-</div>
