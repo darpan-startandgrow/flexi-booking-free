@@ -10,7 +10,6 @@ $can_create  = Booking_Management_Limits::can_create_mail_template();
 ?>
 
 
-<div class="sg-admin-main-box">
 <!-- Templates -->
 <div class="wrap listing_table" id="templates_records_listing">
 	<div class="row" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
@@ -68,6 +67,5 @@ $can_create  = Booking_Management_Limits::can_create_mail_template();
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 

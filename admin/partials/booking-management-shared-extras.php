@@ -112,7 +112,6 @@ if ( isset( $_GET['saved'] ) ) {
 }
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap listing_table" id="shared_extras_listing">
 
 	<?php if ( 'edit' === $action && $edit_row ) : ?>
@@ -292,5 +291,4 @@ if ( isset( $_GET['saved'] ) ) {
 
 	<?php endif; ?>
 
-</div>
 </div>

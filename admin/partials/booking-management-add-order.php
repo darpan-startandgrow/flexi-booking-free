@@ -634,7 +634,6 @@ wp_localize_script(
 
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap">
     <form role="form" method="post" id="order_form">
         <h1 style="text-decoration :underline;"><?php !empty( $id ) ? esc_html_e( 'Booking Details', 'service-booking' ) : esc_html_e( 'Add Order', 'service-booking' ); ?></h1>
@@ -1131,4 +1130,3 @@ wp_localize_script(
 </div>
 
 <div class="loader_modal"></div>
-</div>
