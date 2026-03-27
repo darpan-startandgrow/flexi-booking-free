@@ -329,8 +329,71 @@ table.manual_checkin_records_table thead td {
     min-height: 126px;
 }
 
-#qr-cropper-modal {
-  display: none;
-  z-index: 9999;
-  position: fixed;
+/* ─── Date range filters ──────────────────────────────────────────── */
+.bm-checkin-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.bm-checkin-filters select,
+.bm-checkin-filters input[type="date"] {
+    max-width: 160px;
+    height: 32px;
+    vertical-align: middle;
+}
+
+.bm-filter-label {
+    font-weight: 600;
+    font-size: 12px;
+    color: #555;
+    margin-left: 6px;
+}
+
+/* ─── Status badges ───────────────────────────────────────────────── */
+.bm-status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.bm-status-checked-in {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.bm-status-pending {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.bm-status-expired {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* ─── Actions column ──────────────────────────────────────────────── */
+.bm-checkin-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+
+.bm-checkin-actions select {
+    max-width: 130px;
+    height: 28px;
+    font-size: 11px;
+}
+
+/* ─── Popup message ───────────────────────────────────────────────── */
+.bm-msg-success #popup-message {
+    color: #2e7d32;
+}
+.bm-msg-error #popup-message {
+    color: #c62828;
 }

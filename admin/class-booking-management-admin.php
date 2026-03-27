@@ -106,6 +106,12 @@ class Booking_Management_Admin {
 				wp_enqueue_style( 'single-order-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-order.css', array(), $this->version, 'all' );
 			}
 
+			// Check-ins page styles and scripts.
+			if ( isset( $screen->base ) && strpos( $screen->base, 'bm_check_ins' ) !== false ) {
+				wp_enqueue_style( 'bm-check-ins-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-check-ins.css', array(), $this->version, 'all' );
+				wp_enqueue_script( 'bm-check-ins-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-check-ins.js', array( 'jquery' ), $this->version, true );
+			}
+
 			// Upsell page styles (loaded on all FlexiBooking admin pages).
 			wp_enqueue_style( 'sg-upsell', plugin_dir_url( __FILE__ ) . 'css/sg-upsell.css', array(), $this->version, 'all' );
 

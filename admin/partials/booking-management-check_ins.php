@@ -37,6 +37,12 @@ $plugin_path = plugin_dir_url( __FILE__ );
             <?php esc_html_e( 'Ticket Scanner', 'service-booking' ); ?>
             <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
         </button>
+
+        <button class="button" disabled title="<?php esc_attr_e( 'Export Check-in Records — Pro Feature', 'service-booking' ); ?>">
+            <span class="dashicons dashicons-lock" style="vertical-align: middle; color: #ffb300;"></span>
+            <?php esc_html_e( 'Export', 'service-booking' ); ?>
+            <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
+        </button>
     </div>
 
     <form method="get">
@@ -93,7 +99,7 @@ $plugin_path = plugin_dir_url( __FILE__ );
         <span class="dashicons dashicons-lock" style="color: #ffb300;"></span>
         <strong><?php esc_html_e( 'Advanced Check-in Features', 'service-booking' ); ?></strong>
         <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span><br />
-        <small><?php esc_html_e( 'Upgrade to Pro for QR Ticket Scanner, Resend Ticket Email, Manage Columns, Advanced Search Filters, and CSV Export.', 'service-booking' ); ?></small>
+        <small><?php esc_html_e( 'Upgrade to Pro for QR Ticket Scanner, Resend Booking Ticket Email, and CSV Export.', 'service-booking' ); ?></small>
     </p>
 </div>
 

@@ -84,13 +84,15 @@ class BM_Checkins_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Bulk actions available in the dropdown.
+	 * Bulk actions — supports multiple status transitions.
 	 *
 	 * @return array
 	 */
 	public function get_bulk_actions() {
 		return array(
-			'bulk-checkin' => esc_html__( 'Check In', 'service-booking' ),
+			'bulk-checked_in' => esc_html__( 'Mark as Checked In', 'service-booking' ),
+			'bulk-pending'    => esc_html__( 'Mark as Pending', 'service-booking' ),
+			'bulk-expired'    => esc_html__( 'Mark as Expired', 'service-booking' ),
 		);
 	}
 
@@ -98,7 +100,10 @@ class BM_Checkins_List_Table extends WP_List_Table {
 	 * Process bulk actions.
 	 */
 	public function process_bulk_action() {
-		if ( 'bulk-checkin' !== $this->current_action() ) {
+		$action = $this->current_action();
+
+		$valid_actions = array( 'bulk-checked_in', 'bulk-pending', 'bulk-expired' );
+		if ( ! in_array( $action, $valid_actions, true ) ) {
 			return;
 		}
 
@@ -111,10 +116,22 @@ class BM_Checkins_List_Table extends WP_List_Table {
 			return;
 		}
 
+		// Extract the target status from the action name (e.g. 'bulk-checked_in' → 'checked_in').
+		$new_status = str_replace( 'bulk-', '', $action );
+
+		$now = ( new BM_Request() )->bm_fetch_current_wordpress_datetime_stamp();
 		foreach ( $ids as $id ) {
-			if ( $id > 0 ) {
-				$this->dbhandler->update_row( 'CHECKIN', 'id', $id, array( 'status' => 'checked_in' ), null, '%d' );
+			if ( $id <= 0 ) {
+				continue;
 			}
+			$data = array(
+				'status'     => $new_status,
+				'updated_at' => $now,
+			);
+			if ( 'checked_in' === $new_status ) {
+				$data['checkin_time'] = $now;
+			}
+			$this->dbhandler->update_row( 'CHECKIN', 'id', $id, $data, null, '%d' );
 		}
 	}
 
@@ -145,6 +162,12 @@ class BM_Checkins_List_Table extends WP_List_Table {
 		$service_filter = isset( $_REQUEST['service_filter'] ) ? absint( $_REQUEST['service_filter'] ) : '';
 		$status_filter  = isset( $_REQUEST['checkin_status_filter'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['checkin_status_filter'] ) ) : '';
 
+		// Date range filters.
+		$service_date_from = isset( $_REQUEST['service_date_from'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['service_date_from'] ) ) : '';
+		$service_date_to   = isset( $_REQUEST['service_date_to'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['service_date_to'] ) ) : '';
+		$checkin_date_from = isset( $_REQUEST['checkin_date_from'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['checkin_date_from'] ) ) : '';
+		$checkin_date_to   = isset( $_REQUEST['checkin_date_to'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['checkin_date_to'] ) ) : '';
+
 		// Fetch unique services from check-in data.
 		$all_checkins    = $this->bmrequests->bm_fetch_all_order_checkins();
 		$unique_services = array();
@@ -161,7 +184,7 @@ class BM_Checkins_List_Table extends WP_List_Table {
 			}
 		}
 
-		echo '<div class="alignleft actions">';
+		echo '<div class="alignleft actions bm-checkin-filters">';
 
 		// Service filter.
 		echo '<select name="service_filter">';
@@ -181,7 +204,18 @@ class BM_Checkins_List_Table extends WP_List_Table {
 		echo '<option value="">' . esc_html__( 'All Statuses', 'service-booking' ) . '</option>';
 		printf( '<option value="checked_in"%s>%s</option>', selected( $status_filter, 'checked_in', false ), esc_html__( 'Checked In', 'service-booking' ) );
 		printf( '<option value="pending"%s>%s</option>', selected( $status_filter, 'pending', false ), esc_html__( 'Pending', 'service-booking' ) );
+		printf( '<option value="expired"%s>%s</option>', selected( $status_filter, 'expired', false ), esc_html__( 'Expired', 'service-booking' ) );
 		echo '</select>';
+
+		// Service date range.
+		echo '<label class="bm-filter-label">' . esc_html__( 'Service Date:', 'service-booking' ) . '</label>';
+		printf( '<input type="date" name="service_date_from" value="%s" placeholder="%s" />', esc_attr( $service_date_from ), esc_attr__( 'From', 'service-booking' ) );
+		printf( '<input type="date" name="service_date_to" value="%s" placeholder="%s" />', esc_attr( $service_date_to ), esc_attr__( 'To', 'service-booking' ) );
+
+		// Check-in date range.
+		echo '<label class="bm-filter-label">' . esc_html__( 'Check-in Date:', 'service-booking' ) . '</label>';
+		printf( '<input type="date" name="checkin_date_from" value="%s" placeholder="%s" />', esc_attr( $checkin_date_from ), esc_attr__( 'From', 'service-booking' ) );
+		printf( '<input type="date" name="checkin_date_to" value="%s" placeholder="%s" />', esc_attr( $checkin_date_to ), esc_attr__( 'To', 'service-booking' ) );
 
 		submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false );
 		echo '</div>';
@@ -237,11 +271,55 @@ class BM_Checkins_List_Table extends WP_List_Table {
 
 		// Apply status filter.
 		if ( isset( $_REQUEST['checkin_status_filter'] ) && '' !== $_REQUEST['checkin_status_filter'] ) {
-			$status_val = sanitize_text_field( wp_unslash( $_REQUEST['checkin_status_filter'] ) );
+			$status_val   = sanitize_text_field( wp_unslash( $_REQUEST['checkin_status_filter'] ) );
 			$all_checkins = array_filter(
 				$all_checkins,
 				function ( $checkin ) use ( $status_val ) {
 					return isset( $checkin['checkin_status'] ) && $checkin['checkin_status'] === $status_val;
+				}
+			);
+			$total = count( $all_checkins );
+		}
+
+		// Apply service date range filter.
+		if ( isset( $_REQUEST['service_date_from'] ) && '' !== $_REQUEST['service_date_from'] ) {
+			$from         = sanitize_text_field( wp_unslash( $_REQUEST['service_date_from'] ) );
+			$all_checkins = array_filter(
+				$all_checkins,
+				function ( $checkin ) use ( $from ) {
+					return ! empty( $checkin['booking_date'] ) && $checkin['booking_date'] >= $from;
+				}
+			);
+			$total = count( $all_checkins );
+		}
+		if ( isset( $_REQUEST['service_date_to'] ) && '' !== $_REQUEST['service_date_to'] ) {
+			$to           = sanitize_text_field( wp_unslash( $_REQUEST['service_date_to'] ) );
+			$all_checkins = array_filter(
+				$all_checkins,
+				function ( $checkin ) use ( $to ) {
+					return ! empty( $checkin['booking_date'] ) && $checkin['booking_date'] <= $to;
+				}
+			);
+			$total = count( $all_checkins );
+		}
+
+		// Apply check-in date range filter.
+		if ( isset( $_REQUEST['checkin_date_from'] ) && '' !== $_REQUEST['checkin_date_from'] ) {
+			$from         = sanitize_text_field( wp_unslash( $_REQUEST['checkin_date_from'] ) );
+			$all_checkins = array_filter(
+				$all_checkins,
+				function ( $checkin ) use ( $from ) {
+					return ! empty( $checkin['checkin_time'] ) && substr( $checkin['checkin_time'], 0, 10 ) >= $from;
+				}
+			);
+			$total = count( $all_checkins );
+		}
+		if ( isset( $_REQUEST['checkin_date_to'] ) && '' !== $_REQUEST['checkin_date_to'] ) {
+			$to           = sanitize_text_field( wp_unslash( $_REQUEST['checkin_date_to'] ) );
+			$all_checkins = array_filter(
+				$all_checkins,
+				function ( $checkin ) use ( $to ) {
+					return ! empty( $checkin['checkin_time'] ) && substr( $checkin['checkin_time'], 0, 10 ) <= $to;
 				}
 			);
 			$total = count( $all_checkins );
@@ -330,22 +408,58 @@ class BM_Checkins_List_Table extends WP_List_Table {
 			case 'checkin_status':
 				$status = $item['checkin_status'];
 				$label  = ucfirst( str_replace( '_', ' ', $status ) );
-				$class  = ( 'checked_in' === $status ) ? 'color: green;' : 'color: #999;';
-				return sprintf( '<span style="%s font-weight:600;">%s</span>', esc_attr( $class ), esc_html( $label ) );
+				if ( 'checked_in' === $status ) {
+					$class = 'bm-status-badge bm-status-checked-in';
+				} elseif ( 'expired' === $status ) {
+					$class = 'bm-status-badge bm-status-expired';
+				} else {
+					$class = 'bm-status-badge bm-status-pending';
+				}
+				return sprintf( '<span class="%s">%s</span>', esc_attr( $class ), esc_html( $label ) );
 
 			case 'total_cost':
 				return esc_html( $item['total_cost'] );
 
 			case 'actions':
-				$checkin_btn = '';
+				$html = '<div class="bm-checkin-actions">';
+
+				// Status dropdown for changing check-in status.
+				$html .= sprintf(
+					'<select class="checkin-status-dropdown" data-checkin-id="%s" data-booking-id="%s">',
+					esc_attr( $item['id'] ),
+					esc_attr( $item['booking_id'] )
+				);
+				$html .= '<option value="">' . esc_html__( 'Change Status', 'service-booking' ) . '</option>';
+				$statuses = array(
+					'pending'    => __( 'Pending', 'service-booking' ),
+					'checked_in' => __( 'Checked In', 'service-booking' ),
+					'expired'    => __( 'Expired', 'service-booking' ),
+				);
+				foreach ( $statuses as $val => $lbl ) {
+					if ( $val !== $item['checkin_status'] ) {
+						$html .= sprintf( '<option value="%s">%s</option>', esc_attr( $val ), esc_html( $lbl ) );
+					}
+				}
+				$html .= '</select>';
+
+				// Quick check-in button (only for non-checked-in items).
 				if ( 'checked_in' !== $item['checkin_status'] ) {
-					$checkin_btn = sprintf(
-						'<button type="button" class="button button-small bm-checkin-action" data-id="%s" title="%s"><span class="dashicons dashicons-yes" style="vertical-align:middle;"></span></button>',
+					$html .= sprintf(
+						' <button type="button" class="button button-small bm-checkin-action" data-id="%s" title="%s"><span class="dashicons dashicons-yes" style="vertical-align:middle;"></span></button>',
 						esc_attr( $item['id'] ),
 						esc_attr__( 'Check In', 'service-booking' )
 					);
 				}
-				return $checkin_btn;
+
+				// Resend Email — Pro teaser.
+				$html .= sprintf(
+					' <button type="button" class="button button-small" disabled title="%s" style="opacity:0.65;cursor:not-allowed;"><span class="dashicons dashicons-email-alt" style="vertical-align:middle;color:#999;"></span> <span class="sg-pro-badge" style="font-size:9px;">%s</span></button>',
+					esc_attr__( 'Resend Booking Mail — Pro Feature', 'service-booking' ),
+					esc_html__( 'PRO', 'service-booking' )
+				);
+
+				$html .= '</div>';
+				return $html;
 
 			default:
 				return '';
