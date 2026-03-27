@@ -209,11 +209,13 @@ class BM_Payment_Logs_Table extends WP_List_Table {
 $table = new BM_Payment_Logs_Table();
 $table->prepare_items();
 ?>
-<div class="wrap">
-    <h1><?php esc_html_e( 'Payment Logs', 'service-booking' ); ?></h1>
+<div class="sg-admin-main-box">
+<div class="wrap listing_table">
+    <h2 class="title" style="font-weight: bold; margin:0 0 15px;"><?php esc_html_e( 'Payment Logs', 'service-booking' ); ?></h2>
     <form method="get">
         <input type="hidden" name="page" value="bm_payment_logs" />
         <?php $table->search_box( __( 'Search Service/Customer', 'service-booking' ), 'search_id' ); ?>
         <?php $table->display(); ?>
     </form>
+</div>
 </div>

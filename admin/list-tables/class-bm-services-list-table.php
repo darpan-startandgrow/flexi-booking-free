@@ -181,11 +181,7 @@ class BM_Services_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		$this->process_bulk_action();
 
-		$per_page = ! empty( $_REQUEST['per_page'] )
-			? absint( $_REQUEST['per_page'] )
-			: ( ! empty( $this->dbhandler->get_global_option_value( 'bm_services_per_page' ) )
-				? absint( $this->dbhandler->get_global_option_value( 'bm_services_per_page' ) )
-				: 10 );
+		$per_page = $this->get_items_per_page( 'bm_list_per_page', 10 );
 
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;

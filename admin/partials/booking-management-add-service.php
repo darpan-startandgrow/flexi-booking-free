@@ -55,7 +55,7 @@ function bm_save_availability_periods( $service_id, $new_periods = array(), $exi
 $can_add = apply_filters( 'booking_management_can_add_service', true );
 
 if ( !$can_add ) {
-    echo '<div class="notice notice-warning"><p>Free version limit reached (20 services). Upgrade to Pro for unlimited services.</p></div>';
+    echo '<div class="sg-admin-main-box"><div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'Free version limit reached (20 services). Upgrade to Pro for unlimited services.', 'service-booking' ) . '</p></div></div></div>';
     return;
 }
 

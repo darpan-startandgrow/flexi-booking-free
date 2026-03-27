@@ -254,6 +254,8 @@ class Booking_Management {
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'booking_admin_menu' );
 		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_disable_admin_notices_on_specific_pages', 1 );
 		$this->loader->add_filter( 'admin_title', $plugin_admin, 'bm_ensure_admin_title', 1 );
+		$this->loader->add_filter( 'parent_file', $plugin_admin, 'bm_fix_menu_highlight' );
+		$this->loader->add_filter( 'set-screen-option', $plugin_admin, 'bm_set_screen_option', 10, 3 );
 		$this->loader->add_action( 'init', $plugin_admin, 'bm_set_timezone' );
 		$this->loader->add_action( 'update_option_timezone_string', $plugin_admin, 'bm_update_plugin_timezone_on_wp_change', 10, 2 );
 		$this->loader->add_action( 'update_option_gmt_offset', $plugin_admin, 'bm_update_plugin_timezone_on_gmt_offset_change', 10, 2 );
