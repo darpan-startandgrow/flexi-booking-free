@@ -14,7 +14,6 @@ $pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmreque
 ?>
 
 
-<div class="sg-admin-main-box">
 <!-- Processes -->
 <div class="wrap listing_table" id="notification_process_records_listing">
     <div class="row">
@@ -80,5 +79,4 @@ $pagination   = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmreque
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
