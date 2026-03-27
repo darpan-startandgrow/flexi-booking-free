@@ -18,6 +18,21 @@ if ( ! empty( $id ) ) {
 	$template = $dbhandler->get_row( $identifier, $id );
 }
 
+// ── Strict limit guard (free version: 9 templates max) ────────────────────
+$can_create = Booking_Management_Limits::can_create_mail_template();
+if ( empty( $id ) && ! $can_create ) {
+	echo '<div class="sg-admin-main-box"><div class="wrap listing_table">';
+	echo '<div class="bm-notice bm-error" style="margin:20px 0;">';
+	echo esc_html( Booking_Management_Limits::get_limit_message( 'mail_templates' ) );
+	echo '</div>';
+	echo '<a href="' . esc_url( admin_url( 'admin.php?page=bm_email_templates' ) ) . '" class="button">&#8592; &nbsp;' . esc_html__( 'Back to Templates', 'service-booking' ) . '</a>';
+	echo '</div></div>';
+	return;
+}
+
+// Allowed template types for free version.
+$allowed_types = Booking_Management_Limits::FREE_MAIL_TEMPLATE_TYPES;
+
 $email_content = array(
 	'wpautop'           => false,
 	'media_buttons'     => true,
@@ -53,8 +68,16 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 		$tmpl_data = $bmrequests->sanitize_request( $_POST, $identifier, $exclude );
 
 		if ( $tmpl_data != false ) {
-			$current_type   = isset( $tmpl_data['type'] ) ? $tmpl_data['type'] : -1;
+			$current_type   = isset( $tmpl_data['type'] ) ? (int) $tmpl_data['type'] : -1;
 			$current_status = isset( $tmpl_data['status'] ) ? $tmpl_data['status'] : -1;
+
+			// ── Enforce type restriction for free version ──────────────
+			if ( ! in_array( $current_type, $allowed_types, true ) ) {
+				echo '<div id="errorMessage" class="bm-notice bm-error">';
+				echo esc_html__( 'This template type is not available in the free version.', 'service-booking' );
+				echo '</div>';
+			} else {
+
 			$active_type    = $bmrequests->bm_check_active_email_template_of_a_specific_type( $current_type );
 
 			if ( ! empty( $id ) ) {
@@ -78,6 +101,11 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 						echo ( '</div>' );
 					}
 				}
+			} elseif ( ! Booking_Management_Limits::can_create_mail_template( $current_type ) ) {
+					// ── Double-check limit on server side before insert ──
+					echo '<div id="errorMessage" class="bm-notice bm-error">';
+					echo esc_html( Booking_Management_Limits::get_limit_message( 'mail_templates' ) );
+					echo '</div>';
 			} elseif ( $current_status == 1 && $active_type ) {
 					echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
 					echo esc_html__( 'There is already an active template for this type, please deactivate the existing template.', 'service-booking' );
@@ -99,6 +127,8 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 					echo ( '</div>' );
 				}
 			}
+
+			} // end type restriction check.
 		} else {
 			echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
 			echo esc_html__( 'Template Data could not be Processed !!', 'service-booking' );
@@ -107,13 +137,26 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 	}
 }//end if
 
+// Build the type label map (only free-allowed types).
+$type_labels = array(
+	0  => __( 'New order (frontend)', 'service-booking' ),
+	3  => __( 'Order cancel', 'service-booking' ),
+	5  => __( 'Admin new order notification', 'service-booking' ),
+	6  => __( 'Admin order cancel notification', 'service-booking' ),
+	9  => __( 'Failed Order', 'service-booking' ),
+	10 => __( 'Failed order admin notification', 'service-booking' ),
+	11 => __( 'Gift voucher notification', 'service-booking' ),
+	15 => __( 'Redeem voucher admin notification', 'service-booking' ),
+	16 => __( 'Redeem voucher notification', 'service-booking' ),
+);
+
 ?>
 
 <div class="sg-admin-main-box" id="email-template-main-box">
 <div class="wrap listing_table">
 	<div class="row">
 		<p>
-		<h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'Add Template', 'service-booking' ); ?></h2>
+		<h2 class="title" style="font-weight: bold;"><?php echo empty( $id ) ? esc_html__( 'Add Template', 'service-booking' ) : esc_html__( 'Edit Template', 'service-booking' ); ?></h2>
 		</p>
 	</div>
 	
@@ -143,23 +186,9 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 					<th scope="row"><label for="type"><?php esc_html_e( 'Template Type', 'service-booking' ); ?></label><strong class="required_asterisk"> *</strong></th>
 					<td class="bminput bm_tmpl_required">
 						<select name="type" id="type" class="regular-text">
-							<option value="0" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 0 ) : ''; ?>><?php esc_html_e( 'New order (frontend)', 'service-booking' ); ?></option>
-							<option value="1" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 1 ) : ''; ?>><?php esc_html_e( 'New order (backend)', 'service-booking' ); ?></option>
-							<option value="12" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 12 ) : ''; ?>><?php esc_html_e( 'New request (frontend)', 'service-booking' ); ?></option>
-							<option value="13" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 13 ) : ''; ?>><?php esc_html_e( 'New request (backend)', 'service-booking' ); ?></option>
-							<option value="2" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 2 ) : ''; ?>><?php esc_html_e( 'Order refund', 'service-booking' ); ?></option>
-							<option value="3" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 3 ) : ''; ?>><?php esc_html_e( 'Order cancel', 'service-booking' ); ?></option>
-							<option value="4" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 4 ) : ''; ?>><?php esc_html_e( 'Order approval', 'service-booking' ); ?></option>
-							<option value="5" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 5 ) : ''; ?>><?php esc_html_e( 'Admin new order notification', 'service-booking' ); ?></option>
-							<option value="14" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 14 ) : ''; ?>><?php esc_html_e( 'Admin new request notification', 'service-booking' ); ?></option>
-							<option value="6" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 6 ) : ''; ?>><?php esc_html_e( 'Admin order cancel notification', 'service-booking' ); ?></option>
-							<option value="7" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 7 ) : ''; ?>><?php esc_html_e( 'Admin order refund notification', 'service-booking' ); ?></option>
-							<option value="8" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 8 ) : ''; ?>><?php esc_html_e( 'Admin order approval notification', 'service-booking' ); ?></option>
-							<option value="9" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 9 ) : ''; ?>><?php esc_html_e( 'Failed Order', 'service-booking' ); ?></option>
-							<option value="10" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 10 ) : ''; ?>><?php esc_html_e( 'Failed order admin notification', 'service-booking' ); ?></option>
-							<option value="11" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 11 ) : ''; ?>><?php esc_html_e( 'Gift voucher notification', 'service-booking' ); ?></option>
-							<option value="15" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 15 ) : ''; ?>><?php esc_html_e( 'Redeem voucher admin notification', 'service-booking' ); ?></option>
-							<option value="16" <?php isset( $template ) && isset( $template->type ) ? selected( $template->type, 16 ) : ''; ?>><?php esc_html_e( 'Redeem voucher notification', 'service-booking' ); ?></option>
+							<?php foreach ( $type_labels as $type_id => $type_label ) : ?>
+								<option value="<?php echo esc_attr( $type_id ); ?>" <?php isset( $template ) && isset( $template->type ) ? selected( (int) $template->type, $type_id ) : ''; ?>><?php echo esc_html( $type_label ); ?></option>
+							<?php endforeach; ?>
 						</select>
 						<div class="tmpl_errortext"></div>
 					</td>
@@ -186,9 +215,6 @@ if ( ( filter_input( INPUT_POST, 'savetemplate' ) ) ) {
 					<?php wp_nonce_field( 'save_template_section' ); ?>
 					<a href="admin.php?page=bm_email_templates" class="button">&#8592; &nbsp;<?php esc_attr_e( 'Back', 'service-booking' ); ?></a>
 					<input type="submit" name="savetemplate" id="savetemplate" class="button button-primary" value="<?php empty( $id ) ? esc_attr_e( 'Save', 'service-booking' ) : esc_attr_e( 'Update', 'service-booking' ); ?>" onclick="return add_template_validation()">
-					<!-- <?php if ( empty( $id ) ) { ?>
-						<button type="reset" name="resetfrm" id="resetfrm" class="button" style="background-color: #5F5B50;color: white;"><?php esc_attr_e( 'Reset', 'service-booking' ); ?></button>
-					<?php } ?> -->
 				<div class="all_global_general_error_text" style="display:none;"></div>
 				</p>
 			</div>

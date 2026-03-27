@@ -397,6 +397,32 @@
 	opacity: 0.5;
 }
 
+/* ===== Pro Teaser Tab Buttons ===== */
+.bm-pro-tab-teaser {
+	opacity: 0.65;
+	cursor: not-allowed !important;
+	position: relative;
+	background: #f0f0f1 !important;
+	border-color: #c3c4c7 !important;
+	color: #50575e !important;
+}
+
+.bm-pro-tab-teaser .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	vertical-align: middle;
+	margin-right: 3px;
+	color: #7c3aed;
+}
+
+.bm-pro-tab-teaser .sg-pro-badge {
+	font-size: 9px;
+	padding: 1px 6px;
+	margin-left: 4px;
+	vertical-align: middle;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 48em) {
 	.sg-upsell-hero {

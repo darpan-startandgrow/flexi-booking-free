@@ -33,12 +33,22 @@ class Booking_Management_Limits {
 	/**
 	 * Maximum number of active mail templates in the free version.
 	 */
-	const FREE_MAIL_TEMPLATE_LIMIT = 2;
+	const FREE_MAIL_TEMPLATE_LIMIT = 9;
 
 	/**
-	 * Allowed mail template types in the free version.
+	 * Allowed mail template type IDs in the free version.
+	 *
+	 * 0  = New Order (customer, frontend)
+	 * 3  = Cancelled Order (customer)
+	 * 5  = New Order (admin)
+	 * 6  = Cancelled Order (admin)
+	 * 9  = Failed Order (customer)
+	 * 10 = Failed Order (admin)
+	 * 11 = Gift Voucher (recipient)
+	 * 15 = Voucher Redeem (admin)
+	 * 16 = Voucher Redeem (customer)
 	 */
-	const FREE_MAIL_TEMPLATE_TYPES = array( 'booking_confirmed', 'booking_cancelled' );
+	const FREE_MAIL_TEMPLATE_TYPES = array( 0, 3, 5, 6, 9, 10, 11, 15, 16 );
 
 	/**
 	 * Maximum number of gift orders in the free version.
@@ -187,15 +197,15 @@ class Booking_Management_Limits {
 	 * Check if a new mail template can be created.
 	 *
 	 * Free version: limited to FREE_MAIL_TEMPLATE_LIMIT templates
-	 * and only basic default types.
+	 * and only the allowed type IDs in FREE_MAIL_TEMPLATE_TYPES.
 	 * Pro version: unlimited templates of all types.
 	 *
-	 * @param string $template_type Optional. The type of template being created.
+	 * @param int|string $template_type Optional. The numeric type ID of the template being created.
 	 * @return bool
 	 */
 	public static function can_create_mail_template( $template_type = '' ) {
-		// Check template type restriction.
-		if ( ! empty( $template_type ) && ! in_array( $template_type, self::FREE_MAIL_TEMPLATE_TYPES, true ) ) {
+		// Check template type restriction (numeric type IDs).
+		if ( '' !== $template_type && ! in_array( (int) $template_type, self::FREE_MAIL_TEMPLATE_TYPES, true ) ) {
 			return false;
 		}
 

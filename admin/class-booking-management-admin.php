@@ -643,6 +643,7 @@ class Booking_Management_Admin {
 
 		add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
+		add_submenu_page( 'bm_home', __( 'Shared Extras', 'service-booking' ), __( 'Shared Extras', 'service-booking' ), 'manage_options', 'bm_shared_extras', array( $this, 'bm_shared_extras' ) );
 		add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
 		add_submenu_page( '', __( 'Add Category', 'service-booking' ), __( 'Add Category', 'service-booking' ), 'manage_options', 'bm_add_category', array( $this, 'bm_add_category' ) );
 
@@ -655,8 +656,8 @@ class Booking_Management_Admin {
 		add_submenu_page( 'bm_home', __( 'Mail Templates', 'service-booking' ), __( 'Mail Templates', 'service-booking' ), 'manage_options', 'bm_email_templates', array( $this, 'bm_email_templates' ) );
 		add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_add_template' ) );
 
-		// Fields: Available in free (default billing form only) and pro (advanced).
-		add_submenu_page( 'bm_home', __( 'Fields', 'service-booking' ), __( 'Fields', 'service-booking' ), 'manage_options', 'bm_fields', array( $this, 'bm_fields' ) );
+		// Booking Forms: Available in free (default billing form only) and pro (advanced).
+		add_submenu_page( 'bm_home', __( 'Booking Forms', 'service-booking' ), __( 'Booking Forms', 'service-booking' ), 'manage_options', 'sg-booking-forms', array( $this, 'bm_fields' ) );
 
 		// Price Modules: Pro-only.
 		add_submenu_page( 'bm_home', __( 'Price Modules', 'service-booking' ), __( 'Price Modules', 'service-booking' ) . ' <span class="bm-menu-pro-badge">Pro</span>', 'manage_options', 'bm_all_external_service_prices', array( $this, 'bm_pro_upsell_page' ) );
@@ -811,13 +812,18 @@ class Booking_Management_Admin {
 	}//end bm_all_categories()
 
 
+	public function bm_shared_extras() {
+		include 'partials/booking-management-shared-extras.php';
+	}//end bm_shared_extras()
+
+
 	public function bm_add_category() {
 		include 'partials/booking-management-add-category.php';
 	}//end bm_add_category()
 
 
 	public function bm_email_records() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-email-records.php';
 	}//end bm_email_records()
 
 
@@ -907,16 +913,16 @@ class Booking_Management_Admin {
 
 
 	public function bm_fields() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-field-listing.php';
 	}//end bm_fields()
 
 	public function bm_email_templates() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-email-template-listing.php';
 	}//end bm_email_templates()
 
 
 	public function bm_add_template() {
-		$this->bm_pro_upsell_page();
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-add-email-template.php';
 	}//end bm_add_template()
 
 	public function bm_all_notification_processes() {
@@ -2321,6 +2327,9 @@ class Booking_Management_Admin {
 			$data['variable_module'] = ! empty( $service ) && isset( $service->variable_svc_price_modules ) ? maybe_unserialize( $service->variable_svc_price_modules ) : array();
 			$data['unavailability']  = ! empty( $service ) && isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 			$data['gbl_unavlabilty'] = $dbhandler->get_global_option_value( 'bm_global_unavailability' );
+
+			$bmrequests = new BM_Request();
+			$data['availability_periods'] = $bmrequests->bm_get_availability_periods( $id );
 
 			$data = apply_filters( 'bm_flexibooking_after_getting_service_prices', $data, $service, $id );
 		}
@@ -16269,7 +16278,7 @@ class Booking_Management_Admin {
 	public function bm_disable_admin_notices_on_specific_pages() {
 		$screen = get_current_screen();
 
-		$pages_to_disable = array( 'toplevel_page_bm_home', 'flexibooking_page_bm_all_orders', 'admin_page_bm_add_order', 'flexibooking_page_bm_all_customers', 'admin_page_bm_add_customer', 'admin_page_bm_customer_profile', 'flexibooking_page_bm_all_services', 'admin_page_bm_add_service', 'flexibooking_page_bm_all_categories', 'admin_page_bm_add_category', 'flexibooking_page_bm_email_templates', 'admin_page_bm_add_template', 'flexibooking_page_bm_fields', 'flexibooking_page_bm_all_external_service_prices', 'flexibooking_page_bm_voucher_records', 'admin_page_bm_add_external_service_price', 'flexibooking_page_bm_all_notification_processes', 'admin_page_bm_add_notification_process', 'flexibooking_page_bm_email_records', 'flexibooking_page_bm_all_coupons', 'admin_page_bm_add_coupon', 'flexibooking_page_bm_global', 'admin_page_bm_global_general_settings', 'admin_page_bm_global_css_settings', 'admin_page_bm_global_timezone_country_settings', 'admin_page_bm_global_email_settings', 'admin_page_bm_global_payment_settings', 'admin_page_bm_svc_booking_settings', 'admin_page_bm_upload_settings', 'admin_page_bm_global_language_settings', 'admin_page_bm_global_format_settings', 'admin_page_bm_global_integration_settings', 'admin_page_bm_global_coupon_settings', 'flexibooking_page_bm_service_booking_planner', 'flexibooking_page_bm_single_service_booking_planner', 'flexibooking_page_bm_check_ins' );
+		$pages_to_disable = array( 'toplevel_page_bm_home', 'flexibooking_page_bm_all_orders', 'admin_page_bm_add_order', 'flexibooking_page_bm_all_customers', 'admin_page_bm_add_customer', 'admin_page_bm_customer_profile', 'flexibooking_page_bm_all_services', 'admin_page_bm_add_service', 'flexibooking_page_bm_all_categories', 'admin_page_bm_add_category', 'flexibooking_page_bm_email_templates', 'admin_page_bm_add_template', 'flexibooking_page_sg-booking-forms', 'flexibooking_page_bm_all_external_service_prices', 'flexibooking_page_bm_voucher_records', 'admin_page_bm_add_external_service_price', 'flexibooking_page_bm_all_notification_processes', 'admin_page_bm_add_notification_process', 'flexibooking_page_bm_email_records', 'flexibooking_page_bm_all_coupons', 'admin_page_bm_add_coupon', 'flexibooking_page_bm_global', 'admin_page_bm_global_general_settings', 'admin_page_bm_global_css_settings', 'admin_page_bm_global_timezone_country_settings', 'admin_page_bm_global_email_settings', 'admin_page_bm_global_payment_settings', 'admin_page_bm_svc_booking_settings', 'admin_page_bm_upload_settings', 'admin_page_bm_global_language_settings', 'admin_page_bm_global_format_settings', 'admin_page_bm_global_integration_settings', 'admin_page_bm_global_coupon_settings', 'flexibooking_page_bm_service_booking_planner', 'flexibooking_page_bm_single_service_booking_planner', 'flexibooking_page_bm_check_ins' );
 
 		if ( in_array( $screen->id, $pages_to_disable ) ) {
 			remove_all_actions( 'admin_notices' );

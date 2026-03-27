@@ -144,17 +144,14 @@ class BM_Email_Templates_List_Table extends WP_List_Table {
 
 		$types = array(
 			0  => __( 'New order from frontend (notify customer)', 'service-booking' ),
-			1  => __( 'New order from backend (notify customer)', 'service-booking' ),
-			2  => __( 'Refund order (notify customer)', 'service-booking' ),
 			3  => __( 'Cancel order (notify customer)', 'service-booking' ),
-			4  => __( 'Approved order (notify customer)', 'service-booking' ),
 			5  => __( 'New order (notify admin)', 'service-booking' ),
 			6  => __( 'Cancel order (notify admin)', 'service-booking' ),
-			7  => __( 'Refund order (notify admin)', 'service-booking' ),
-			8  => __( 'Approved order (notify admin)', 'service-booking' ),
 			9  => __( 'Failed order (notify customer)', 'service-booking' ),
 			10 => __( 'Failed order (notify admin)', 'service-booking' ),
 			11 => __( 'Gift voucher (notify recipient)', 'service-booking' ),
+			15 => __( 'Redeem voucher (notify admin)', 'service-booking' ),
+			16 => __( 'Redeem voucher (notify customer)', 'service-booking' ),
 		);
 
 		echo '<div class="alignleft actions">';

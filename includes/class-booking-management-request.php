@@ -1408,9 +1408,12 @@ class BM_Request {
 		$first_name = $dbhandler->get_value( 'FIELDS', 'field_name', 'billing_first_name', 'woocommerce_field' );
 		$last_name  = $dbhandler->get_value( 'FIELDS', 'field_name', 'billing_last_name', 'woocommerce_field' );
 
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Your order has been received !!.<br /><br /> Order Reference: {{booking_key}}.<br /> Service Name: {{service_name}}.<br />Service Date: {{booking_date}}.<br />Total cost: {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Il tuo ordine è stato ricevuto !!.<br /><br /> Riferimento allordine: {{booking_key}}.<br /> Nome del servizio: {{service_name}}.<br />Data del servizio: {{booking_date}}.<br />Costo totale: {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		$tmpl_arg = array( '%s', '%s', '%d', '%s', '%s', '%s', '%s' );
+
+		// Type 0: New Order — Customer (frontend).
+		$body_en = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Your order has been received !!.<br /><br /> Order Reference: {{booking_key}}.<br /> Service Name: {{service_name}}.<br />Service Date: {{booking_date}}.<br />Total cost: {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Il tuo ordine è stato ricevuto !!.<br /><br /> Riferimento allordine: {{booking_key}}.<br /> Nome del servizio: {{service_name}}.<br />Data del servizio: {{booking_date}}.<br />Costo totale: {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Frontend New Order',
 			'tmpl_name_it'     => 'Nuovo ordine frontend',
 			'type'             => 0,
@@ -1418,65 +1421,12 @@ class BM_Request {
 			'email_subject_it' => 'Nuovo ordine ricevuto',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Your order has been received and is on hold.<br /><br />Please pay at our front desk to complete the order.<br /><br /> Order Reference: {{booking_key}}.<br /> Service Name: {{service_name}}.<br />Service Date: {{booking_date}}.<br />Total cost: {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Il tuo ordine è stato ricevuto ed è in attesa.<br /><br />Si prega di pagare presso la nostra reception per completare lordine.<br /><br /> Riferimento allordine: {{booking_key}}.<br /> Nome del servizio: {{service_name}}.<br />Data del servizio: {{booking_date}}.<br />Costo totale: {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Backend New Order',
-			'tmpl_name_it'     => 'Nuovo ordine nel backend',
-			'type'             => 1,
-			'email_subject_en' => 'New order received',
-			'email_subject_it' => 'Nuovo ordine ricevuto',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />The amount {{total_cost}} for your order with reference {{booking_key}} has been refunded.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Limporto {{total_cost}} per il tuo ordine con riferimento {{booking_key}} è stato rimborsato.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Order Refund',
-			'tmpl_name_it'     => "Rimborso dell'ordine",
-			'type'             => 2,
-			'email_subject_en' => 'Order Amount Refunded',
-			'email_subject_it' => "Importo dell'ordine rimborsato",
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />order for {{service_name}} with reference {{booking_key}} has been cancelled.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />ordinare per {{service_name}} con riferimento {{booking_key}} è stato cancellato.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 3: Cancelled Order — Customer.
+		$body_en = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />order for {{service_name}} with reference {{booking_key}} has been cancelled.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />ordinare per {{service_name}} con riferimento {{booking_key}} è stato cancellato.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Order Cancel',
 			'tmpl_name_it'     => 'Annulla ordine',
 			'type'             => 3,
@@ -1484,43 +1434,12 @@ class BM_Request {
 			'email_subject_it' => 'Ordine annullato',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />order for {{service_name}} with reference {{booking_key}} has been approved.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />ordinare per {{service_name}} con riferimento {{booking_key}} è stato approvato.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Order Approval',
-			'tmpl_name_it'     => "Approvazione dell'ordine",
-			'type'             => 4,
-			'email_subject_en' => 'Order Approved',
-			'email_subject_it' => 'Ordine approvato',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{admin_name}},<br /><br />New order received for {{service_name}}.<br /><br /> Total cost is {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Nuovo ordine ricevuto per {{service_name}}.<br /><br /> Il costo totale è {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 5: New Order — Admin.
+		$body_en = 'Dear {{admin_name}},<br /><br />New order received for {{service_name}}.<br /><br /> Total cost is {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{admin_name}},<br /><br />Nuovo ordine ricevuto per {{service_name}}.<br /><br /> Il costo totale è {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'New Order Notification to Admin',
 			'tmpl_name_it'     => "Notifica del nuovo ordine all'amministratore",
 			'type'             => 5,
@@ -1528,21 +1447,12 @@ class BM_Request {
 			'email_subject_it' => 'Nuovo ordine ricevuto',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{admin_name}},<br /><br />Order for {{service_name}} has been cancelled.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Ordina per {{service_name}} è stato cancellato.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 6: Cancelled Order — Admin.
+		$body_en = 'Dear {{admin_name}},<br /><br />Order for {{service_name}} has been cancelled.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{admin_name}},<br /><br />Ordina per {{service_name}} è stato cancellato.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Order Cancellation Notification to Admin',
 			'tmpl_name_it'     => "Notifica di annullamento dell'ordine all'amministratore",
 			'type'             => 6,
@@ -1550,65 +1460,12 @@ class BM_Request {
 			'email_subject_it' => 'Ordine annullato',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{admin_name}},<br /><br />The amount {{total_cost}} for order with reference {{booking_key}} has been refunded.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Limporto {{total_cost}} per ordine con riferimento {{booking_key}} è stato rimborsato.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Order Refund Notification to Admin',
-			'tmpl_name_it'     => "Notifica di rimborso dell'ordine all'amministratore",
-			'type'             => 7,
-			'email_subject_en' => 'Order Refunded',
-			'email_subject_it' => 'Ordine rimborsato',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{admin_name}},<br /><br />Order for {{service_name}} has been approved.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Ordina per {{service_name}} è stato approvato.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Order approval Notification to Admin',
-			'tmpl_name_it'     => "Notifica di approvazione dell'ordine all'amministratore",
-			'type'             => 8,
-			'email_subject_en' => 'Order Approved',
-			'email_subject_it' => 'Ordine approvato',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />order for {{service_name}} with reference {{booking_key}} has failed.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />ordinare per {{service_name}} con riferimento {{booking_key}} ha fallito.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 9: Failed Order — Customer.
+		$body_en = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />order for {{service_name}} with reference {{booking_key}} has failed.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />ordinare per {{service_name}} con riferimento {{booking_key}} ha fallito.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Order Failed',
 			'tmpl_name_it'     => 'Ordine non riuscito',
 			'type'             => 9,
@@ -1616,43 +1473,25 @@ class BM_Request {
 			'email_subject_it' => 'Ordine non riuscito',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{admin_name}},<br /><br />Order for {{service_name}} has failed.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Ordina per {{service_name}} ha fallito.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'failed Order Notification to Admin',
+		// Type 10: Failed Order — Admin.
+		$body_en = 'Dear {{admin_name}},<br /><br />Order for {{service_name}} has failed.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{admin_name}},<br /><br />Ordina per {{service_name}} ha fallito.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
+			'tmpl_name_en'     => 'Failed Order Notification to Admin',
 			'tmpl_name_it'     => "Notifica dell'ordine non riuscita all'amministratore",
 			'type'             => 10,
 			'email_subject_en' => 'Order Failed',
 			'email_subject_it' => 'Ordine non riuscito',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{recipient_first_name}} {{recipient_last_name}},<br /><br />you have received a gift voucher from {{' . $first_name . '}} {{' . $last_name . '}}. Voucher code is {{voucher_code}}. Please use this voucher before {{voucher_expiry_date}} on {{voucher_redeem_page_url}}<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{recipient_first_name}} {{recipient_last_name}},<br /><br />hai ricevuto un buono regalo da from {{' . $first_name . '}} {{' . $last_name . '}}. Il codice del buono è {{voucher_code}}. Si prega di utilizzare questo buono prima {{voucher_expiry_date}} SU {{voucher_redeem_page_url}}<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 11: Gift Voucher — Recipient.
+		$body_en = 'Dear {{recipient_first_name}} {{recipient_last_name}},<br /><br />you have received a gift voucher from {{' . $first_name . '}} {{' . $last_name . '}}. Voucher code is {{voucher_code}}. Please use this voucher before {{voucher_expiry_date}} on {{voucher_redeem_page_url}}<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{recipient_first_name}} {{recipient_last_name}},<br /><br />hai ricevuto un buono regalo da from {{' . $first_name . '}} {{' . $last_name . '}}. Il codice del buono è {{voucher_code}}. Si prega di utilizzare questo buono prima {{voucher_expiry_date}} SU {{voucher_redeem_page_url}}<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Voucher mail',
 			'tmpl_name_it'     => 'Posta voucher',
 			'type'             => 11,
@@ -1660,87 +1499,12 @@ class BM_Request {
 			'email_subject_it' => 'Buono regalo',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Your request has been received !!.<br /><br /> You will get a further notification regarding acceptance/cancellation of you request.<br /><br /> Request Reference: {{booking_key}}.<br /> Service Name: {{service_name}}.<br />Service Date: {{booking_date}}.<br />Total cost: {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />La tua richiesta è stata ricevuta !!.<br /><br /> Riceverai unulteriore notifica relativa allaccettazione/annullamento della tua richiesta.<br /><br /> Richiedi riferimento: {{booking_key}}.<br /> Nome del servizio: {{service_name}}.<br />Data del servizio: {{booking_date}}.<br />Costo totale: {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Frontend New Request',
-			'tmpl_name_it'     => 'Nuova richiesta frontend',
-			'type'             => 12,
-			'email_subject_en' => 'New Request',
-			'email_subject_it' => 'Buono regalo',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />Your request has been received !!.<br /><br /> You will get a further notification regarding acceptance/cancellation of you request.<br /><br /> Request Reference: {{booking_key}}.<br /> Service Name: {{service_name}}.<br />Service Date: {{booking_date}}.<br />Total cost: {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{' . $first_name . '}} {{' . $last_name . '}},<br /><br />La tua richiesta è stata ricevuta !!.<br /><br /> Riceverai unulteriore notifica relativa allaccettazione/annullamento della tua richiesta.<br /><br /> Richiedi riferimento: {{booking_key}}.<br /> Nome del servizio: {{service_name}}.<br />Data del servizio: {{booking_date}}.<br />Costo totale: {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'Backend New Request',
-			'tmpl_name_it'     => 'Nuova richiesta back-end',
-			'type'             => 13,
-			'email_subject_en' => 'New Request',
-			'email_subject_it' => 'Buono regalo',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{admin_name}},<br /><br />New request received for {{service_name}}. Kindly approve it within {{booking_request_expiry}} to avoid auto cancellation.<br /><br /> Total cost is {{total_cost}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Nuova richiesta ricevuta per {{service_name}}. Si prega di approvarlo entro {{booking_request_expiry}} per evitare la cancellazione automatica.<br /><br /> Il costo totale è {{total_cost}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
-			'tmpl_name_en'     => 'New Request Notification to Admin',
-			'tmpl_name_it'     => "Nuova richiesta di notifica all'amministratore",
-			'type'             => 14,
-			'email_subject_en' => 'New request received',
-			'email_subject_it' => 'Nuova richiesta ricevuta',
-			'email_body_en'    => $body_en,
-			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
-
-		$body_en   = 'Dear {{admin_name}},<br /><br />A gift voucher {{voucher_code}} is redeemed successfully by {{recipient_first_name}} {{recipient_last_name}} for {{service_name}}.<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{admin_name}},<br /><br />Un buono regalo {{voucher_code}} è stato riscattato con successo da {{recipient_first_name}} {{recipient_last_name}} per {{service_name}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 15: Voucher Redeem — Admin.
+		$body_en = 'Dear {{admin_name}},<br /><br />A gift voucher {{voucher_code}} is redeemed successfully by {{recipient_first_name}} {{recipient_last_name}} for {{service_name}}.<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{admin_name}},<br /><br />Un buono regalo {{voucher_code}} è stato riscattato con successo da {{recipient_first_name}} {{recipient_last_name}} per {{service_name}}.<br /><br />Cordiali saluti.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Voucher Redeem Notification to Admin',
 			'tmpl_name_it'     => "Notifica di riscatto del voucher all'amministratore",
 			'type'             => 15,
@@ -1748,21 +1512,12 @@ class BM_Request {
 			'email_subject_it' => 'Buono regalo riscattato',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
-		$body_en   = 'Dear {{recipient_first_name}} {{recipient_last_name}},<br /><br />You have successfully redeemed gift voucher {{voucher_code}}. Please avail the service on {{booking_date}}<br /><br />Kind Regards.<br />{{from_name}}';
-		$body_it   = 'Caro {{recipient_first_name}} {{recipient_last_name}},<br /><br />Hai riscattato con successo il buono regalo {{voucher_code}}. Si prega di usufruire del servizio il giorno {{booking_date}}.<br />{{from_name}}';
-		$tmpl_data = array(
+		// Type 16: Voucher Redeem — Customer.
+		$body_en = 'Dear {{recipient_first_name}} {{recipient_last_name}},<br /><br />You have successfully redeemed gift voucher {{voucher_code}}. Please avail the service on {{booking_date}}<br /><br />Kind Regards.<br />{{from_name}}';
+		$body_it = 'Caro {{recipient_first_name}} {{recipient_last_name}},<br /><br />Hai riscattato con successo il buono regalo {{voucher_code}}. Si prega di usufruire del servizio il giorno {{booking_date}}.<br />{{from_name}}';
+		$dbhandler->insert_row( 'EMAIL_TMPL', array(
 			'tmpl_name_en'     => 'Voucher Redeem',
 			'tmpl_name_it'     => 'Riscatta il buono',
 			'type'             => 16,
@@ -1770,17 +1525,7 @@ class BM_Request {
 			'email_subject_it' => 'Buono riscattato',
 			'email_body_en'    => $body_en,
 			'email_body_it'    => $body_it,
-		);
-		$tmpl_arg  = array(
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-		);
-		$dbhandler->insert_row( 'EMAIL_TMPL', $tmpl_data, $tmpl_arg );
+		), $tmpl_arg );
 
 		$dbhandler->update_global_option_value( 'bm_email_templates_created', '1' );
 	}//end bm_create_default_email_templates()
@@ -8943,6 +8688,74 @@ class BM_Request {
 
 
 	/**
+	 * Check whether a service has any availability periods defined.
+	 *
+	 * @since 1.4.0
+	 * @param int $service_id Service ID.
+	 * @return bool
+	 */
+	public function bm_service_has_availability_periods( $service_id ) {
+		global $wpdb;
+		$activator  = new BM_Activator();
+		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT COUNT(*) FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d", absint( $service_id ) )
+		);
+
+		return $count > 0;
+	}
+
+	/**
+	 * Check whether a date falls within at least one availability period for a service.
+	 *
+	 * @since 1.4.0
+	 * @param int    $service_id Service ID.
+	 * @param string $date       Date in Y-m-d format.
+	 * @return bool
+	 */
+	public function bm_date_in_availability_period( $service_id, $date ) {
+		global $wpdb;
+		$activator  = new BM_Activator();
+		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only count query
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d AND %s BETWEEN date_start AND date_end",
+				absint( $service_id ),
+				sanitize_text_field( $date )
+			)
+		);
+
+		return $count > 0;
+	}
+
+	/**
+	 * Fetch all availability periods for a service.
+	 *
+	 * @since 1.4.0
+	 * @param int $service_id Service ID.
+	 * @return array Array of period objects with date_start, date_end, id.
+	 */
+	public function bm_get_availability_periods( $service_id ) {
+		global $wpdb;
+		$activator  = new BM_Activator();
+		$table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Read-only query
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, date_start, date_end FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d ORDER BY date_start ASC",
+				absint( $service_id )
+			)
+		);
+
+		return ! empty( $results ) ? $results : array();
+	}
+
+	/**
 	 * Get page url
 	 *
 	 * @author Darpan
@@ -9019,19 +8832,16 @@ class BM_Request {
 		$service_unavailability = isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 
 		if ( ! empty( $service_unavailability ) ) {
-			$unavailable_days  = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
-			$unavailable_dates = isset( $service_unavailability['dates'] ) ? $service_unavailability['dates'] : array();
-
-			if ( ! empty( $unavailable_dates ) ) {
-				foreach ( $unavailable_dates as $range ) {
-					list( $start, $end ) = array_map( 'trim', explode( 'to', $range ) );
-					if ( strtotime( $date ) >= strtotime( $start ) && strtotime( $date ) <= strtotime( $end ) ) {
-						return false;
-					}
-				}
-			}
+			$unavailable_days = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
 
 			if ( ! empty( $unavailable_days ) && in_array( $day_of_week, $unavailable_days ) ) {
+				return false;
+			}
+		}
+
+		// Check availability periods – if periods exist the date must fall within at least one.
+		if ( $this->bm_service_has_availability_periods( $service_id ) ) {
+			if ( ! $this->bm_date_in_availability_period( $service_id, $date ) ) {
 				return false;
 			}
 		}
@@ -9114,33 +8924,24 @@ class BM_Request {
 			$unavailable = false;
 
 			if ( ! empty( $service_unavailability ) ) {
-				$unavailable_days  = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
-				$unavailable_dates = isset( $service_unavailability['dates'] ) ? $service_unavailability['dates'] : array();
-
-				if ( ! empty( $unavailable_dates ) ) {
-					foreach ( $unavailable_dates as $range ) {
-						if ( strpos( $range, 'to' ) !== false ) {
-							list( $start, $end ) = array_map( 'trim', explode( 'to', $range ) );
-							if ( strtotime( $date ) >= strtotime( $start ) && strtotime( $date ) <= strtotime( $end ) ) {
-								$unavailable = true;
-								break;
-							}
-						} elseif ( trim( $range ) === $date ) {
-							$unavailable = true;
-							break;
-						}
-					}
-				}
+				$unavailable_days = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
 
 				if ( ! empty( $unavailable_days ) && in_array( $day_of_week, $unavailable_days ) ) {
 					$unavailable = true;
 				}
+			}
 
-				if ( $unavailable ) {
-					$key = array_search( $service->id, $service_ids );
-					if ( $key !== false ) {
-						unset( $service_ids[ $key ] );
-					}
+			// Check availability periods – if periods exist the date must fall within at least one.
+			if ( ! $unavailable && $this->bm_service_has_availability_periods( $service->id ) ) {
+				if ( ! $this->bm_date_in_availability_period( $service->id, $date ) ) {
+					$unavailable = true;
+				}
+			}
+
+			if ( $unavailable ) {
+				$key = array_search( $service->id, $service_ids );
+				if ( $key !== false ) {
+					unset( $service_ids[ $key ] );
 				}
 			}
 		}
@@ -9183,33 +8984,24 @@ class BM_Request {
 			$unavailable = false;
 
 			if ( ! empty( $service_unavailability ) ) {
-				$unavailable_days  = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
-				$unavailable_dates = isset( $service_unavailability['dates'] ) ? $service_unavailability['dates'] : array();
-
-				if ( ! empty( $unavailable_dates ) ) {
-					foreach ( $unavailable_dates as $range ) {
-						if ( strpos( $range, 'to' ) !== false ) {
-							list( $start, $end ) = array_map( 'trim', explode( 'to', $range ) );
-							if ( strtotime( $date ) >= strtotime( $start ) && strtotime( $date ) <= strtotime( $end ) ) {
-								$unavailable = true;
-								break;
-							}
-						} elseif ( trim( $range ) === $date ) {
-							$unavailable = true;
-							break;
-						}
-					}
-				}
+				$unavailable_days = isset( $service_unavailability['weekdays'] ) ? $service_unavailability['weekdays'] : array();
 
 				if ( ! empty( $unavailable_days ) && in_array( $day_of_week, $unavailable_days ) ) {
 					$unavailable = true;
 				}
+			}
 
-				if ( $unavailable ) {
-					$key = array_search( $service->service_category, $category_ids );
-					if ( $key !== false ) {
-						unset( $category_ids[ $key ] );
-					}
+			// Check availability periods – if periods exist the date must fall within at least one.
+			if ( ! $unavailable && $this->bm_service_has_availability_periods( $service->id ) ) {
+				if ( ! $this->bm_date_in_availability_period( $service->id, $date ) ) {
+					$unavailable = true;
+				}
+			}
+
+			if ( $unavailable ) {
+				$key = array_search( $service->service_category, $category_ids );
+				if ( $key !== false ) {
+					unset( $category_ids[ $key ] );
 				}
 			}
 		}
@@ -10579,9 +10371,16 @@ class BM_Request {
 						$total_extra_rows = $extra_rows;
 					}
 
+					// Also include global shared extras linked via the junction table.
+					$shared_extras = $this->bm_fetch_linked_global_extras_for_service( $service_id );
+					if ( ! empty( $shared_extras ) ) {
+						$total_extra_rows = isset( $total_extra_rows ) ? array_merge( $total_extra_rows, $shared_extras ) : $shared_extras;
+					}
+
 					if ( isset( $total_extra_rows ) && ! empty( $total_extra_rows ) ) {
 						foreach ( $total_extra_rows as $key => $extra_service ) {
-							$cap_left = $this->bm_fetch_extra_service_cap_left_by_extra_service_id_and_date( $extra_service->id, $extra_service->extra_max_cap, 0, $date );
+							$max_cap  = isset( $extra_service->extra_max_cap ) ? $extra_service->extra_max_cap : 0;
+							$cap_left = $this->bm_fetch_extra_service_cap_left_by_extra_service_id_and_date( $extra_service->id, $max_cap, 0, $date );
 
 							if ( $cap_left > 0 ) {
 								$extras[ $key ]           = $extra_service;
@@ -10597,6 +10396,37 @@ class BM_Request {
 
 		return $extras;
 	}//end bm_fetch_backend_new_order_extra_services()
+
+
+	/**
+	 * Fetch global extras linked to a service via the junction table.
+	 *
+	 * Returns an array of global-extra row objects with a synthetic `id` prefixed
+	 * by 'ge_' so they don't collide with legacy EXTRA ids.
+	 *
+	 * @since 1.5.0
+	 * @param int $service_id Service ID.
+	 * @return array Array of global extra objects.
+	 */
+	public function bm_fetch_linked_global_extras_for_service( $service_id ) {
+		$dbhandler = new BM_DBhandler();
+		$result    = array();
+
+		$links = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $service_id ), 'results' );
+		if ( ! empty( $links ) ) {
+			foreach ( $links as $link ) {
+				$ge = $dbhandler->get_row( 'GLOBAL_EXTRA', $link->global_extra_id );
+				if ( $ge && isset( $ge->is_extra_service_front ) ) {
+					// Mark as shared so capacity tracking can use the global pool.
+					$ge->_is_shared_extra   = true;
+					$ge->_global_extra_id   = $ge->id;
+					$result[] = $ge;
+				}
+			}
+		}
+
+		return $result;
+	}//end bm_fetch_linked_global_extras_for_service()
 
 
 	/**
@@ -14383,7 +14213,14 @@ class BM_Request {
 
 			if ( ! empty( $booking_date ) && ! empty( $extra_services_booked ) && ! empty( $extra_slots_booked ) && ( is_array( $extra_services_booked ) ) && ( is_array( $extra_slots_booked ) ) ) {
 				foreach ( $extra_services_booked as $key => $extra_id ) {
-					$extra_max_cap          = $dbhandler->get_value( 'EXTRA', 'extra_max_cap', $extra_id, 'id' );
+					// First try legacy EXTRA table lookup.
+					$extra_max_cap = $dbhandler->get_value( 'EXTRA', 'extra_max_cap', $extra_id, 'id' );
+
+					// If not found in EXTRA, check GLOBAL_EXTRA table (shared extras).
+					if ( empty( $extra_max_cap ) ) {
+						$extra_max_cap = $dbhandler->get_value( 'GLOBAL_EXTRA', 'extra_max_cap', $extra_id, 'id' );
+					}
+
 					$extra_cap_left[ $key ] = $this->bm_fetch_extra_service_cap_left_by_extra_service_id_and_date( $extra_id, $extra_max_cap, $extra_slots_booked[ $key ], $booking_date );
 				}
 

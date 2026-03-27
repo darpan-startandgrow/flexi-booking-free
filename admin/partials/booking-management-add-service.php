@@ -1,5 +1,56 @@
 <?php
 
+/**
+ * Save availability periods for a service.
+ *
+ * Deletes periods that were removed (not in $existing_ids), and inserts new ones.
+ *
+ * @since 1.4.0
+ * @param int   $service_id   The service ID.
+ * @param array $new_periods  Array of new periods with 'start' and 'end' sub-arrays.
+ * @param array $existing_ids Array of existing period IDs to keep.
+ */
+function bm_save_availability_periods( $service_id, $new_periods = array(), $existing_ids = array() ) {
+    global $wpdb;
+    $activator  = new BM_Activator();
+    $table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+
+    // Delete periods that were removed by the user.
+    if ( ! empty( $existing_ids ) ) {
+        $placeholders = implode( ',', array_fill( 0, count( $existing_ids ), '%d' ) );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Dynamic safe placeholder list
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d AND id NOT IN ($placeholders)",
+                array_merge( array( absint( $service_id ) ), $existing_ids )
+            )
+        );
+    } else {
+        // No existing periods kept – remove all.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Availability period cleanup
+        $wpdb->delete( $table_name, array( 'service_id' => absint( $service_id ) ), array( '%d' ) );
+    }
+
+    // Insert new periods.
+    if ( ! empty( $new_periods ) && isset( $new_periods['start'] ) && isset( $new_periods['end'] ) ) {
+        foreach ( $new_periods['start'] as $i => $start ) {
+            $end = isset( $new_periods['end'][ $i ] ) ? $new_periods['end'][ $i ] : '';
+            if ( ! empty( $start ) && ! empty( $end ) && strtotime( $end ) >= strtotime( $start ) ) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Availability period insert
+                $wpdb->insert(
+                    $table_name,
+                    array(
+                        'service_id' => absint( $service_id ),
+                        'date_start' => sanitize_text_field( $start ),
+                        'date_end'   => sanitize_text_field( $end ),
+                    ),
+                    array( '%d', '%s', '%s' )
+                );
+            }
+        }
+    }
+}
+
 // Check if user is allowed to add more services
 $can_add = apply_filters( 'booking_management_can_add_service', true );
 
@@ -22,10 +73,6 @@ $id                 = filter_input( INPUT_GET, 'id', FILTER_VALIDATE_INT );
 $service_extra_id   = filter_input( INPUT_POST, 'svc_extra_id', FILTER_VALIDATE_INT );
 $extra_id           = filter_input( INPUT_GET, 'extra_id', FILTER_VALIDATE_INT );
 $currency_symbol    = $bmrequests->bm_get_currency_symbol( $dbhandler->get_global_option_value( 'bm_booking_currency', 'EUR' ) );
-$stopsales_limit    = $dbhandler->get_global_option_value( 'bm_allowed_stopsales', 0 );
-$stopsales_limit    = !empty( $stopsales_limit ) ? $stopsales_limit : 24;
-$saleswitch_limit   = $dbhandler->get_global_option_value( 'bm_allowed_saleswitch', 0 );
-$saleswitch_limit   = !empty( $saleswitch_limit ) ? $saleswitch_limit : 24;
 $new_wc_price       = 0;
 $price_modules      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', '*', 1, 'results' );
 $image_quality      = intval( $dbhandler->get_global_option_value( 'bm_image_quality', '90' ) );
@@ -160,34 +207,14 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
     $exclude = array( '_wpnonce', '_wp_http_referer', 'savesvc', 'upsvc' );
 
-    $data = array(
-        'service_name'            => isset( $_POST['service_name'] ) ? ucfirst( filter_input( INPUT_POST, 'service_name' ) ) : '',
-        'service_calendar_title'  => isset( $_POST['service_calendar_title'] ) ? ucfirst( filter_input( INPUT_POST, 'service_calendar_title' ) ) : '',
-        'service_category'        => isset( $_POST['service_category'] ) ? filter_input( INPUT_POST, 'service_category', FILTER_VALIDATE_INT ) : null,
-        'service_duration'        => isset( $_POST['service_duration'] ) ? filter_input( INPUT_POST, 'service_duration' ) : null,
-        'service_operation'       => isset( $_POST['service_operation'] ) ? filter_input( INPUT_POST, 'service_operation' ) : null,
-        'service_unavailability'  => isset( $_POST['service_unavailability'] ) ? filter_input( INPUT_POST, 'service_unavailability', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-        'service_options'         => isset( $_POST['service_options'] ) && array_filter( filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) ) ? filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-        'default_max_cap'         => !empty( $_POST['default_max_cap'] ) ? filter_input( INPUT_POST, 'default_max_cap' ) : 1,
-        'default_stopsales'       => isset( $_POST['default_stopsales'] ) ? filter_input( INPUT_POST, 'default_stopsales' ) : null,
-        'default_saleswitch'      => isset( $_POST['default_saleswitch'] ) ? filter_input( INPUT_POST, 'default_saleswitch' ) : null,
-        'is_only_book_on_request' => isset( $_POST['is_only_book_on_request'] ) ? 1 : 0,
-        'is_service_front'        => isset( $_POST['is_service_front'] ) ? 1 : 0,
-        'show_stopsales_data'     => isset( $_POST['show_stopsales_data'] ) ? 1 : 0,
-        'service_short_desc'      => isset( $_POST['service_short_desc'] ) ? filter_input( INPUT_POST, 'service_short_desc' ) : null,
-        'service_desc'            => isset( $_POST['service_desc'] ) ? filter_input( INPUT_POST, 'service_desc' ) : null,
-        'default_price'           => isset( $_POST['default_price'] ) ? filter_input( INPUT_POST, 'default_price' ) : null,
-        'external_price_module'   => isset( $_POST['external_price_module'] ) ? filter_input( INPUT_POST, 'external_price_module' ) : null,
-        'service_image_guid'      => isset( $_POST['svc_image_id'] ) ? filter_input( INPUT_POST, 'svc_image_id' ) : 0,
-        'is_linked_wc_product'    => isset( $_POST['is_linked_wc_product'] ) ? 1 : 0,
-        'wc_product'              => isset( $_POST['is_linked_wc_product'] ) ? filter_input( INPUT_POST, 'wc_product' ) : null,
-        'service_settings'        => isset( $_POST['service_settings'] ) ? filter_input( INPUT_POST, 'service_settings', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-    );
+    require __DIR__ . '/save-service-details.php';
+    require __DIR__ . '/save-unavailability.php';
+    require __DIR__ . '/save-gallery.php';
+    require __DIR__ . '/save-prices.php';
 
-    $svc_gallery = array(
-        'module_type' => isset( $svc_identifier ) ? $svc_identifier : '',
-        'image_guid'  => isset( $_POST['svc_gallery_image_id'] ) ? filter_input( INPUT_POST, 'svc_gallery_image_id' ) : null,
-    );
+    $data = array_merge( $service_details_data, $unavailability_data );
+
+    $svc_gallery = $gallery_data;
 
     $time_data = array(
         'total_slots'  => isset( $_POST['total_time_slots'] ) ? filter_input( INPUT_POST, 'total_time_slots' ) : null,
@@ -209,24 +236,7 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
     );
 
     if ( ( filter_input( INPUT_POST, 'savesvc' ) ) ) {
-        if ( isset( $_POST['variable_svc_prices'] ) ) {
-            $data['variable_svc_prices'] = filter_input( INPUT_POST, 'variable_svc_prices', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_svc_price_modules'] ) ) {
-            $data['variable_svc_price_modules'] = filter_input( INPUT_POST, 'variable_svc_price_modules', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_stopsales'] ) ) {
-            $data['variable_stopsales'] = filter_input( INPUT_POST, 'variable_stopsales', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_saleswitch'] ) ) {
-            $data['variable_saleswitch'] = filter_input( INPUT_POST, 'variable_saleswitch', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_max_cap'] ) ) {
-            $data['variable_max_cap'] = filter_input( INPUT_POST, 'variable_max_cap', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
-        if ( isset( $_POST['variable_time_slots'] ) ) {
-            $data['variable_time_slots'] = filter_input( INPUT_POST, 'variable_time_slots', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-        }
+        $data = array_merge( $data, $prices_data );
 
         $service_post = $bmrequests->sanitize_request( $data, $svc_identifier, $exclude );
 
@@ -288,6 +298,9 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 				$dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
 			}
 
+            // Save availability periods for newly created service.
+            bm_save_availability_periods( $service_id, $availability_periods_new, $availability_periods_existing );
+
             wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_all_services' ) );
             exit;
 		} else {
@@ -304,12 +317,6 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 				$data['variable_svc_prices'] = null;
 
 				$data['variable_svc_price_modules'] = null;
-			}
-			if ( ( filter_input( INPUT_POST, 'default_stopsales' ) != filter_input( INPUT_POST, 'old_default_stopsales' ) ) ) {
-				$data['variable_stopsales'] = null;
-			}
-			if ( ( filter_input( INPUT_POST, 'default_saleswitch' ) != filter_input( INPUT_POST, 'old_default_saleswitch' ) ) ) {
-				$data['variable_saleswitch'] = null;
 			}
 			if ( ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) ) {
 				$data['variable_max_cap'] = null;
@@ -374,6 +381,9 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 					$frontend_all_services_shortcode_selected_cat_ids = array_merge( $frontend_all_services_shortcode_selected_cat_ids, array( $category_id_updated ) );
 					$dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
 				}
+
+                // Save availability periods for updated service.
+                bm_save_availability_periods( $id, $availability_periods_new, $availability_periods_existing );
 
 				wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_add_service&id=' . esc_attr( $id ) ) );
 				exit;
@@ -520,8 +530,21 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) == 0 ? 'active' : ''; ?>" onclick="openSection(event, 'service_details')"><?php esc_html_e( 'Service Details', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="gallery_button" onclick="openSection(event, 'service_gallery')"><?php esc_html_e( 'Gallery', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks <?php echo esc_attr( $extra_id ) != 0 ? 'active' : ''; ?>" id="extra_button" onclick="openSection(event, 'service_extra')"><?php esc_html_e( 'Extra', 'service-booking' ); ?></button>
+                <button type="button" class="tablinks" id="shared_extra_button" onclick="openSection(event, 'service_shared_extra')"><?php esc_html_e( 'Shared Extras', 'service-booking' ); ?></button>
                 <button type="button" class="tablinks" id="price_calendar_button" onclick="openSection(event, 'price_calendar')"><?php esc_html_e( 'Prices', 'service-booking' ); ?></button>
-                <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Unavailability and other settings', 'service-booking' ); ?></button>
+                <button type="button" class="tablinks" id="svc_settings_button" onclick="openSection(event, 'svc_settings_section')"><?php esc_html_e( 'Availability', 'service-booking' ); ?></button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Stop Sales', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Stop Sales', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Sale Switch', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Sale Switch', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Default Max Capacity', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Default Max Capacity', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
+                <button type="button" class="tablinks bm-pro-tab-teaser" disabled title="<?php esc_attr_e( 'Upgrade to Pro to unlock Time Slots', 'service-booking' ); ?>">
+                    <span class="dashicons dashicons-lock"></span><?php esc_html_e( 'Time Slots', 'service-booking' ); ?><span class="sg-pro-badge"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
+                </button>
             </div>
 
         <tbody>
@@ -789,44 +812,6 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                 }
                             }
                             ?>
-                        </td>
-                    </tr>
-                    <input type="hidden" name="old_default_stopsales" id="old_default_stopsales">
-                    <input type="hidden" name="old_default_saleswitch" id="old_default_saleswitch">
-                    <tr>
-                        <th scope="row"><label for="default_stopsales"><?php esc_html_e( 'Default Stopsales (in hrs)', 'service-booking' ); ?></label></th>
-                        <td>
-                            <select name="default_stopsales" id="default_stopsales" class="regular-text" onchange="addStopsalesInfo()">
-                                <option value="<?php echo esc_attr( 0 ); ?>"><?php esc_html_e( 'Select Stopsales Duration', 'service-booking' ); ?></option>
-                                <?php for ( $i=0.5; $i<=$stopsales_limit; $i+=0.5 ) { ?>
-                                    <option value="<?php echo esc_attr( $i ); ?>" <?php isset( $svc_row ) && isset( $svc_row->default_stopsales ) ? selected( esc_attr( $svc_row->default_stopsales ), $i ) : ''; ?>><?php echo esc_html( $bmrequests->bm_convert_float_to_time_string( $i ) ); ?></option>
-                                <?php } ?>
-                            </select>
-                            <span class="info_text">
-                                <?php esc_html_e( 'If stopsales of a service is 4 hours, then the service is not bookable until 4 hours from the current time ( if current time is 10AM, product will be bookable for slots available after 2PM )', 'service-booking' ); ?>
-                            </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="default_saleswitch"><?php esc_html_e( 'Default Saleswitch (in hrs)', 'service-booking' ); ?></label></th>
-                        <td>
-                            <select name="default_saleswitch" id="default_saleswitch" class="regular-text" onchange="addSaleswitchInfo()">
-                                <option value="<?php echo esc_attr( 0 ); ?>"><?php esc_html_e( 'Select Saleswitch Duration', 'service-booking' ); ?></option>
-                                <?php for ( $i=0.5; $i<=$saleswitch_limit; $i+=0.5 ) { ?>
-                                    <option value="<?php echo esc_attr( $i ); ?>" <?php isset( $svc_row ) && isset( $svc_row->default_saleswitch ) ? selected( esc_attr( $svc_row->default_saleswitch ), $i ) : ''; ?>><?php echo esc_html( $bmrequests->bm_convert_float_to_time_string( $i ) ); ?></option>
-                                <?php } ?>
-                            </select>
-                            <span class="info_text">
-                                <?php esc_html_e( 'If saleswicth of a service is 4 hours, then until 4 hours from the service bookable time, the bookings are eligible for book on request service, after that, only direct booking is allowed', 'service-booking' ); ?>
-                            </span>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row"><?php esc_html_e( 'Book on request only ?', 'service-booking' ); ?></th>
-                        <td class="bm-checkbox-td">
-                            <input name="is_only_book_on_request" type="checkbox" id="is_only_book_on_request" class="regular-text bm_toggle" <?php isset( $svc_row ) && isset( $svc_row->is_only_book_on_request ) ? checked( esc_attr( $svc_row->is_only_book_on_request ), 1 ) : ''; ?>>
-                            <label for="is_only_book_on_request"></label>
                         </td>
                     </tr>
 
@@ -1251,6 +1236,121 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                     </table>
                 </div>
 
+                <!-- ══════ SHARED EXTRAS TAB ══════ -->
+                <div id="service_shared_extra" class="tabcontent">
+                    <?php if ( $id > 0 ) : ?>
+                        <?php
+                        // Fetch linked global extras for this service.
+                        $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                        $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                        $all_global_extras = $dbhandler->get_all_result( 'GLOBAL_EXTRA', '*', 1, 'results' );
+                        ?>
+
+                        <?php
+                        // ── Handle link action ──
+                        if ( isset( $_POST['bm_svc_link_shared_extra'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce_svc_shared'] ?? '' ) ), 'bm_svc_shared_extra_nonce' ) ) {
+                            $link_ge_id = absint( $_POST['link_global_extra_id'] ?? 0 );
+                            if ( $link_ge_id > 0 && ! in_array( $link_ge_id, array_map( 'intval', $linked_ge_ids ), true ) ) {
+                                $dbhandler->insert_row( 'SERVICE_GLOBAL_EXTRA', array( 'service_id' => $id, 'global_extra_id' => $link_ge_id ) );
+                                echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared extra linked.', 'service-booking' ) . '</div>';
+                                // Refresh.
+                                $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                                $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                            }
+                        }
+                        // ── Handle unlink action ──
+                        if ( isset( $_POST['bm_svc_unlink_shared_extra'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce_svc_shared'] ?? '' ) ), 'bm_svc_shared_extra_nonce' ) ) {
+                            $unlink_ge_id = absint( $_POST['unlink_global_extra_id'] ?? 0 );
+                            if ( $unlink_ge_id > 0 ) {
+                                global $wpdb;
+                                $junction_table = ( new Booking_Management_Activator() )->get_db_table_name( 'SERVICE_GLOBAL_EXTRA' );
+                                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- targeted junction delete
+                                $wpdb->query( $wpdb->prepare( "DELETE FROM `" . esc_sql( $junction_table ) . "` WHERE service_id = %d AND global_extra_id = %d", $id, $unlink_ge_id ) );
+                                echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared extra unlinked.', 'service-booking' ) . '</div>';
+                                $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                                $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                            }
+                        }
+                        ?>
+
+                        <h3><?php esc_html_e( 'Linked Shared Extras', 'service-booking' ); ?></h3>
+
+                        <?php if ( ! empty( $linked_ge_ids ) ) : ?>
+                            <table class="wp-list-table widefat striped">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Name', 'service-booking' ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php echo sprintf( esc_html__( 'Price (%s)', 'service-booking' ), esc_html( $currency_symbol ) ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Max Capacity (Pool)', 'service-booking' ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Services Sharing', 'service-booking' ); ?></th>
+                                        <th style="text-align:center;font-weight:600;"><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ( $linked_ge_ids as $ge_id ) :
+                                        $ge_row = $dbhandler->get_row( 'GLOBAL_EXTRA', $ge_id );
+                                        if ( ! $ge_row ) continue;
+                                        $ge_service_count = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', 'id', array( 'global_extra_id' => $ge_id ), 'results' );
+                                        $svc_count = is_array( $ge_service_count ) ? count( $ge_service_count ) : 0;
+                                    ?>
+                                        <tr>
+                                            <td style="text-align:center;"><?php echo esc_html( $ge_row->extra_name ); ?></td>
+                                            <td style="text-align:center;"><?php echo esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ge_row->extra_price, true ) ); ?></td>
+                                            <td style="text-align:center;"><?php echo esc_html( $ge_row->extra_max_cap ); ?></td>
+                                            <td style="text-align:center;">
+                                                <span class="bm-shared-badge bm-shared-badge--amber" title="<?php esc_attr_e( 'Number of services sharing this extra', 'service-booking' ); ?>">
+                                                    <span class="dashicons dashicons-share"></span> <?php echo esc_html( $svc_count ); ?>
+                                                </span>
+                                            </td>
+                                            <td style="text-align:center;">
+                                                <form method="post" style="display:inline;">
+                                                    <?php wp_nonce_field( 'bm_svc_shared_extra_nonce', '_wpnonce_svc_shared' ); ?>
+                                                    <input type="hidden" name="unlink_global_extra_id" value="<?php echo esc_attr( $ge_id ); ?>" />
+                                                    <button type="submit" name="bm_svc_unlink_shared_extra" class="delete-button" onclick="return confirm('<?php esc_attr_e( 'Unlink this shared extra from this service?', 'service-booking' ); ?>');" title="<?php esc_attr_e( 'Unlink', 'service-booking' ); ?>"><i class="fa fa-chain-broken" aria-hidden="true" style="color:red;"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php else : ?>
+                            <p><?php esc_html_e( 'No shared extras linked to this service yet.', 'service-booking' ); ?></p>
+                        <?php endif; ?>
+
+                        <hr style="margin:20px 0;" />
+                        <h3><?php esc_html_e( 'Link a Shared Extra', 'service-booking' ); ?></h3>
+                        <?php
+                        // Available (unlinked) global extras.
+                        $available_ge = array();
+                        if ( ! empty( $all_global_extras ) ) {
+                            foreach ( $all_global_extras as $ge ) {
+                                if ( ! in_array( (int) $ge->id, array_map( 'intval', $linked_ge_ids ), true ) ) {
+                                    $available_ge[] = $ge;
+                                }
+                            }
+                        }
+                        ?>
+                        <?php if ( ! empty( $available_ge ) ) : ?>
+                            <form method="post">
+                                <?php wp_nonce_field( 'bm_svc_shared_extra_nonce', '_wpnonce_svc_shared' ); ?>
+                                <select name="link_global_extra_id" class="regular-text">
+                                    <option value=""><?php esc_html_e( '— Select shared extra —', 'service-booking' ); ?></option>
+                                    <?php foreach ( $available_ge as $ge ) : ?>
+                                        <option value="<?php echo esc_attr( $ge->id ); ?>"><?php echo esc_html( $ge->extra_name ) . ' (' . esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ge->extra_price, true ) ) . ')'; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input type="submit" name="bm_svc_link_shared_extra" class="button button-primary" value="<?php esc_attr_e( 'Link', 'service-booking' ); ?>" />
+                            </form>
+                        <?php else : ?>
+                            <p><?php esc_html_e( 'All shared extras are already linked to this service, or none exist yet.', 'service-booking' ); ?>
+                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=bm_shared_extras' ) ); ?>"><?php esc_html_e( 'Create one in the Shared Extras dashboard.', 'service-booking' ); ?></a>
+                            </p>
+                        <?php endif; ?>
+                    <?php else : ?>
+                        <p><?php esc_html_e( 'Save the service first, then you can link shared extras.', 'service-booking' ); ?></p>
+                    <?php endif; ?>
+                </div>
+
                 <input type="hidden" id="has_variable_price_module" value="0">
                 <div id="price_calendar" class="tabcontent">
                     <table class="form-table" role="presentation">
@@ -1437,77 +1537,79 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
 
                 <div id="svc_settings_section" class="tabcontent">
                     <table class="form-table" role="presentation">
-                        <h3><?php esc_html_e( 'Unavailability on Week Days', 'service-booking' ); ?></h3>
+                        <h3><?php esc_html_e( 'Weekly Availability', 'service-booking' ); ?></h3>
                         <tr>
-                            <th scope="row"><label><?php esc_html_e( 'Days of the week when the service is unavailable', 'service-booking' ); ?></label></th>
+                            <th scope="row"><label><?php esc_html_e( 'Days of the week when the service is available', 'service-booking' ); ?></label></th>
                             <td>
-                                <label><input type="checkbox" name="service_unavailability[weekdays][1]" value="<?php echo esc_attr( '1' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '1', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Monday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][2]" value="<?php echo esc_attr( '2' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '2', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Tuesday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][3]" value="<?php echo esc_attr( '3' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '3', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Wednesday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][4]" value="<?php echo esc_attr( '4' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '4', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Thurday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][5]" value="<?php echo esc_attr( '5' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '5', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Friday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][6]" value="<?php echo esc_attr( '6' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '6', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Saturday', 'service-booking' ); ?></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                                <label><input type="checkbox" name="service_unavailability[weekdays][7]" value="<?php echo esc_attr( '0' ); ?>" <?php echo isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) && in_array( '0', $svc_unavailability['weekdays'] ) ? 'checked' : ''; ?>><?php esc_html_e( 'Sunday', 'service-booking' ); ?></label>
+                                <?php
+                                $unavailable_weekdays = ( isset( $svc_unavailability ) && ! empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) ) ? $svc_unavailability['weekdays'] : array();
+                                $weekday_map = array(
+                                    1 => __( 'Monday', 'service-booking' ),
+                                    2 => __( 'Tuesday', 'service-booking' ),
+                                    3 => __( 'Wednesday', 'service-booking' ),
+                                    4 => __( 'Thursday', 'service-booking' ),
+                                    5 => __( 'Friday', 'service-booking' ),
+                                    6 => __( 'Saturday', 'service-booking' ),
+                                    0 => __( 'Sunday', 'service-booking' ),
+                                );
+                                foreach ( $weekday_map as $day_val => $day_label ) :
+                                    $is_available = ! in_array( (string) $day_val, array_map( 'strval', $unavailable_weekdays ), true );
+                                    ?>
+                                    <label class="bm-weekday-label">
+                                        <input type="checkbox"
+                                            class="bm-availability-weekday"
+                                            data-day="<?php echo esc_attr( $day_val ); ?>"
+                                            <?php checked( $is_available ); ?>>
+                                        <?php echo esc_html( $day_label ); ?>
+                                    </label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <?php endforeach; ?>
+                                <?php
+                                // Hidden inputs generated by JS for unchecked (unavailable) days.
+                                foreach ( $weekday_map as $day_val => $day_label ) :
+                                    $is_unavailable = in_array( (string) $day_val, array_map( 'strval', $unavailable_weekdays ), true );
+                                    if ( $is_unavailable ) :
+                                        ?>
+                                        <input type="hidden" name="service_unavailability[weekdays][]" value="<?php echo esc_attr( $day_val ); ?>" class="bm-weekday-hidden" data-day="<?php echo esc_attr( $day_val ); ?>">
+                                    <?php endif; endforeach; ?>
                             </td>
                         </tr>
                     </table>
 
-                    <!-- <table class="form-table" role="presentation">
-                        <h3><?php esc_html_e( 'Unavailability on Specific Dates', 'service-booking' ); ?></h3>
-                        <tr class="date_input_tr">
-                            <th scope="row"><label for="unavailable_date"><?php esc_html_e( 'Specific dates when the service is unavailable', 'service-booking' ); ?></label></th>
-                            <td class="date_option_field">
-                                <?php
-                                if ( isset( $svc_unavailability ) && !empty( $svc_unavailability ) && isset( $svc_unavailability['dates'] ) && !empty( $svc_unavailability['dates'] ) ) {
-                                    $i = 1;
-                                    foreach ( $svc_unavailability['dates'] as $unavailable_date ) {
-                                        if ( !empty( $unavailable_date ) ) {
-                                            $date_name = "service_unavailability[dates][$i]";
-                                            $date_id   = "unavailable_date_$i";
-											?>
-                                            <span class="date_input_span">
-                                                <input type="date" id="<?php echo esc_html( $date_id ); ?>" name="<?php echo esc_html( $date_name ); ?>" value="<?php echo esc_html( $unavailable_date ); ?>">
-                                                <button type="button" id="svc_date_remove" title="<?php esc_attr_e( 'Remove', 'service-booking' ); ?>" onclick="bm_remove_svc_unavailable_date(this)"><?php esc_attr_e( '✕', 'service-booking' ); ?></button>
-                                            </span>
-											<?php
-                                            $i++;
-                                        }
-                                    }
-                                }
-                                ?>
-                                <span class="add_dates_button"><button type="button" class="button button-primary" onClick="bm_add_unavailable_date()"><?php esc_html_e( 'add date', 'service-booking' ); ?></button></span>
-                            </td>
-                        </tr>
-                    </table> -->
-                    
                     <table class="form-table" role="presentation">
-                    <h3><?php esc_html_e( 'Unavailability on Specific Dates', 'service-booking' ); ?></h3>
-                    <tr class="date_input_tr">
-                        <th scope="row"><label for="unavailable_date_range"><?php esc_html_e( 'Select unavailable date ranges', 'service-booking' ); ?></label></th>
+                    <h3><?php esc_html_e( 'Availability Periods', 'service-booking' ); ?></h3>
+                    <tr>
+                        <th scope="row"><label><?php esc_html_e( 'Date ranges when the service is available', 'service-booking' ); ?></label></th>
                         <td class="date_option_field">
-                            <div id="unavailable_date_ranges">
+                            <div id="availability_periods_list">
                                 <?php
-                                if ( isset( $svc_unavailability['dates'] ) && !empty( $svc_unavailability['dates'] ) ) {
-                                    $i = 1;
-                                    foreach ( $svc_unavailability['dates'] as $range ) {
-                                        if ( !empty( $range ) ) {
-                                            $range_name = "service_unavailability[dates][$i]";
-                                            $range_id   = "unavailable_date_range_$i";
-                                            ?>
-                                            <span class="date_range_span">
-                                                <input type="text" readonly id="<?php echo esc_html( $range_id ); ?>" name="<?php echo esc_html( $range_name ); ?>" value="<?php echo esc_html( $range ); ?>" class="date_range_input">
-                                                <button type="button" class="remove_range" onclick="bm_remove_unavailable_range(this)">✕</button>
-                                            </span>
-                                            <?php
-                                            $i++;
-                                        }
+                                $availability_periods = array();
+                                if ( isset( $svc_row ) && ! empty( $svc_row->id ) ) {
+                                    $availability_periods = $bmrequests->bm_get_availability_periods( $svc_row->id );
+                                }
+                                if ( ! empty( $availability_periods ) ) {
+                                    foreach ( $availability_periods as $period ) {
+                                        ?>
+                                        <span class="bm-availability-chip">
+                                            <span class="dashicons dashicons-calendar-alt"></span>
+                                            <?php echo esc_html( $period->date_start . ' to ' . $period->date_end ); ?>
+                                            <input type="hidden" name="availability_periods[existing][]" value="<?php echo esc_attr( $period->id ); ?>">
+                                            <button type="button" class="bm-chip-remove" onclick="bm_remove_availability_period(this)" title="<?php esc_attr_e( 'Remove', 'service-booking' ); ?>">&times;</button>
+                                        </span>
+                                        <?php
                                     }
                                 }
                                 ?>
                             </div>
 
-                            <input type="text" id="service_date_range_picker" placeholder="<?php esc_attr_e( 'Select date range', 'service-booking' ); ?>" readonly>
-                            <button type="button" class="button button-primary" id="add_date_range"><?php esc_html_e( 'Add Range', 'service-booking' ); ?></button>
+                            <div class="bm-period-add-row" style="margin-top: 10px;">
+                                <label><?php esc_html_e( 'From', 'service-booking' ); ?>
+                                    <input type="date" id="bm_period_start" />
+                                </label>
+                                <label><?php esc_html_e( 'To', 'service-booking' ); ?>
+                                    <input type="date" id="bm_period_end" />
+                                </label>
+                                <button type="button" class="button button-primary" id="bm_add_period"><?php esc_html_e( 'Add Period', 'service-booking' ); ?></button>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -1523,13 +1625,6 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                             ?>
                          class="regular-text bm_toggle">
                          <label for="is_service_front"></label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><?php esc_html_e( 'Show stopsales info in frontend ?', 'service-booking' ); ?></th>
-                        <td class="bm-checkbox-td">
-                            <input name="show_stopsales_data" type="checkbox" id="show_stopsales_data" class="regular-text bm_toggle" <?php isset( $svc_row ) && isset( $svc_row->show_stopsales_data ) ? checked( esc_attr( $svc_row->show_stopsales_data ), 1 ) : ''; ?>>
-                            <label for="show_stopsales_data"></label>
                         </td>
                     </tr>
                     <tr>

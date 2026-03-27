@@ -805,6 +805,126 @@ Filters the template listing response.
 
 ---
 
+## Field Management Hooks
+
+### `bm_flexibooking_before_updating_field_ordering` *(filter)*
+
+Fired before field ordering is saved. Allows modification of the ordering array.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$ordering` | `array` | Array of field ordering values. |
+| `$total_field_records` | `int` | Total number of fields in the database. |
+
+**Return:** `array`
+
+---
+
+### `bm_flexibooking_after_updating_field_ordering` *(action)*
+
+Fired after field ordering has been saved to the database.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$ordering` | `array` | Array of field ordering values that were saved. |
+
+---
+
+### `bm_flexibooking_before_fetching_fields` *(filter)*
+
+Fired before field labels are returned. Allows modification of the fields array before `is_default` is added.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$fields` | `array` | Array of field objects from the database. |
+
+**Return:** `array`
+
+---
+
+### `bm_flexibooking_after_fetching_fields` *(filter)*
+
+Fired after field labels have been fetched and `is_default` has been set on each field.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$fields` | `array` | Array of field objects with `is_default` property set. |
+
+**Return:** `array`
+
+---
+
+### `bm_flexibooking_field_labels_response` *(filter)*
+
+Fired just before the field labels response is JSON-encoded and returned.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$fields` | `array` | Final array of field objects. |
+
+**Return:** `array`
+
+---
+
+### `bm_flexibooking_before_fetching_last_row_id` *(filter)*
+
+Fired before the last row ID is used to calculate new field ordering.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$lastrow_id` | `int` | The ID of the last field row. |
+
+**Return:** `int`
+
+---
+
+### `bm_flexibooking_before_fetching_field_key` *(filter)*
+
+Fired before the field key is used for a new field.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$field_key` | `string` | The generated field key (e.g., `sgbm_field_9`). |
+
+**Return:** `string`
+
+---
+
+### `bm_flexibooking_primary_mail_filed_key` *(filter)*
+
+Fired before the primary email field key is returned.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$primary_mail_key` | `string` | The field key of the primary email field. |
+
+**Return:** `string`
+
+---
+
+### `bm_flexibooking_after_fetching_field_key_and_ordering` *(action)*
+
+Fired after the field key and ordering have been calculated for a new field.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$field_key` | `string` | The generated field key. |
+| `$ordering` | `int` | The next ordering number. |
+
+---
+
+### `bm_flexibooking_fieldkey_and_order_response` *(filter)*
+
+Fired before the field key and order response is JSON-encoded and returned.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$data` | `array` | The response data with type, ordering, field_key, and primary_mail_key. |
+
+**Return:** `array`
+
+---
+
 ## Notification Process Hooks
 
 ### `bm_flexibooking_before_process_visibility_change` *(action)*
@@ -1557,4 +1677,121 @@ $queue->push( 'email.send', [
     'subject' => 'Booking Confirmed',
     'body'    => $email_html,
 ] );
+```
+
+---
+
+## Email Records Hooks
+
+### `sg_booking_before_email_records_page` *(action)*
+
+Fired before the email records admin page renders.
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_before_email_records_page', function () {
+    // Track page views, load additional resources, etc.
+} );
+```
+
+---
+
+### `sg_booking_after_email_records_page` *(action)*
+
+Fired after the email records admin page renders.
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_after_email_records_page', function () {
+    // Add custom footer content, scripts, etc.
+} );
+```
+
+---
+
+### `sg_booking_before_email_records_bulk_delete` *(action)*
+
+Fired before email records are bulk-deleted. Allows archiving or logging before deletion.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$ids` | `array` | Array of email record IDs about to be deleted. |
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_before_email_records_bulk_delete', function ( $ids ) {
+    // Archive email records before deletion.
+    foreach ( $ids as $id ) {
+        my_archive_email_record( $id );
+    }
+} );
+```
+
+---
+
+### `sg_booking_after_email_records_bulk_delete` *(action)*
+
+Fired after email records have been bulk-deleted.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$ids` | `array` | Array of email record IDs that were deleted. |
+
+**Usage:**
+
+```php
+add_action( 'sg_booking_after_email_records_bulk_delete', function ( $ids ) {
+    // Log the deletion event.
+    error_log( 'Deleted email records: ' . implode( ', ', $ids ) );
+} );
+```
+
+---
+
+### `sg_booking_email_records_query_additional` *(filter)*
+
+Filters the additional WHERE clause for the email records list table SQL query. Allows adding custom conditions.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$additional` | `string` | Raw SQL additional WHERE conditions. |
+
+**Return:** `string`
+
+**Usage:**
+
+```php
+add_filter( 'sg_booking_email_records_query_additional', function ( $additional ) {
+    // Only show emails from the last 30 days.
+    global $wpdb;
+    $additional .= $wpdb->prepare( ' AND e.created_at >= %s', gmdate( 'Y-m-d', strtotime( '-30 days' ) ) );
+    return $additional;
+} );
+```
+
+---
+
+### `sg_booking_email_records_items` *(filter)*
+
+Filters the email records items array before they are displayed in the list table.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$items` | `array` | Array of email record row data (each item is an associative array). |
+
+**Return:** `array`
+
+**Usage:**
+
+```php
+add_filter( 'sg_booking_email_records_items', function ( $items ) {
+    // Add custom data to each item.
+    foreach ( $items as &$item ) {
+        $item['custom_note'] = get_custom_note_for_email( $item['id'] );
+    }
+    return $items;
+} );
 ```
