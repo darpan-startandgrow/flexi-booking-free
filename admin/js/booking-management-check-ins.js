@@ -162,7 +162,7 @@ jQuery(document).ready(function($) {
             if (response.success) {
                 $('#manual_checkin-result').html(response.data);
                 if (typeof $.fn.DataTable !== 'undefined') {
-                    jQuery('.manual_checkin_records_table').DataTable();
+                    $('.manual_checkin_records_table').DataTable();
                 }
                 $('.manual-cherckin-buttons').removeClass('hidden');
             } else {
