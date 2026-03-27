@@ -143,6 +143,7 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-pdf-templates-list-table.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-email-records-list-table.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-fields-list-table.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/list-tables/class-bm-forms-list-table.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
@@ -287,6 +288,7 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_get_field_settings', $plugin_admin, 'bm_get_field_settings' );
 		$this->loader->add_action( 'wp_ajax_bm_get_fieldkey_and_order', $plugin_admin, 'bm_get_fieldkey_and_order' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_field', $plugin_admin, 'bm_remove_field' );
+		$this->loader->add_action( 'wp_ajax_bm_save_form_field_order', $plugin_admin, 'bm_save_form_field_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_preview_form', $plugin_admin, 'bm_fetch_preview_form' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_template_listing', $plugin_admin, 'bm_fetch_template_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_template', $plugin_admin, 'bm_remove_template' );
