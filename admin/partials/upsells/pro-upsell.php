@@ -158,11 +158,6 @@ $pro_features = array(
 		'desc'  => __( 'Unlimited notification processes and templates', 'service-booking' ),
 	),
 	array(
-		'icon'  => 'dashicons-admin-generic',
-		'title' => __( 'Manage Columns', 'service-booking' ),
-		'desc'  => __( 'Column visibility toggles on all tables', 'service-booking' ),
-	),
-	array(
 		'icon'  => 'dashicons-forms',
 		'title' => __( 'Custom Fields', 'service-booking' ),
 		'desc'  => __( 'Create entirely new custom booking fields', 'service-booking' ),

@@ -288,17 +288,6 @@ class Booking_Management_Limits {
 		return false;
 	}
 
-	/**
-	 * Check if Manage Columns (column visibility toggles) is available.
-	 *
-	 * Free version: hidden on all admin DataTables.
-	 * Pro version: fully available.
-	 *
-	 * @return bool
-	 */
-	public static function can_manage_columns() {
-		return false;
-	}
 
 	/**
 	 * Check if advanced time slot calendar configurations are available.
@@ -506,7 +495,6 @@ class Booking_Management_Limits {
 			'price_modules'          => __( 'Price Modules (Dynamic/Conditional Pricing) are a Pro feature. Standard WooCommerce pricing is available.', 'service-booking' ),
 			'coupons'                => __( 'The Booking Coupons system is a Pro feature. Upgrade to Pro for coupon support.', 'service-booking' ),
 			'analytics'              => __( 'The full Analytics page is a Pro feature. A basic dashboard overview is available in the free version.', 'service-booking' ),
-			'manage_columns'         => __( 'Column visibility management is a Pro feature.', 'service-booking' ),
 			'stop_sales'             => __( 'Stop-Sales is a Pro feature. Upgrade to Pro to stop sales for specific services.', 'service-booking' ),
 			'saleswitch'             => __( 'Saleswitch is a Pro feature. Upgrade to Pro to switch between sales modes.', 'service-booking' ),
 			'max_capacity'           => __( 'Max Capacity management is a Pro feature. Upgrade to Pro for capacity control.', 'service-booking' ),

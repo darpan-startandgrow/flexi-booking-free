@@ -268,13 +268,6 @@
 	text-decoration: underline;
 }
 
-/* ===== Hide Manage Columns Button in Free ===== */
-.sg-free-version .bm-manage-columns-btn,
-.sg-free-version .manage-columns-toggle,
-.sg-free-version [data-action="manage-columns"],
-.sg-free-version .bm_manage_columns_btn {
-	display: none !important;
-}
 
 /* ===== Hide Add New Field Button in Free ===== */
 .sg-free-version .bm-add-new-field-btn,
