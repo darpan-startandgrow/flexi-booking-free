@@ -116,9 +116,6 @@
     width: 100% !important;
 }
 
-.sg-admin-main-box .wp-core-ui .button, .wp-core-ui .button-secondary i {
-    color: #2e59c5 !important;
-}
 
 .resend-email {
     cursor: pointer;

@@ -12702,7 +12702,6 @@ jQuery(document).ready(function ($) {
 	// 	}, false);
 	// }
 
-	// var pluginElement = document.querySelector('.sg-admin-main-box');
 	// console.log(pluginElement);
 
 	// if (pluginElement) {
