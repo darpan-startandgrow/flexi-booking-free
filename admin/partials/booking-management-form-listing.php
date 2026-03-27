@@ -72,7 +72,7 @@ $total_forms = (int) $dbhandler->bm_count( 'BILLING_FORMS' );
 	</div>
 
 	<form method="get">
-		<input type="hidden" name="page" value="<?php echo esc_attr( isset( $_REQUEST['page'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['page'] ) ) : 'sg-booking-forms' ); ?>" />
+		<input type="hidden" name="page" value="<?php echo esc_attr( isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : 'sg-booking-forms' ); ?>" />
 		<?php $forms_table->display(); ?>
 	</form>
 </div>

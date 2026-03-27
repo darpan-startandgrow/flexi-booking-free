@@ -196,9 +196,8 @@ class BM_Forms_List_Table extends WP_List_Table {
 			}
 		}
 
-		$count_results = $this->dbhandler->get_all_result( 'BILLING_FORMS', 'id', 1, 'results', 0, false, $orderby, $order );
-		$total         = is_array( $count_results ) ? count( $count_results ) : 0;
-		$forms         = $this->dbhandler->get_all_result( 'BILLING_FORMS', '*', 1, 'results', $offset, $per_page, $orderby, $order );
+		$total = (int) $this->dbhandler->bm_count( 'BILLING_FORMS' );
+		$forms = $this->dbhandler->get_all_result( 'BILLING_FORMS', '*', 1, 'results', $offset, $per_page, $orderby, $order );
 
 		$activator = new Booking_Management_Activator();
 		$fields_table = $activator->get_db_table_name( 'FIELDS' );

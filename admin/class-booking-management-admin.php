@@ -2815,7 +2815,9 @@ class Booking_Management_Admin {
 		}
 
 		$dbhandler   = new BM_DBhandler();
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above.
+		$response    = array( 'status' => 'error', 'message' => __( 'No fields to reorder.', 'service-booking' ) );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above via wp_verify_nonce.
 		$raw_order   = isset( $_POST['field_order'] ) ? wp_unslash( $_POST['field_order'] ) : array();
 		$field_order = array();
 		if ( is_array( $raw_order ) ) {
@@ -2825,7 +2827,6 @@ class Booking_Management_Admin {
 				}
 			}
 		}
-		$response    = array( 'status' => 'error', 'message' => __( 'No fields to reorder.', 'service-booking' ) );
 
 		if ( ! empty( $field_order ) ) {
 			foreach ( $field_order as $item ) {

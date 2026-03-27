@@ -115,6 +115,7 @@
 			});
 
 			if (!order.length) {
+				BmFormBuilder.showToast(bmFbI18n.save_error || 'No fields to save.', 'error');
 				return;
 			}
 
