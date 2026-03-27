@@ -86,7 +86,6 @@ if ( ( filter_input( INPUT_POST, 'savecat' ) ) || ( filter_input( INPUT_POST, 'u
 
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap">
     <form role="form" method="post">
         <tbody>
@@ -126,5 +125,4 @@ if ( ( filter_input( INPUT_POST, 'savecat' ) ) || ( filter_input( INPUT_POST, 'u
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

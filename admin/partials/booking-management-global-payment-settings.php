@@ -66,7 +66,6 @@ $public_key  = $bmrequests->decrypt_key( $dbhandler->get_global_option_value( 'b
 $private_key = $bmrequests->decrypt_key( $dbhandler->get_global_option_value( 'bm_flexi_stripe_private_code' ), 'flexibooking_private_stripe_code' );
 
 ?>
-<div class="sg-admin-main-box">
 <div class="wrap">
     <h2 class="title" style="font-weight: bold;"><a href="admin.php?page=bm_global"><div class="backbtn">&#8592;</div></a><?php esc_html_e( 'Payment Settings', 'service-booking' ); ?></h2>
     <form role="form" method="post" action="admin.php?page=bm_global_payment_settings">
@@ -201,6 +200,5 @@ $private_key = $bmrequests->decrypt_key( $dbhandler->get_global_option_value( 'b
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 

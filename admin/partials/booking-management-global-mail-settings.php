@@ -58,7 +58,6 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
 
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap">
     <h2 class="title" style="font-weight: bold;"><a href="admin.php?page=bm_global"><div class="backbtn">&#8592;</div></a><?php esc_html_e( 'Mail Settings', 'service-booking' ); ?></h2>
     <form role="form" method="post" action="admin.php?page=bm_global_email_settings">
@@ -332,5 +331,4 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
