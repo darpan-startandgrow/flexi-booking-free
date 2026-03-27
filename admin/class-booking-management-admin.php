@@ -96,6 +96,8 @@ class Booking_Management_Admin {
 			wp_enqueue_style( 'flexi-single-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-service-booking-planner.css', array(), $this->version, 'all' );
             if ( $screen->base == 'toplevel_page_bm_home' ) {
                 wp_enqueue_style( 'dashboard-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-dashboard.css', array(), $this->version, 'all' );
+                wp_enqueue_script( 'chartjs', plugin_dir_url( __FILE__ ) . 'js/booking-management-chart.js', array(), $this->version, true );
+                wp_enqueue_script( 'bm-dashboard-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-dashboard.js', array( 'jquery', 'chartjs' ), $this->version, true );
             }
 
 

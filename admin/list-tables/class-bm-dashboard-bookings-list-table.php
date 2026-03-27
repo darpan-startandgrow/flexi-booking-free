@@ -176,7 +176,7 @@ class BM_Dashboard_Bookings_List_Table extends WP_List_Table {
 
 		// Upcoming mode: restrict to bookings from today onwards.
 		if ( 'upcoming' === $this->mode ) {
-			$timezone = get_option( 'bm_booking_time_zone', 'Asia/Kolkata' );
+			$timezone = $this->dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
 			try {
 				$tz = new DateTimeZone( $timezone );
 			} catch ( Exception $e ) {
