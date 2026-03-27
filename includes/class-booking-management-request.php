@@ -14468,7 +14468,14 @@ class BM_Request {
 
 			if ( ! empty( $booking_date ) && ! empty( $extra_services_booked ) && ! empty( $extra_slots_booked ) && ( is_array( $extra_services_booked ) ) && ( is_array( $extra_slots_booked ) ) ) {
 				foreach ( $extra_services_booked as $key => $extra_id ) {
-					$extra_max_cap          = $dbhandler->get_value( 'EXTRA', 'extra_max_cap', $extra_id, 'id' );
+					// First try legacy EXTRA table lookup.
+					$extra_max_cap = $dbhandler->get_value( 'EXTRA', 'extra_max_cap', $extra_id, 'id' );
+
+					// If not found in EXTRA, check GLOBAL_EXTRA table (shared extras).
+					if ( empty( $extra_max_cap ) ) {
+						$extra_max_cap = $dbhandler->get_value( 'GLOBAL_EXTRA', 'extra_max_cap', $extra_id, 'id' );
+					}
+
 					$extra_cap_left[ $key ] = $this->bm_fetch_extra_service_cap_left_by_extra_service_id_and_date( $extra_id, $extra_max_cap, $extra_slots_booked[ $key ], $booking_date );
 				}
 

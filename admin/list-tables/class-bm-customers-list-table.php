@@ -2,8 +2,8 @@
 /**
  * Customers List Table.
  *
- * Uses the WP_List_Table class to render the customers listing.
- * Free version shows only email; Pro shows full customer management.
+ * Uses the WP_List_Table class to render the customers listing
+ * with name, email, active status, and actions.
  *
  * @since      1.2.0
  * @package    Booking_Management
@@ -42,7 +42,7 @@ class BM_Customers_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Define columns — free version shows essential columns only.
+	 * Define columns — shows name, email, status, and actions.
 	 *
 	 * @return array
 	 */
@@ -50,7 +50,10 @@ class BM_Customers_List_Table extends WP_List_Table {
 		return array(
 			'cb'             => '<input type="checkbox" />',
 			'serial'         => esc_html__( '#', 'service-booking' ),
+			'customer_name'  => esc_html__( 'Name', 'service-booking' ),
 			'customer_email' => esc_html__( 'Email', 'service-booking' ),
+			'is_active'      => esc_html__( 'Status', 'service-booking' ),
+			'actions'        => esc_html__( 'Actions', 'service-booking' ),
 		);
 	}
 
@@ -106,8 +109,31 @@ class BM_Customers_List_Table extends WP_List_Table {
 	 */
 	public function get_sortable_columns() {
 		return array(
+			'customer_name'  => array( 'customer_name', false ),
 			'customer_email' => array( 'customer_email', false ),
 		);
+	}
+
+	/**
+	 * Extra table nav — search filter.
+	 *
+	 * @param string $which 'top' or 'bottom'.
+	 */
+	protected function extra_tablenav( $which ) {
+		if ( 'top' !== $which ) {
+			return;
+		}
+
+		$status_filter = isset( $_REQUEST['status_filter'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['status_filter'] ) ) : '';
+
+		echo '<div class="alignleft actions">';
+		echo '<select name="status_filter">';
+		echo '<option value="">' . esc_html__( 'All Statuses', 'service-booking' ) . '</option>';
+		printf( '<option value="1"%s>%s</option>', selected( $status_filter, '1', false ), esc_html__( 'Active', 'service-booking' ) );
+		printf( '<option value="0"%s>%s</option>', selected( $status_filter, '0', false ), esc_html__( 'Inactive', 'service-booking' ) );
+		echo '</select>';
+		submit_button( __( 'Filter', 'service-booking' ), '', 'filter_action', false );
+		echo '</div>';
 	}
 
 	/**
@@ -130,12 +156,32 @@ class BM_Customers_List_Table extends WP_List_Table {
 		$additional = '';
 		if ( ! empty( $_REQUEST['s'] ) ) {
 			$search      = '%' . $GLOBALS['wpdb']->esc_like( sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) ) . '%';
-			$additional .= $GLOBALS['wpdb']->prepare( ' AND customer_email LIKE %s', $search );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND (customer_email LIKE %s OR customer_name LIKE %s)', $search, $search );
+		}
+
+		// Status filter.
+		if ( isset( $_REQUEST['status_filter'] ) && '' !== $_REQUEST['status_filter'] ) {
+			$status_val  = absint( $_REQUEST['status_filter'] );
+			$additional .= $GLOBALS['wpdb']->prepare( ' AND is_active = %d', $status_val );
+		}
+
+		// Sorting.
+		$orderby = 'id';
+		$order   = 'DESC';
+		if ( ! empty( $_REQUEST['orderby'] ) ) {
+			$allowed = array( 'id', 'customer_name', 'customer_email' );
+			$req_orderby = sanitize_text_field( wp_unslash( $_REQUEST['orderby'] ) );
+			if ( in_array( $req_orderby, $allowed, true ) ) {
+				$orderby = $req_orderby;
+			}
+		}
+		if ( ! empty( $_REQUEST['order'] ) ) {
+			$order = ( 'asc' === strtolower( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) ) ) ? 'ASC' : 'DESC';
 		}
 
 		$count_results = $this->dbhandler->get_all_result( 'CUSTOMERS', 'id', $where, 'results', 0, false, 'id', 'ASC', $additional );
 		$total         = is_array( $count_results ) ? count( $count_results ) : 0;
-		$customers     = $this->dbhandler->get_all_result( 'CUSTOMERS', '*', $where, 'results', $offset, $per_page, 'id', 'Desc', $additional );
+		$customers     = $this->dbhandler->get_all_result( 'CUSTOMERS', '*', $where, 'results', $offset, $per_page, $orderby, $order, $additional );
 
 		$this->items = array();
 		if ( ! empty( $customers ) ) {
@@ -144,7 +190,9 @@ class BM_Customers_List_Table extends WP_List_Table {
 				$this->items[] = array(
 					'id'             => $customer->id,
 					'serial'         => $i,
+					'customer_name'  => isset( $customer->customer_name ) ? $customer->customer_name : '',
 					'customer_email' => isset( $customer->customer_email ) ? $customer->customer_email : '',
+					'is_active'      => isset( $customer->is_active ) ? $customer->is_active : 0,
 				);
 				$i++;
 			}
@@ -177,11 +225,27 @@ class BM_Customers_List_Table extends WP_List_Table {
 			case 'serial':
 				return esc_html( $item['serial'] );
 
+			case 'customer_name':
+				return esc_html( $item['customer_name'] );
+
 			case 'customer_email':
 				return sprintf(
 					'<span title="%s">%s</span>',
 					esc_attr( $item['customer_email'] ),
 					esc_html( mb_strimwidth( $item['customer_email'], 0, 60, '...' ) )
+				);
+
+			case 'is_active':
+				if ( (int) $item['is_active'] === 1 ) {
+					return '<span class="bm-customer-status bm-customer-active">' . esc_html__( 'Active', 'service-booking' ) . '</span>';
+				}
+				return '<span class="bm-customer-status bm-customer-inactive">' . esc_html__( 'Inactive', 'service-booking' ) . '</span>';
+
+			case 'actions':
+				return sprintf(
+					'<a href="admin.php?page=bm_add_customer&id=%s" class="edit-button" title="%s"><i class="fa fa-pencil" aria-hidden="true"></i></a>',
+					esc_attr( $item['id'] ),
+					esc_attr__( 'Edit', 'service-booking' )
 				);
 
 			default:

@@ -2248,6 +2248,20 @@ class Booking_Management_Public {
 								$total_extra_rows = $extra_rows;
 							}
 
+							// Also include shared extras linked via the junction table.
+							$shared_extras = $bmrequests->bm_fetch_linked_global_extras_for_service( $id );
+							if ( ! empty( $shared_extras ) ) {
+								// Filter to only frontend-visible shared extras.
+								$shared_extras = array_filter( $shared_extras, function ( $ge ) {
+									return isset( $ge->is_extra_service_front ) && (int) $ge->is_extra_service_front === 1;
+								} );
+								if ( ! empty( $shared_extras ) ) {
+									$total_extra_rows = ! empty( $total_extra_rows )
+										? array_merge( $total_extra_rows, $shared_extras )
+										: array_values( $shared_extras );
+								}
+							}
+
 							if ( ! empty( $total_extra_rows ) ) {
 								if ( $type == 'service_by_category' || $type == 'service_by_category2' ) {
 									$link_class = 'get_svc_by_cat_extra_service';
