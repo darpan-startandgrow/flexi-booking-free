@@ -106,6 +106,11 @@ class Booking_Management_Admin {
 
 			// Upsell page styles (loaded on all FlexiBooking admin pages).
 			wp_enqueue_style( 'sg-upsell', plugin_dir_url( __FILE__ ) . 'css/sg-upsell.css', array(), $this->version, 'all' );
+
+			// Form builder styles (loaded on form builder page).
+			if ( isset( $screen->base ) && strpos( $screen->base, 'sg-booking-form-builder' ) !== false ) {
+				wp_enqueue_style( 'bm-form-builder', plugin_dir_url( __FILE__ ) . 'css/booking-management-form-builder.css', array(), $this->version, 'all' );
+			}
 		} //end if
 	}//end enqueue_styles()
 
@@ -128,6 +133,7 @@ class Booking_Management_Admin {
 			'toplevel_page_bm_home',
 			'flexibooking_page_',
 			'admin_page_bm_',
+			'admin_page_sg-booking',
 		);
 
 		foreach ( $flexi_pages as $page_prefix ) {
@@ -611,6 +617,36 @@ class Booking_Management_Admin {
 					'nonce'    => wp_create_nonce( 'ajax-nonce' ),
 				)
 			);
+
+			// Form builder script (loaded on form builder page only).
+			if ( isset( $screen->base ) && strpos( $screen->base, 'sg-booking-form-builder' ) !== false ) {
+				wp_enqueue_script( 'bm-form-builder', plugin_dir_url( __FILE__ ) . 'js/booking-management-form-builder.js', array( 'jquery', 'jquery-ui-sortable' ), $this->version, true );
+				wp_localize_script(
+					'bm-form-builder',
+					'bmFbI18n',
+					array(
+						'label'         => __( 'Field Label', 'service-booking' ),
+						'type'          => __( 'Field Type', 'service-booking' ),
+						'description'   => __( 'Description', 'service-booking' ),
+						'placeholder'   => __( 'Placeholder', 'service-booking' ),
+						'default_value' => __( 'Default Value', 'service-booking' ),
+						'css_class'     => __( 'CSS Class', 'service-booking' ),
+						'css_class_desc' => __( 'Optional extra class(es) for styling.', 'service-booking' ),
+						'field_width'   => __( 'Field Width', 'service-booking' ),
+						'full_width'    => __( 'Full Width', 'service-booking' ),
+						'half_width'    => __( 'Half Width', 'service-booking' ),
+						'required'      => __( 'Required', 'service-booking' ),
+						'visible'       => __( 'Visible', 'service-booking' ),
+						'save_field'    => __( 'Save Field', 'service-booking' ),
+						'saving'        => __( 'Saving…', 'service-booking' ),
+						'field_saved'   => __( 'Field saved successfully.', 'service-booking' ),
+						'save_error'    => __( 'Could not save field.', 'service-booking' ),
+						'network_error' => __( 'Network error. Please try again.', 'service-booking' ),
+						'loading'       => __( 'Loading…', 'service-booking' ),
+						'preview_error' => __( 'Could not load preview.', 'service-booking' ),
+					)
+				);
+			}
 		} //end if
 	}//end enqueue_scripts()
 
@@ -658,6 +694,7 @@ class Booking_Management_Admin {
 
 		// Booking Forms: Available in free (default billing form only) and pro (advanced).
 		add_submenu_page( 'bm_home', __( 'Booking Forms', 'service-booking' ), __( 'Booking Forms', 'service-booking' ), 'manage_options', 'sg-booking-forms', array( $this, 'bm_fields' ) );
+		add_submenu_page( '', __( 'Form Builder', 'service-booking' ), __( 'Form Builder', 'service-booking' ), 'manage_options', 'sg-booking-form-builder', array( $this, 'bm_form_builder' ) );
 
 		// Price Modules: Pro-only.
 		add_submenu_page( 'bm_home', __( 'Price Modules', 'service-booking' ), __( 'Price Modules', 'service-booking' ) . ' <span class="bm-menu-pro-badge">Pro</span>', 'manage_options', 'bm_all_external_service_prices', array( $this, 'bm_pro_upsell_page' ) );
@@ -913,8 +950,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_fields() {
-		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-field-listing.php';
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-form-listing.php';
 	}//end bm_fields()
+
+	public function bm_form_builder() {
+		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-form-builder.php';
+	}//end bm_form_builder()
 
 	public function bm_email_templates() {
 		require_once plugin_dir_path( __FILE__ ) . 'partials/booking-management-email-template-listing.php';
@@ -2760,6 +2801,56 @@ class Booking_Management_Admin {
 		echo wp_json_encode( $data );
 		die;
 	}//end bm_remove_field()
+
+
+	/**
+	 * Save the field order from the form builder drag-and-drop.
+	 *
+	 * @since 1.3.0
+	 */
+	public function bm_save_form_field_order() {
+		$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
+			die( esc_html__( 'Failed security check', 'service-booking' ) );
+		}
+
+		$dbhandler   = new BM_DBhandler();
+		$response    = array( 'status' => 'error', 'message' => __( 'No fields to reorder.', 'service-booking' ) );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above via wp_verify_nonce.
+		$raw_order   = isset( $_POST['field_order'] ) ? wp_unslash( $_POST['field_order'] ) : array();
+		$field_order = array();
+		if ( is_array( $raw_order ) ) {
+			foreach ( $raw_order as $item ) {
+				if ( is_array( $item ) ) {
+					$field_order[] = array_map( 'sanitize_text_field', $item );
+				}
+			}
+		}
+
+		if ( ! empty( $field_order ) ) {
+			foreach ( $field_order as $item ) {
+				$field_id = isset( $item['id'] ) ? absint( $item['id'] ) : 0;
+				$position = isset( $item['position'] ) ? absint( $item['position'] ) : 0;
+
+				if ( $field_id > 0 ) {
+					$dbhandler->update_row(
+						'FIELDS',
+						'id',
+						$field_id,
+						array( 'field_position' => $position ),
+						array( '%d' ),
+						array( '%d' )
+					);
+				}
+			}
+			$response['status']  = 'success';
+			$response['message'] = __( 'Field order saved.', 'service-booking' );
+		}
+
+		echo wp_json_encode( $response );
+		die;
+	}//end bm_save_form_field_order()
 
 
 	/**
