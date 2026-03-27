@@ -24,7 +24,7 @@ if ( empty( $form_id ) ) {
 
 $form = $dbhandler->get_row( 'BILLING_FORMS', $form_id );
 if ( ! $form ) {
-	echo '<div class="sg-admin-main-box"><div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'Form not found.', 'service-booking' ) . '</p></div></div></div>';
+	echo '<div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'Form not found.', 'service-booking' ) . '</p></div></div>';
 	return;
 }
 
@@ -61,7 +61,7 @@ $field_types = array(
 );
 ?>
 
-<div class="sg-admin-main-box">
+
 <div class="wrap" id="bm-form-builder-wrap">
 
 	<!-- Top bar -->
@@ -247,4 +247,3 @@ $field_types = array(
 <input type="hidden" id="bm-fb-ajax-url" value="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" />
 
 <div class="loader_modal"></div>
-</div>

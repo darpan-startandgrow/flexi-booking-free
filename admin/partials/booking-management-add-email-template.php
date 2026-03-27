@@ -21,12 +21,12 @@ if ( ! empty( $id ) ) {
 // ── Strict limit guard (free version: 9 templates max) ────────────────────
 $can_create = Booking_Management_Limits::can_create_mail_template();
 if ( empty( $id ) && ! $can_create ) {
-	echo '<div class="sg-admin-main-box"><div class="wrap listing_table">';
+	echo '<div class="wrap listing_table">';
 	echo '<div class="bm-notice bm-error" style="margin:20px 0;">';
 	echo esc_html( Booking_Management_Limits::get_limit_message( 'mail_templates' ) );
 	echo '</div>';
 	echo '<a href="' . esc_url( admin_url( 'admin.php?page=bm_email_templates' ) ) . '" class="button">&#8592; &nbsp;' . esc_html__( 'Back to Templates', 'service-booking' ) . '</a>';
-	echo '</div></div>';
+	echo '</div>';
 	return;
 }
 
@@ -152,7 +152,7 @@ $type_labels = array(
 
 ?>
 
-<div class="sg-admin-main-box" id="email-template-main-box">
+
 <div class="wrap listing_table">
 	<div class="row">
 		<p>
@@ -223,5 +223,4 @@ $type_labels = array(
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

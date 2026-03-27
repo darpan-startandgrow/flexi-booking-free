@@ -6,7 +6,6 @@ if ( ! current_user_can( 'manage_options' ) ) {
 $plugin_path = plugin_dir_url( __FILE__ );
 ?>
 
-<div class="sg-admin-main-box">
     <div class="bm-setting-wrapper" style="float: none; margin: 0px; padding: 0px;">
     <div class="content bm_settings_option listing_table">
         <div>
@@ -188,5 +187,4 @@ $plugin_path = plugin_dir_url( __FILE__ );
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

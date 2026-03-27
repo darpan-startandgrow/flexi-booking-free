@@ -9,7 +9,6 @@ $default_fields = Booking_Management_Limits::FREE_DEFAULT_FIELD_NAMES;
 $default_count  = count( $default_fields );
 ?>
 
-<div class="sg-admin-main-box fields_listing_screen">
 <!-- Fields Listing -->
 <div class="wrap" id="user_form" style="display:flex; gap:20px;">
     <div style="flex:1;" id="field_section">
@@ -105,5 +104,4 @@ $default_count  = count( $default_fields );
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

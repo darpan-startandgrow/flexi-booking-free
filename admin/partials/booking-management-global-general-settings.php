@@ -64,7 +64,6 @@ if ( filter_input( INPUT_POST, 'save_general_global' ) || filter_input( INPUT_PO
 
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap">
     <h2 class="title" style="font-weight: bold;"><a href="admin.php?page=bm_global"><div class="backbtn">&#8592;</div></a> <?php esc_html_e( 'Service Shortcode Content Settings', 'service-booking' ); ?></h2>
     <form role="form" method="post" action="admin.php?page=bm_global_general_settings">
@@ -215,7 +214,6 @@ if ( filter_input( INPUT_POST, 'save_general_global' ) || filter_input( INPUT_PO
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 
 

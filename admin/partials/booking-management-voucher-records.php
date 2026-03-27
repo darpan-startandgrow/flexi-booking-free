@@ -3,7 +3,6 @@ $vouchers_table = new BM_Vouchers_List_Table();
 $vouchers_table->prepare_items();
 ?>
 
-<div class="sg-admin-main-box">
 <!-- Vouchers -->
 <div class="wrap listing_table" id="vocuher_records_listing">
     <div class="row">
@@ -28,6 +27,4 @@ $vouchers_table->prepare_items();
         <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span><br />
         <small><?php echo esc_html( Booking_Management_Limits::get_limit_message( 'voucher_redemption' ) ); ?></small>
     </p>
-</div>
-
 </div>

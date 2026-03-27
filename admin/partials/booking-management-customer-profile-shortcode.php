@@ -221,7 +221,7 @@ $countries  = $bmrequests->bm_get_countries();
                         </div> -->
                         
                     </div>
-                    <div id="cust_orders" class="sg-admin-main-box tabcontent <?php echo empty( $orders ) ? 'empty_table' : ''; ?>">
+                    <div id="cust_orders" class="tabcontent <?php echo empty( $orders ) ? 'empty_table' : ''; ?>">
                         <?php
                             // Order History
 						if ( !empty( $orders ) ) {
@@ -260,7 +260,7 @@ $countries  = $bmrequests->bm_get_countries();
                                 <div class="no_records"><?php echo esc_html__( 'No orders found.', 'service-booking' ); ?></div>
                             <?php } ?>
                     </div>
-                    <div id="cust_transactions" class="sg-admin-main-box tabcontent <?php echo empty( $transactions ) ? 'empty_table' : ''; ?>">
+                    <div id="cust_transactions" class="tabcontent <?php echo empty( $transactions ) ? 'empty_table' : ''; ?>">
                         <?php
                             // Transactions
 						if ( !empty( $transactions ) ) {
@@ -289,7 +289,7 @@ $countries  = $bmrequests->bm_get_countries();
                             <div class="no_records"><?php echo esc_html__( 'No transactions found.', 'service-booking' ); ?></div>
                         <?php } ?>
                     </div>
-                    <div id="cust_mails" class="sg-admin-main-box tabcontent <?php echo empty( $emails ) ? 'empty_table' : ''; ?>">
+                    <div id="cust_mails" class="tabcontent <?php echo empty( $emails ) ? 'empty_table' : ''; ?>">
                         <?php
                             // Emails
 						if ( !empty( $emails ) ) {
@@ -320,7 +320,7 @@ $countries  = $bmrequests->bm_get_countries();
                             <div class="no_records"><?php echo esc_html__( 'No emails found.', 'service-booking' ); ?></div>
                         <?php } ?>
                     </div>
-                    <div id="cust_products" class="sg-admin-main-box tabcontent <?php echo empty( $products ) ? 'empty_table' : ''; ?>">
+                    <div id="cust_products" class="tabcontent <?php echo empty( $products ) ? 'empty_table' : ''; ?>">
                         <?php
                             // Emails
 						if ( !empty( $products ) ) {
@@ -349,7 +349,7 @@ $countries  = $bmrequests->bm_get_countries();
                             <div class="no_records"><?php echo esc_html__( 'No Booked products found.', 'service-booking' ); ?></div>
                         <?php } ?>
                     </div>
-                    <div id="cust_failed_transactions" class="sg-admin-main-box tabcontent <?php echo empty( $failed_transactions ) ? 'empty_table' : ''; ?>">
+                    <div id="cust_failed_transactions" class="tabcontent <?php echo empty( $failed_transactions ) ? 'empty_table' : ''; ?>">
                         <?php
                             // Failed Transactions
 						if ( !empty( $failed_transactions ) ) {

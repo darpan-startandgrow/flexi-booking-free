@@ -46,7 +46,6 @@ if ( filter_input( INPUT_POST, 'save_pagination' ) || filter_input( INPUT_POST, 
 }
 
 ?>
-<div class="sg-admin-main-box">
 <div class="wrap">
     <h2 class="title" style="font-weight: bold;"><a href="admin.php?page=bm_global"><div class="backbtn">&#8592;</div></a><?php esc_html_e( 'Number of records per page Settings', 'service-booking' ); ?></h2>
     <form role="form" method="post" action="admin.php?page=bm_pagination_settings">
@@ -148,6 +147,4 @@ if ( filter_input( INPUT_POST, 'save_pagination' ) || filter_input( INPUT_POST, 
 </div>
 
 <div class="loader_modal"></div>
-</div>
-
 

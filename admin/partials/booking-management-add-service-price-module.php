@@ -63,7 +63,6 @@ if ( !empty( $module_id ) ) {
 
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap listing_table">
      <div class="row">
         <p>
@@ -246,5 +245,4 @@ if ( !empty( $module_id ) ) {
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

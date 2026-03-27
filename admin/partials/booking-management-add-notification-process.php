@@ -104,7 +104,6 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
 
 ?>
 
-<div class="sg-admin-main-box">
     <div class="wrap">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'Email Notification Process Settings', 'service-booking' ); ?></h2>
         <form role="form" method="post" id="notification_process_form">
@@ -347,4 +346,3 @@ $templates = $dbhandler->get_all_result( 'EMAIL_TMPL', '*', 1, 'results' );
     </div>
 
     <div class="loader_modal"></div>
-</div>

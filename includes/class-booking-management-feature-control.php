@@ -110,8 +110,6 @@ class Booking_Management_Feature_Control {
 		// 22. Block voucher redemption.
 		add_filter( 'bm_allow_voucher_redemption', '__return_false' );
 
-		// 23. Block manage columns.
-		add_filter( 'bm_allow_manage_columns', '__return_false' );
 
 		// 24. Block PDF customization.
 		add_filter( 'bm_allow_pdf_customization', '__return_false' );

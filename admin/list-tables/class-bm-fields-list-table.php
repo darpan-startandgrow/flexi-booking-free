@@ -87,7 +87,7 @@ class BM_Fields_List_Table extends WP_List_Table {
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
-		$per_page     = 20;
+		$per_page     = $this->get_items_per_page( 'bm_list_per_page', 20 );
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
 

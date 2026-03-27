@@ -11,24 +11,27 @@
  * @param array $existing_ids Array of existing period IDs to keep.
  */
 function bm_save_availability_periods( $service_id, $new_periods = array(), $existing_ids = array() ) {
-    global $wpdb;
-    $activator  = new BM_Activator();
-    $table_name = $activator->get_db_table_name( 'AVAILABILITY_PERIOD' );
+    $dbhandler = new BM_DBhandler();
 
     // Delete periods that were removed by the user.
     if ( ! empty( $existing_ids ) ) {
-        $placeholders = implode( ',', array_fill( 0, count( $existing_ids ), '%d' ) );
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Dynamic safe placeholder list
-        $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM `" . esc_sql( $table_name ) . "` WHERE service_id = %d AND id NOT IN ($placeholders)",
-                array_merge( array( absint( $service_id ) ), $existing_ids )
-            )
+        // Fetch all period IDs for this service, then delete those not in the keep list.
+        $all_periods = $dbhandler->get_all_result(
+            'AVAILABILITY_PERIOD',
+            'id',
+            array( 'service_id' => absint( $service_id ) )
         );
+        if ( ! empty( $all_periods ) ) {
+            $keep = array_map( 'intval', $existing_ids );
+            foreach ( $all_periods as $period ) {
+                if ( ! in_array( (int) $period->id, $keep, true ) ) {
+                    $dbhandler->remove_row( 'AVAILABILITY_PERIOD', 'id', (int) $period->id );
+                }
+            }
+        }
     } else {
         // No existing periods kept – remove all.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Availability period cleanup
-        $wpdb->delete( $table_name, array( 'service_id' => absint( $service_id ) ), array( '%d' ) );
+        $dbhandler->remove_row( 'AVAILABILITY_PERIOD', 'service_id', absint( $service_id ) );
     }
 
     // Insert new periods.
@@ -36,15 +39,13 @@ function bm_save_availability_periods( $service_id, $new_periods = array(), $exi
         foreach ( $new_periods['start'] as $i => $start ) {
             $end = isset( $new_periods['end'][ $i ] ) ? $new_periods['end'][ $i ] : '';
             if ( ! empty( $start ) && ! empty( $end ) && strtotime( $end ) >= strtotime( $start ) ) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Availability period insert
-                $wpdb->insert(
-                    $table_name,
+                $dbhandler->insert_row(
+                    'AVAILABILITY_PERIOD',
                     array(
                         'service_id' => absint( $service_id ),
                         'date_start' => sanitize_text_field( $start ),
                         'date_end'   => sanitize_text_field( $end ),
-                    ),
-                    array( '%d', '%s', '%s' )
+                    )
                 );
             }
         }
@@ -55,7 +56,7 @@ function bm_save_availability_periods( $service_id, $new_periods = array(), $exi
 $can_add = apply_filters( 'booking_management_can_add_service', true );
 
 if ( !$can_add ) {
-    echo '<div class="notice notice-warning"><p>Free version limit reached (20 services). Upgrade to Pro for unlimited services.</p></div>';
+    echo '<div class="wrap"><div class="notice notice-error"><p>' . esc_html__( 'Free version limit reached (20 services). Upgrade to Pro for unlimited services.', 'service-booking' ) . '</p></div></div>';
     return;
 }
 
@@ -523,7 +524,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
 
 ?>
 
-<div class="sg-admin-main-box" id="service-records-main-box">
+
     <div class="wrap">
         <form role="form" method="post" enctype="multipart/form-data" class="service_page_form">
             <div class="tab" id="serviceTabs">
@@ -1746,4 +1747,3 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
     </div>
 
     <div class="loader_modal"></div>
-</div>

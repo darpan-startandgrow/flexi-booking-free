@@ -2135,75 +2135,6 @@ span.bm_stripe_failed::before {
     font-size: 13px;
 }
 
-.sg-admin-main-box {
-    height: auto;
-    background: #fff;
-    box-shadow: 0px 10px 13px rgba(17, 38, 146, 0.05);
-    border-radius: 8px;
-    padding: 2%;
-    margin-top: 20px;
-    width: 95%;
-    margin-right: 1%;
-    padding-bottom: 4%;
-}
-
-.fields_listing_screen {
-    min-height: 900px !important;
-}
-.postbox .inside h2,
-.wrap [class$=icon32]+h2,
-.wrap h1,
-.wrap>h2:first-child {
-    padding: 0px !important;
-    font-size: 20px !important;
-    text-decoration: none !important;
-    font-weight: 600 !important;
-    border-bottom: 1px solid #e5e5e5;
-    padding-bottom: 10px !important;
-}
-
-.order-listing-admin-main-box .wrap.listing_table{
-        margin: 10px 0px 0 2px;
-}
-
-.sg-admin-main-box label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #40435C;
-}
-
-.sg-admin-main-box input[type=date],
-.sg-admin-main-box input[type=datetime-local],
-.sg-admin-main-box input[type=datetime],
-.sg-admin-main-box input[type=email],
-.sg-admin-main-box input[type=month],
-.sg-admin-main-box input[type=number],
-.sg-admin-main-box input[type=password],
-.sg-admin-main-box input[type=search],
-.sg-admin-main-box input[type=tel],
-.sg-admin-main-box input[type=text],
-.sg-admin-main-box input[type=url],
-.sg-admin-main-box input[type=week] {
-    height: 35px !important;
-    max-width: 25em !important;
-}
-
-/* .sg-admin-main-box input[type=date],
-input[type=datetime-local],
-input[type=datetime],
-input[type=email],
-input[type=month],
-input[type=number],
-input[type=password],
-input[type=search],
-input[type=tel],
-input[type=text],
-input[type=url],
-input[type=week] {
-    height: 35px !important;
-    max-width: 25em !important;
-} */
-
 input[type=time] {
     height: 35px !important;
 }
@@ -2218,16 +2149,6 @@ input[type=time] {
 
 #svc_time_remove {
     margin-left: 5px;
-}
-
-.sg-admin-main-box .wp-core-ui select {
-    height: 35px !important;
-}
-
-#manual_checkin-modal .sg-admin-main-box select {
-    height: 35px !important;
-    width: 26em;
-    margin-top: -5px;
 }
 
 #svc_settings_section h3 {
@@ -2251,61 +2172,6 @@ input[type=time] {
     max-width: 20em !important;
 }
 
-.sg-admin-main-box .wp-core-ui .button,
-.wp-core-ui .button-secondary i {
-    color: #fff !important;
-}
-
-.sg-admin-main-box .button-secondary:hover,
-.wp-core-ui .button.hover,
-.wp-core-ui .button:hover {
-    background: #195587 !important;
-    color: #fff !important;
-}
-.sg-admin-main-box .listing_table .title {
-    margin: 0px;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 15px;
-}
-
-.sg-admin-main-box .alternate,
-.striped>tbody>:nth-child(odd),
-ul.striped>:nth-child(odd) {
-    background: none !important;
-}
-
-.sg-admin-main-box .widefat td {
-    border-bottom: 1px solid #dcdfeb;
-    vertical-align: middle;
-}
-
-.sg-admin-main-box .widefat thead th {
-    background: #F9FBFC;
-}
-
-.sg-admin-main-box #menu-management .menu-edit,
-#menu-settings-column .accordion-container,
-.comment-ays,
-.feature-filter,
-.imgedit-group,
-.manage-menus,
-.menu-item-handle,
-.popular-tags,
-.stuffbox,
-.widget-inside,
-.widget-top,
-.widgets-holder-wrap,
-.wp-editor-container,
-p.popular-tags,
-table.widefat {
-    border: 1px solid #f0f0f0;
-}
-
-.sg-admin-main-box .widefat thead td,
-.widefat thead th {
-    border-bottom: 1px solid #f0f0f0;
-}
 
 .tablinks {
     width: auto;
@@ -2315,9 +2181,6 @@ table.widefat {
 
 }
 
-.sg-admin-main-box .submit {
-    padding: 0px
-}
 
 #serviceTabs {
     display: inherit;
@@ -2366,26 +2229,6 @@ table.widefat {
 .smallinput {
     width: 30px !important;
 }
-.sg-admin-main-box .button,
-.sg-admin-main-box .wp-core-ui .button-primary,
-.sg-admin-main-box .wp-core-ui .button-secondary {
-    display: inline-block;
-    text-decoration: none;
-    font-size: 14px;
-    line-height: 34px;
-    /* min-height: 30px; */
-    margin: 0;
-    padding: 0px 31px;
-    cursor: pointer;
-    border-width: 1px;
-    border-style: solid;
-    -webkit-appearance: none;
-    border-radius: 3px;
-    white-space: nowrap;
-    box-sizing: border-box;
-    min-width: 132px;
-    text-align: center;
-}
 
 #email-records-main-box .button {
     min-width: auto !important;
@@ -2395,36 +2238,6 @@ table.widefat {
     min-width: auto !important;
 }
 
-.sg-admin-main-box .wp-core-ui .button-secondary {
-    display: inline-block;
-    text-decoration: none;
-    font-size: 14px;
-    line-height: 34px;
-    min-height: 34px;
-    margin: 0;
-    padding: 0px 10px;
-    cursor: pointer;
-    border-width: 1px;
-    border-style: solid;
-    -webkit-appearance: none;
-    border-radius: 3px;
-    white-space: nowrap;
-    box-sizing: border-box;
-}
-
-.sg-admin-main-box .order_listing_top .order_advanced_search_box,
-.sg-admin-main-box .checkin_listing_top .checkin_advanced_search_box,
-.order_listing_top .dashboard_all_orders_advanced_search_box {
-    margin-top: 10px;
-    margin-left: 0;
-    /* margin-bottom: 10px; */
-}
-
-.sg-admin-main-box .wp-core-ui .button,
-.wp-core-ui .button-secondary i {
-    color: #fff !important;
-    font-size: 12px;
-}
 
 .sg-search-box .textbox {
     padding-left: 27px !important;
@@ -2892,9 +2705,6 @@ input.bm_toggle:checked+label:after {
     padding-bottom: 0px;
 }
 
-.sg-admin-main-box input[type=date] {
-    max-width: 145px;
-}
 
 #email_details_modal .modal {
     min-height: inherit !important;
@@ -2936,9 +2746,6 @@ input.bm_toggle:checked+label:after {
     border-radius: 50%;
 }
 
-.sg-admin-main-box input[type=date] {
-    max-width: 145px;
-}
 
 #email-records-main-box .spinner,
 #email-records-main-box .spinner:before,
@@ -4103,5 +3910,4 @@ pre {
 .bm-customer-inactive {
     background: #ffebee;
     color: #c62828;
-}
 }

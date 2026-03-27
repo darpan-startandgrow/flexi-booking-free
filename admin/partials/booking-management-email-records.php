@@ -25,7 +25,6 @@ $table->prepare_items();
 $total_count = $table->get_pagination_arg( 'total_items' );
 ?>
 
-<div class="sg-admin-main-box" id="email-records-main-box">
 <div class="wrap listing_table">
 	<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
 		<div>
@@ -68,7 +67,6 @@ $total_count = $table->get_pagination_arg( 'total_items' );
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 <?php
 /**

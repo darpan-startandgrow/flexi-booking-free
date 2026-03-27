@@ -11,7 +11,6 @@ $cat_ids  = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', array_me
 ?>
 
 
-<div class="sg-admin-main-box">
 <!-- Categories -->
 <div class="wrap listing_table" id="category_records_listing">
     <div class="row">
@@ -41,5 +40,4 @@ $cat_ids  = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', array_me
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

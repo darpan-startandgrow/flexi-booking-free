@@ -163,37 +163,28 @@ class BM_Vouchers_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		$this->process_bulk_action();
 
-		global $wpdb;
-		$activator     = new Booking_Management_Activator();
-		$dbhandler     = new BM_DBhandler();
-		$voucher_table = $activator->get_db_table_name( 'VOUCHERS' );
-		$booking_table = $activator->get_db_table_name( 'BOOKING' );
+		$dbhandler = new BM_DBhandler();
 
-		$per_page = ! empty( $_REQUEST['per_page'] )
-			? absint( $_REQUEST['per_page'] )
-			: ( ! empty( $dbhandler->get_global_option_value( 'bm_voucher_records_per_page' ) )
-				? absint( $dbhandler->get_global_option_value( 'bm_voucher_records_per_page' ) )
-				: 10 );
+		$per_page = $this->get_items_per_page( 'bm_list_per_page', 10 );
 
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
 
-		// Build WHERE clause for status filter.
-		$where_sql  = '';
-		$where_args = array();
+		// Build WHERE conditions for status filter.
+		$where = array();
 		if ( $this->filter_status !== '' ) {
-			$where_sql    = 'WHERE v.status = %d';
-			$where_args[] = $this->filter_status;
+			$where = array( 'v.status' => array( '=' => (int) $this->filter_status ) );
 		}
 
 		// Count total.
-		if ( ! empty( $where_args ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table names from get_db_table_name() are hardcoded
-			$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$voucher_table} v {$where_sql}", $where_args ) );
-		} else {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$voucher_table} v" );
-		}
+		$count_result = $dbhandler->get_results_with_join(
+			array( 'VOUCHERS', 'v' ),
+			'COUNT(*) AS total',
+			array(),
+			$where,
+			'row'
+		);
+		$total = $count_result ? (int) $count_result->total : 0;
 
 		// Sorting.
 		$orderby = 'v.id';
@@ -211,35 +202,20 @@ class BM_Vouchers_List_Table extends WP_List_Table {
 		}
 
 		// Fetch vouchers.
-		$query_args   = $where_args;
-		$query_args[] = $per_page;
-		$query_args[] = $offset;
-
-		if ( ! empty( $where_args ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$vouchers = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT v.id, v.code, v.booking_id, v.status, v.created_at, b.service_name
-					FROM {$voucher_table} v
-					LEFT JOIN {$booking_table} b ON v.booking_id = b.id
-					{$where_sql}
-					ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
-					$query_args
-				)
-			);
-		} else {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$vouchers = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT v.id, v.code, v.booking_id, v.status, v.created_at, b.service_name
-					FROM {$voucher_table} v
-					LEFT JOIN {$booking_table} b ON v.booking_id = b.id
-					ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
-					$per_page,
-					$offset
-				)
-			);
-		}
+		$joins = array(
+			array( 'type' => 'LEFT', 'table' => 'BOOKING', 'alias' => 'b', 'on' => 'v.booking_id = b.id' ),
+		);
+		$vouchers = $dbhandler->get_results_with_join(
+			array( 'VOUCHERS', 'v' ),
+			'v.id, v.code, v.booking_id, v.status, v.created_at, b.service_name',
+			$joins,
+			$where,
+			'results',
+			$offset,
+			$per_page,
+			$orderby,
+			( 'DESC' === $order )
+		);
 
 		$this->items = array();
 		if ( ! empty( $vouchers ) ) {

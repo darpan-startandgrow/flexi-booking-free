@@ -40,7 +40,6 @@ $orders_table->prepare_items();
 ?>
 
 <!-- Orders -->
-<div class="sg-admin-main-box order-listing-admin-main-box">
 <div class="wrap listing_table">
     <div class="order_listing_top">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'All Orders', 'service-booking' ); ?></h2>
@@ -71,13 +70,7 @@ $orders_table->prepare_items();
                         <i class="fa fa-search order_listing_search_icon" id="order_listing_search_icon" data-title="<?php esc_html_e( 'Click to search', 'service-booking' ); ?>"></i>
                     </span>
                 </span>
-                <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Manage Columns — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Manage Columns — Pro Feature', 'service-booking' ); ?>">
-                    <span>
-                        <?php esc_html_e( 'Manage Columns', 'service-booking' ); ?>
-                        <i class="fa fa-plus" aria-hidden="true"></i>
-                        <span class="sg-pro-badge"><?php esc_html_e( 'PRO', 'service-booking' ); ?></span>
-                    </span>
-                </button>
+
                 <button class="button" disabled aria-disabled="true" aria-label="<?php esc_attr_e( 'Csv Export — Pro Feature. Upgrade to Pro to use this feature.', 'service-booking' ); ?>" title="<?php esc_attr_e( 'Csv Export — Pro Feature', 'service-booking' ); ?>">
                     <span>
                         <?php esc_html_e( 'Csv Export', 'service-booking' ); ?>
@@ -230,7 +223,6 @@ $orders_table->prepare_items();
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 
 

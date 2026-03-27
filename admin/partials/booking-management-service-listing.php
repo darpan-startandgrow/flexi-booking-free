@@ -4,7 +4,6 @@ $services_table->prepare_items();
 ?>
 
 <!-- Services -->
-<div class="sg-admin-main-box">
 <div class="wrap listing_table" id="service_records_listing">
     <div class="row">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'All Services', 'service-booking' ); ?></h2>
@@ -100,7 +99,6 @@ $services_table->prepare_items();
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 <script>
 var bm_shortcode_info = {

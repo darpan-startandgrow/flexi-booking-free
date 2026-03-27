@@ -96,12 +96,20 @@ class Booking_Management_Admin {
 			wp_enqueue_style( 'flexi-single-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-service-booking-planner.css', array(), $this->version, 'all' );
             if ( $screen->base == 'toplevel_page_bm_home' ) {
                 wp_enqueue_style( 'dashboard-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-dashboard.css', array(), $this->version, 'all' );
+                wp_enqueue_script( 'chartjs', plugin_dir_url( __FILE__ ) . 'js/booking-management-chart.js', array(), $this->version, true );
+                wp_enqueue_script( 'bm-dashboard-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-dashboard.js', array( 'jquery', 'chartjs' ), $this->version, true );
             }
 
 
 
 			if ( $screen->base == 'admin_page_bm_single_order' ) {
 				wp_enqueue_style( 'single-order-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-order.css', array(), $this->version, 'all' );
+			}
+
+			// Check-ins page styles and scripts.
+			if ( isset( $screen->base ) && strpos( $screen->base, 'bm_check_ins' ) !== false ) {
+				wp_enqueue_style( 'bm-check-ins-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-check-ins.css', array(), $this->version, 'all' );
+				wp_enqueue_script( 'bm-check-ins-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-check-ins.js', array( 'jquery' ), $this->version, true );
 			}
 
 			// Upsell page styles (loaded on all FlexiBooking admin pages).
@@ -615,6 +623,8 @@ class Booking_Management_Admin {
 				array(
 					'ajax_url' => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'ajax-nonce' ),
+					'rest_url' => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
+					'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 				)
 			);
 
@@ -663,7 +673,7 @@ class Booking_Management_Admin {
 		add_submenu_page( 'bm_home', __( 'Analytics', 'service-booking' ), __( 'Analytics', 'service-booking' ) . ' <span class="bm-menu-pro-badge">Pro</span>', 'manage_options', 'bm_booking_analytics', array( $this, 'bm_pro_upsell_page' ) );
 
 		// --- FREE menus (always available) ---
-		add_submenu_page( 'bm_home', __( 'Orders', 'service-booking' ), __( 'Orders', 'service-booking' ), 'manage_options', 'bm_all_orders', array( $this, 'bm_all_orders' ) );
+		$hook_orders = add_submenu_page( 'bm_home', __( 'Orders', 'service-booking' ), __( 'Orders', 'service-booking' ), 'manage_options', 'bm_all_orders', array( $this, 'bm_all_orders' ) );
 		add_submenu_page( '', __( 'Add Order', 'service-booking' ), __( 'Add Order', 'service-booking' ), 'manage_options', 'bm_add_order', array( $this, 'bm_add_order' ) );
 
 		// Service Booking Planner: Pro-only.
@@ -675,12 +685,12 @@ class Booking_Management_Admin {
 		add_submenu_page( 'bm_home', __( 'Single Service Booking Planner', 'service-booking' ), __( 'Single Service Booking Planner', 'service-booking' ) . ' <span class="bm-menu-pro-badge">Pro</span>', 'manage_options', 'bm_single_service_booking_planner', array( $this, 'bm_pro_upsell_page' ) );
 
 		// Customers: Available in free (email-only) and pro (full management).
-		add_submenu_page( 'bm_home', __( 'Customers', 'service-booking' ), __( 'Customers', 'service-booking' ), 'manage_options', 'bm_all_customers', array( $this, 'bm_all_customers' ) );
+		$hook_customers = add_submenu_page( 'bm_home', __( 'Customers', 'service-booking' ), __( 'Customers', 'service-booking' ), 'manage_options', 'bm_all_customers', array( $this, 'bm_all_customers' ) );
 
-		add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
+		$hook_services = add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
 		add_submenu_page( 'bm_home', __( 'Shared Extras', 'service-booking' ), __( 'Shared Extras', 'service-booking' ), 'manage_options', 'bm_shared_extras', array( $this, 'bm_shared_extras' ) );
-		add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
+		$hook_categories = add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
 		add_submenu_page( '', __( 'Add Category', 'service-booking' ), __( 'Add Category', 'service-booking' ), 'manage_options', 'bm_add_category', array( $this, 'bm_add_category' ) );
 
 		// --- Pro-only menus (locked with Pro badge; unlocked by Pro add-on) ---
@@ -689,11 +699,11 @@ class Booking_Management_Admin {
 		add_submenu_page( '', __( 'Customer Profile', 'service-booking' ), __( 'Customer Profile', 'service-booking' ), 'manage_options', 'bm_customer_profile', array( $this, 'bm_pro_upsell_page' ) );
 
 		// Mail Templates: Available in free (with limits) and pro (full).
-		add_submenu_page( 'bm_home', __( 'Mail Templates', 'service-booking' ), __( 'Mail Templates', 'service-booking' ), 'manage_options', 'bm_email_templates', array( $this, 'bm_email_templates' ) );
+		$hook_templates = add_submenu_page( 'bm_home', __( 'Mail Templates', 'service-booking' ), __( 'Mail Templates', 'service-booking' ), 'manage_options', 'bm_email_templates', array( $this, 'bm_email_templates' ) );
 		add_submenu_page( '', __( 'Add Template', 'service-booking' ), __( 'Add Template', 'service-booking' ), 'manage_options', 'bm_add_template', array( $this, 'bm_add_template' ) );
 
 		// Booking Forms: Available in free (default billing form only) and pro (advanced).
-		add_submenu_page( 'bm_home', __( 'Booking Forms', 'service-booking' ), __( 'Booking Forms', 'service-booking' ), 'manage_options', 'sg-booking-forms', array( $this, 'bm_fields' ) );
+		$hook_forms = add_submenu_page( 'bm_home', __( 'Booking Forms', 'service-booking' ), __( 'Booking Forms', 'service-booking' ), 'manage_options', 'sg-booking-forms', array( $this, 'bm_fields' ) );
 		add_submenu_page( '', __( 'Form Builder', 'service-booking' ), __( 'Form Builder', 'service-booking' ), 'manage_options', 'sg-booking-form-builder', array( $this, 'bm_form_builder' ) );
 
 		// Price Modules: Pro-only.
@@ -705,13 +715,13 @@ class Booking_Management_Admin {
 		add_submenu_page( '', __( 'Add Process', 'service-booking' ), __( 'Add Process', 'service-booking' ), 'manage_options', 'bm_add_notification_process', array( $this, 'bm_pro_upsell_page' ) );
 
 		// Email Records: Available in free (read-only listing) and pro (full with resend).
-		add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
+		$hook_email_records = add_submenu_page( 'bm_home', __( 'Email Records', 'service-booking' ), __( 'Email Records', 'service-booking' ), 'manage_options', 'bm_email_records', array( $this, 'bm_email_records' ) );
 
 		// Vouchers: Available in free (listing only) and pro (full management + redemption).
-		add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
+		$hook_vouchers = add_submenu_page( 'bm_home', __( 'Vouchers', 'service-booking' ), __( 'Vouchers', 'service-booking' ), 'manage_options', 'bm_voucher_records', array( $this, 'bm_voucher_records' ) );
 
 		// Check ins: Available in free (manual only) and pro (scanner + resend).
-		add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
+		$hook_checkins = add_submenu_page( 'bm_home', __( 'Check ins', 'service-booking' ), __( 'Check ins', 'service-booking' ), 'manage_options', 'bm_check_ins', array( $this, 'bm_check_ins' ) );
 
 		// PDF Customization: Pro-only (free gets default non-customizable templates).
 		add_submenu_page( 'bm_home', __( 'PDF Templates', 'service-booking' ), __( 'PDF Templates', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pdf_templates_page' ) );
@@ -753,6 +763,24 @@ class Booking_Management_Admin {
 		 * @since 1.1.0
 		 */
 		do_action( 'sg_booking_register_pro_menus' );
+
+		// Add Screen Options (per_page) to listing pages.
+		$screen_option_hooks = array(
+			$hook_orders,
+			$hook_customers,
+			$hook_services,
+			$hook_categories,
+			$hook_templates,
+			$hook_forms,
+			$hook_email_records,
+			$hook_vouchers,
+			$hook_checkins,
+		);
+		foreach ( $screen_option_hooks as $hook ) {
+			if ( $hook ) {
+				add_action( "load-{$hook}", array( $this, 'bm_add_screen_options' ) );
+			}
+		}
 	} //end booking_admin_menu()
 
 	/**
@@ -5759,128 +5787,6 @@ class Booking_Management_Admin {
 		die;
 	}//end bm_change_order_status()
 
-
-	/**
-	 * Fetch columns
-	 *
-	 * @author Darpan
-	 */
-	public function bm_fetch_columns_screen_options() {
-		if ( ! Booking_Management_Limits::can_manage_columns() ) {
-			wp_send_json_error( __( 'Manage Columns is a Pro feature.', 'service-booking' ) );
-			return;
-		}
-
-		$nonce = filter_input( INPUT_POST, 'nonce' );
-		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
-			die( esc_html__( 'Failed security check', 'service-booking' ) );
-		}
-
-		$bmrequests = new BM_Request();
-		$view_type  = filter_input( INPUT_POST, 'type' );
-		$resp       = '';
-
-		if ( $view_type != false && $view_type != null ) {
-			$resp = $bmrequests->bm_fetch_columns_screen_options( $view_type, $resp );
-		}
-
-		if ( empty( $resp ) ) {
-			$resp = '<div class="textcenter">' . esc_html__( 'No results found.', 'service-booking' ) . '</div>';
-		}
-
-		echo wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
-		die;
-	}//end bm_fetch_columns_screen_options()
-
-
-	/**
-	 * Save columns order
-	 *
-	 * @author Darpan
-	 */
-	public function bm_save_columns_screen_options() {
-		if ( ! Booking_Management_Limits::can_manage_columns() ) {
-			wp_send_json_error( __( 'Manage Columns is a Pro feature.', 'service-booking' ) );
-			return;
-		}
-
-		$nonce = filter_input( INPUT_POST, 'nonce' );
-		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
-			die( esc_html__( 'Failed security check', 'service-booking' ) );
-		}
-
-		$dbhandler  = new BM_DBhandler();
-		$bmrequests = new BM_Request();
-		$post       = filter_input( INPUT_POST, 'post', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-		$data       = array( 'status' => false );
-
-		if ( $post != false && $post != null ) {
-			$default    = isset( $post['default'] ) ? $post['default'] : null;
-			$orders     = isset( $post['orders'] ) ? $post['orders'] : array();
-			$names      = isset( $post['names'] ) ? $post['names'] : array();
-			$texts      = isset( $post['texts'] ) ? $post['texts'] : array();
-			$is_admin   = isset( $post['is_admin'] ) ? $post['is_admin'] : 0;
-			$view_type  = isset( $post['view_type'] ) ? $post['view_type'] : '';
-			$text_count = count( $texts );
-			$language   = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
-			$user_id    = get_current_user_id();
-
-			if ( ! empty( $orders ) && ! empty( $names ) && ! empty( $texts ) ) {
-				for ( $i = 0; $i < $text_count; $i++ ) {
-					$custom_array[ $texts[ $i ] ] = array(
-						'order'  => $orders[ $i ],
-						'column' => $names[ $i ],
-					);
-				}
-
-				if ( isset( $custom_array ) ) {
-					$column_data = array(
-						'language'        => $language,
-						'user_id'         => $user_id,
-						'default_columns' => $default,
-						'screen_options'  => $custom_array,
-						'is_admin'        => $is_admin,
-						'view_type'       => $view_type,
-					);
-
-					$final_data = $bmrequests->sanitize_request( $column_data, 'MANAGECOLUMNS' );
-
-					if ( $final_data != false && $final_data != null ) {
-						$last_id = $dbhandler->get_all_result(
-							'MANAGECOLUMNS',
-							'id',
-							array(
-								'language'  => $language,
-								'user_id'   => $user_id,
-								'view_type' => $view_type,
-								'is_admin'  => $is_admin,
-							),
-							'var',
-							0,
-							1,
-							'id',
-							'DESC'
-						);
-
-						if ( $last_id ) {
-							$dbhandler->update_row( 'MANAGECOLUMNS', 'id', $last_id, $final_data, '', '%d' );
-							$data['status'] = true;
-						} else {
-							$final_data['mc_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-							$new_column_id               = $dbhandler->insert_row( 'MANAGECOLUMNS', $final_data );
-
-							if ( $new_column_id ) {
-								$data['status'] = true;
-							}
-						}
-					}
-				} //end if
-			} //end if
-		} //end if
-
-		echo wp_json_encode( $data );
-		die;
-	}//end bm_save_columns_screen_options()
 
 
 	/**
@@ -11213,9 +11119,9 @@ class Booking_Management_Admin {
      * @return float
      */
     private function bm_get_daily_metric_value( $date, $metric ) {
-        global $wpdb;
         $dbhandler          = new BM_DBhandler();
-        $transactions_table = $wpdb->prefix . 'sgbm_transactions';
+        $activator          = new Booking_Management_Activator();
+        $transactions_table = $activator->get_db_table_name( 'TRANSACTIONS' );
 
         $metric_map = array(
             'total_sales'         => 'SUM(b.total_cost)',
@@ -16353,7 +16259,7 @@ class Booking_Management_Admin {
 		if ( $flexi_booking_notice ) {
 			delete_option( 'flexi_booking_notice' );
 			?>
-			<div class="notice notice-error is-dismissible">
+			<div class="notice notice-error">
 				<p><?php echo esc_html( $flexi_booking_notice ); ?></p>
 			</div>
 			<?php
@@ -16369,12 +16275,113 @@ class Booking_Management_Admin {
 	public function bm_disable_admin_notices_on_specific_pages() {
 		$screen = get_current_screen();
 
-		$pages_to_disable = array( 'toplevel_page_bm_home', 'flexibooking_page_bm_all_orders', 'admin_page_bm_add_order', 'flexibooking_page_bm_all_customers', 'admin_page_bm_add_customer', 'admin_page_bm_customer_profile', 'flexibooking_page_bm_all_services', 'admin_page_bm_add_service', 'flexibooking_page_bm_all_categories', 'admin_page_bm_add_category', 'flexibooking_page_bm_email_templates', 'admin_page_bm_add_template', 'flexibooking_page_sg-booking-forms', 'flexibooking_page_bm_all_external_service_prices', 'flexibooking_page_bm_voucher_records', 'admin_page_bm_add_external_service_price', 'flexibooking_page_bm_all_notification_processes', 'admin_page_bm_add_notification_process', 'flexibooking_page_bm_email_records', 'flexibooking_page_bm_all_coupons', 'admin_page_bm_add_coupon', 'flexibooking_page_bm_global', 'admin_page_bm_global_general_settings', 'admin_page_bm_global_css_settings', 'admin_page_bm_global_timezone_country_settings', 'admin_page_bm_global_email_settings', 'admin_page_bm_global_payment_settings', 'admin_page_bm_svc_booking_settings', 'admin_page_bm_upload_settings', 'admin_page_bm_global_language_settings', 'admin_page_bm_global_format_settings', 'admin_page_bm_global_integration_settings', 'admin_page_bm_global_coupon_settings', 'flexibooking_page_bm_service_booking_planner', 'flexibooking_page_bm_single_service_booking_planner', 'flexibooking_page_bm_check_ins' );
+		$pages_to_disable = array( 'toplevel_page_bm_home', 'flexibooking_page_bm_all_orders', 'admin_page_bm_add_order', 'flexibooking_page_bm_all_customers', 'admin_page_bm_add_customer', 'admin_page_bm_customer_profile', 'flexibooking_page_bm_all_services', 'admin_page_bm_add_service', 'flexibooking_page_bm_all_categories', 'admin_page_bm_add_category', 'flexibooking_page_bm_email_templates', 'admin_page_bm_add_template', 'flexibooking_page_sg-booking-forms', 'admin_page_sg-booking-form-builder', 'flexibooking_page_bm_all_external_service_prices', 'flexibooking_page_bm_voucher_records', 'admin_page_bm_add_external_service_price', 'flexibooking_page_bm_all_notification_processes', 'admin_page_bm_add_notification_process', 'flexibooking_page_bm_email_records', 'flexibooking_page_bm_all_coupons', 'admin_page_bm_add_coupon', 'flexibooking_page_bm_global', 'admin_page_bm_global_general_settings', 'admin_page_bm_global_css_settings', 'admin_page_bm_global_timezone_country_settings', 'admin_page_bm_global_email_settings', 'admin_page_bm_global_payment_settings', 'admin_page_bm_svc_booking_settings', 'admin_page_bm_upload_settings', 'admin_page_bm_global_language_settings', 'admin_page_bm_global_format_settings', 'admin_page_bm_global_integration_settings', 'admin_page_bm_global_coupon_settings', 'flexibooking_page_bm_service_booking_planner', 'flexibooking_page_bm_single_service_booking_planner', 'flexibooking_page_bm_check_ins', 'flexibooking_page_bm_payment_logs', 'flexibooking_page_bm_email_logs', 'flexibooking_page_bm_pdf_customization', 'flexibooking_page_bm_shared_extras', 'flexibooking_page_bm_booking_analytics', 'admin_page_bm_single_order' );
 
 		if ( in_array( $screen->id, $pages_to_disable ) ) {
 			remove_all_actions( 'admin_notices' );
 		}
 	}//end bm_disable_admin_notices_on_specific_pages()
+
+
+	/**
+	 * Ensure admin page title is never null to prevent strip_tags() deprecation.
+	 *
+	 * WordPress core calls strip_tags() on the page title in admin-header.php.
+	 * On PHP 8.1+ passing null triggers a deprecation warning.
+	 *
+	 * @since 1.3.0
+	 * @param string $admin_title The admin page title.
+	 * @return string
+	 */
+	public function bm_ensure_admin_title( $admin_title ) {
+		return is_string( $admin_title ) ? $admin_title : '';
+	}//end bm_ensure_admin_title()
+
+
+	/**
+	 * Highlight the FlexiBooking top-level menu for hidden sub-pages.
+	 *
+	 * Pages registered with an empty parent slug (e.g., bm_single_order,
+	 * bm_add_service) don't auto-highlight the parent menu. This filter
+	 * tells WordPress to treat them as children of 'bm_home'.
+	 *
+	 * @since 1.3.0
+	 * @param string $parent_file The parent file slug.
+	 * @return string
+	 */
+	public function bm_fix_menu_highlight( $parent_file ) {
+		global $plugin_page;
+
+		$hidden_pages = array(
+			'bm_add_order',
+			'bm_single_order',
+			'bm_add_service',
+			'bm_add_category',
+			'bm_add_template',
+			'bm_customer_profile',
+			'bm_add_customer',
+			'bm_add_external_service_price',
+			'bm_add_notification_process',
+			'sg-booking-form-builder',
+			'bm_global_general_settings',
+			'bm_global_css_settings',
+			'bm_global_timezone_country_settings',
+			'bm_global_email_settings',
+			'bm_global_payment_settings',
+			'bm_global_integration_settings',
+			'bm_global_coupon_settings',
+			'bm_global_language_settings',
+			'bm_global_format_settings',
+			'bm_svc_booking_settings',
+			'bm_upload_settings',
+		);
+
+		if ( isset( $plugin_page ) && in_array( $plugin_page, $hidden_pages, true ) ) {
+			$parent_file = 'bm_home';
+		}
+
+		return $parent_file;
+	}//end bm_fix_menu_highlight()
+
+
+	/**
+	 * Add Screen Options for list table pages.
+	 *
+	 * Adds the per_page option to the Screen Options dropdown on admin pages
+	 * that display WP_List_Table listings.
+	 *
+	 * @since 1.3.0
+	 */
+	public function bm_add_screen_options() {
+		add_screen_option(
+			'per_page',
+			array(
+				'label'   => __( 'Items per page', 'service-booking' ),
+				'default' => 20,
+				'option'  => 'bm_list_per_page',
+			)
+		);
+	}//end bm_add_screen_options()
+
+
+	/**
+	 * Persist per_page screen option when saved by the user.
+	 *
+	 * WordPress calls the set-screen-option filter when a user saves the Screen
+	 * Options form. Return the sanitised value so it's stored in user meta.
+	 *
+	 * @since 1.3.0
+	 * @param mixed  $status Current status (false by default).
+	 * @param string $option The option name being saved.
+	 * @param int    $value  The option value.
+	 * @return mixed
+	 */
+	public static function bm_set_screen_option( $status, $option, $value ) {
+		if ( 'bm_list_per_page' === $option ) {
+			return absint( $value );
+		}
+		return $status;
+	}//end bm_set_screen_option()
 
 
 	/**

@@ -56,7 +56,6 @@ if ( filter_input( INPUT_POST, 'save_format_settings' ) || filter_input( INPUT_P
 $current_language = $dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 
 ?>
-<div class="sg-admin-main-box" id="language_settings_form">
 <div class="wrap">
     <h2 class="title" style="font-weight: bold;"><a href="admin.php?page=bm_global"><div class="backbtn">&#8592;</div></a><?php esc_html_e( 'Format Settings', 'service-booking' ); ?></h2>
     <form role="form" method="post" action="admin.php?page=bm_global_format_settings">
@@ -131,6 +130,5 @@ $current_language = $dbhandler->get_global_option_value( 'bm_flexi_current_langu
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 

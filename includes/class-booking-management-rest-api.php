@@ -720,6 +720,92 @@ class Booking_Management_Rest_API {
 			)
 		);
 
+		// --- Check-in REST Endpoints ---
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/checkins/process',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_manual_checkin_process' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'search_type'  => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'search_value' => array(
+						'required' => true,
+					),
+					'booking_ids'  => array(
+						'required' => false,
+						'default'  => array(),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/checkins/search',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_manual_checkin_check' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'search_type'  => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'search_value' => array(
+						'required' => true,
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/checkins/status',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_update_checkin_status' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'checkin_id'  => array(
+						'required'          => false,
+						'default'           => 0,
+						'sanitize_callback' => 'absint',
+					),
+					'booking_id'  => array(
+						'required'          => false,
+						'default'           => 0,
+						'sanitize_callback' => 'absint',
+					),
+					'new_status'  => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/checkins/details/(?P<booking_id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'rest_manual_checkin_view_details' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+				'args'                => array(
+					'booking_id' => array(
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
 		/**
 		 * Fires after all Lite REST routes are registered.
 		 *
@@ -2335,6 +2421,320 @@ class Booking_Management_Rest_API {
 	 */
 	public function invalidate_timeslot_cache( $service_id, $booking_date ) {
 		delete_transient( 'sg_ts_' . (int) $service_id . '_' . sanitize_text_field( $booking_date ) );
+	}
+
+	// ------------------------------------------------------------------
+	// Check-in REST handlers
+	// ------------------------------------------------------------------
+
+	/**
+	 * POST /checkins/process — Manual check-in for one or more bookings.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function rest_manual_checkin_process( $request ) {
+		$search_type = $request->get_param( 'search_type' );
+		$raw_value   = $request->get_param( 'search_value' );
+
+		if ( is_array( $raw_value ) ) {
+			$search_value = array_map( 'sanitize_text_field', $raw_value );
+		} else {
+			$search_value = sanitize_text_field( $raw_value );
+		}
+
+		$booking_ids = $request->get_param( 'booking_ids' );
+		if ( ! is_array( $booking_ids ) ) {
+			$booking_ids = array();
+		}
+
+		$db = new BM_DBhandler();
+
+		if ( 'reference' === $search_type ) {
+			$booking_id = $db->get_value( 'BOOKING', 'id', $search_value, 'booking_key' );
+			$is_active  = $db->get_value( 'BOOKING', 'is_active', $search_value, 'booking_key' );
+
+			if ( 1 != $is_active ) {
+				return new WP_Error( 'invalid_booking', __( 'Can not check in cancelled or refunded orders', 'service-booking' ), array( 'status' => 400 ) );
+			}
+
+			if ( ! $booking_id ) {
+				return new WP_Error( 'not_found', __( 'Booking not found', 'service-booking' ), array( 'status' => 404 ) );
+			}
+
+			$success = $this->mark_booking_checked_in( (int) $booking_id, $db );
+			if ( ! $success ) {
+				return new WP_Error( 'already_checked', __( 'Already checked in or expired.', 'service-booking' ), array( 'status' => 400 ) );
+			}
+
+			return rest_ensure_response( array( 'message' => __( 'Booking successfully checked in.', 'service-booking' ) ) );
+		}
+
+		if ( empty( $booking_ids ) ) {
+			return new WP_Error( 'no_selection', __( 'No bookings selected.', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		$count = 0;
+		foreach ( $booking_ids as $id ) {
+			$is_active = $db->get_value( 'BOOKING', 'is_active', $id, 'id' );
+			if ( 1 != $is_active ) {
+				continue;
+			}
+			if ( $this->mark_booking_checked_in( (int) $id, $db ) ) {
+				++$count;
+			}
+		}
+
+		if ( 0 === $count ) {
+			return new WP_Error( 'none_checked', __( 'No valid bookings were checked in.', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		return rest_ensure_response(
+			array(
+				/* translators: %d: number of bookings */
+				'message' => sprintf( __( '%d bookings successfully checked in.', 'service-booking' ), $count ),
+			)
+		);
+	}
+
+	/**
+	 * POST /checkins/search — Search bookings for manual check-in modal.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function rest_manual_checkin_check( $request ) {
+		$search_type = $request->get_param( 'search_type' );
+		$raw_value   = $request->get_param( 'search_value' );
+
+		if ( is_array( $raw_value ) ) {
+			$search_value = array_map( 'sanitize_text_field', $raw_value );
+		} else {
+			$search_value = sanitize_text_field( $raw_value );
+		}
+
+		if ( empty( $search_type ) || empty( $search_value ) ) {
+			return new WP_Error( 'invalid_params', __( 'Invalid search parameters', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		$db         = new BM_DBhandler();
+		$bmrequests = new BM_Request();
+
+		if ( 'reference' === $search_type ) {
+			$booking_id = $db->get_value( 'BOOKING', 'id', $search_value, 'booking_key' );
+			if ( ! $booking_id ) {
+				return new WP_Error( 'not_found', __( 'Booking not found', 'service-booking' ), array( 'status' => 404 ) );
+			}
+
+			$html = $bmrequests->bm_get_order_details_attachment( (int) $booking_id, false, false );
+			if ( empty( $html ) ) {
+				return new WP_Error( 'no_data', __( 'Booking data not found', 'service-booking' ), array( 'status' => 404 ) );
+			}
+
+			return rest_ensure_response( array( 'html' => $html ) );
+		}
+
+		$joins = array(
+			array(
+				'table' => 'CUSTOMERS',
+				'alias' => 'c',
+				'on'    => 'c.id = b.customer_id',
+				'type'  => 'LEFT',
+			),
+			array(
+				'table' => 'CHECKIN',
+				'alias' => 'ch',
+				'on'    => 'ch.booking_id = b.id',
+				'type'  => 'LEFT',
+			),
+		);
+
+		if ( 'email' === $search_type ) {
+			$where = array( 'c.customer_email' => array( '=' => $search_value ) );
+		} elseif ( 'service' === $search_type ) {
+			$where = array( 'b.service_id' => array( 'IN' => $search_value ) );
+		} else {
+			$where = array(
+				'c.customer_name' => array(
+					'LIKE' => '%' . $search_value,
+				),
+			);
+		}
+
+		$results = $db->get_results_with_join(
+			array( 'BOOKING', 'b' ),
+			'b.id, b.service_id, b.service_name, b.total_svc_slots as svc_participants, b.total_ext_svc_slots as ex_svc_participants, b.booking_key, c.customer_email, c.billing_details, ch.qr_scanned, ch.checkin_time',
+			$joins,
+			$where,
+			'results'
+		);
+
+		if ( ! $results || count( $results ) === 0 ) {
+			return new WP_Error( 'no_bookings', __( 'No bookings found', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		ob_start();
+		?>
+		<div class="bm-bookings-list">
+			<table class="manual_checkin_records_table widefat striped">
+				<thead>
+					<tr>
+						<th><input type="checkbox" id="bm-checkall"></th>
+						<th><?php esc_html_e( 'Booking Key', 'service-booking' ); ?></th>
+						<th><?php esc_html_e( 'Service Name', 'service-booking' ); ?></th>
+						<?php if ( 'email' === $search_type ) : ?>
+							<th><?php esc_html_e( 'Email', 'service-booking' ); ?></th>
+						<?php else : ?>
+							<th><?php esc_html_e( 'First Name', 'service-booking' ); ?></th>
+							<th><?php esc_html_e( 'Last Name', 'service-booking' ); ?></th>
+						<?php endif; ?>
+						<th><?php esc_html_e( 'Service Participants', 'service-booking' ); ?></th>
+						<th><?php esc_html_e( 'Extra Service Participants', 'service-booking' ); ?></th>
+						<th><?php esc_html_e( 'Check-in Status', 'service-booking' ); ?></th>
+						<th><?php esc_html_e( 'Check-in Date', 'service-booking' ); ?></th>
+						<th><?php esc_html_e( 'Actions', 'service-booking' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+				foreach ( $results as $row ) :
+					$first_name = '';
+					$last_name  = '';
+					if ( ! empty( $row->billing_details ) ) {
+						$details = maybe_unserialize( $row->billing_details );
+						if ( is_array( $details ) ) {
+							$first_name = esc_html( $details['billing_first_name'] ?? '' );
+							$last_name  = esc_html( $details['billing_last_name'] ?? '' );
+						}
+					}
+					$status = ( 1 == $row->qr_scanned ) ? __( 'Checked-in', 'service-booking' ) : __( 'Pending', 'service-booking' );
+					$date   = ! empty( $row->checkin_time ) ? $bmrequests->bm_convert_date_format( $row->checkin_time, 'Y-m-d H:i:s', 'd/m/y H:i' ) : '-';
+					?>
+					<tr>
+						<td><input type="checkbox" class="bm-booking-select" value="<?php echo esc_attr( $row->id ); ?>"></td>
+						<td><?php echo esc_html( $row->booking_key ); ?></td>
+						<td><?php echo esc_html( $row->service_name ); ?></td>
+						<?php if ( 'email' === $search_type ) : ?>
+							<td><?php echo esc_html( $row->customer_email ); ?></td>
+						<?php else : ?>
+							<td><?php echo esc_html( $first_name ); ?></td>
+							<td><?php echo esc_html( $last_name ); ?></td>
+						<?php endif; ?>
+						<td><?php echo esc_html( $row->svc_participants ); ?></td>
+						<td><?php echo esc_html( $row->ex_svc_participants ); ?></td>
+						<td><?php echo esc_html( $status ); ?></td>
+						<td><?php echo esc_html( $date ); ?></td>
+						<td>
+							<div class="bm-view-details" data-id="<?php echo esc_attr( $row->id ); ?>">
+								<i class="fa fa-eye"></i> <?php esc_html_e( 'View', 'service-booking' ); ?>
+							</div>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
+		$html = ob_get_clean();
+
+		return rest_ensure_response( array( 'html' => $html ) );
+	}
+
+	/**
+	 * POST /checkins/status — Update or create a check-in record status.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function rest_update_checkin_status( $request ) {
+		$checkin_id = $request->get_param( 'checkin_id' );
+		$status     = $request->get_param( 'new_status' );
+		$booking_id = $request->get_param( 'booking_id' );
+
+		$dbhandler = new BM_DBhandler();
+		$checkin   = $checkin_id ? $dbhandler->get_row( 'CHECKIN', $checkin_id, 'id' ) : null;
+
+		$data = array(
+			'status'     => $status,
+			'updated_at' => current_time( 'mysql' ),
+		);
+
+		if ( 'checked_in' === $status ) {
+			$data['checkin_time'] = current_time( 'mysql' );
+		} else {
+			$data['checkin_time'] = null;
+		}
+
+		if ( $checkin ) {
+			$updated = $dbhandler->update_row( 'CHECKIN', 'id', $checkin_id, $data );
+		} else {
+			if ( ! $booking_id ) {
+				return new WP_Error( 'missing_booking', esc_html__( 'Booking ID required to create checkin record.', 'service-booking' ), array( 'status' => 400 ) );
+			}
+
+			$data['booking_id'] = $booking_id;
+			$data['qr_token']   = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
+			$data['qr_scanned'] = ( 'checked_in' === $status ) ? 1 : 0;
+			$data['created_at'] = current_time( 'mysql' );
+
+			$updated = $dbhandler->insert_row( 'CHECKIN', $data );
+		}
+
+		if ( ! $updated ) {
+			return new WP_Error( 'update_failed', __( 'Unable to update or create checkin.', 'service-booking' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array( 'success' => true ) );
+	}
+
+	/**
+	 * GET /checkins/details/{booking_id} — View order details for check-in.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function rest_manual_checkin_view_details( $request ) {
+		$booking_id = $request->get_param( 'booking_id' );
+
+		if ( ! $booking_id ) {
+			return new WP_Error( 'invalid_id', __( 'Invalid booking ID', 'service-booking' ), array( 'status' => 400 ) );
+		}
+
+		$html = ( new BM_Request() )->bm_get_order_details_attachment( (int) $booking_id, false, false );
+
+		if ( empty( $html ) ) {
+			return new WP_Error( 'no_data', __( 'Booking data not found', 'service-booking' ), array( 'status' => 404 ) );
+		}
+
+		return rest_ensure_response( array( 'html' => $html ) );
+	}
+
+	/**
+	 * Mark a booking as checked in.
+	 *
+	 * @param int          $booking_id Booking ID.
+	 * @param BM_DBhandler $db         DB handler instance.
+	 * @return bool
+	 */
+	private function mark_booking_checked_in( int $booking_id, BM_DBhandler $db ): bool {
+		$now = ( new BM_Request() )->bm_fetch_current_wordpress_datetime_stamp();
+
+		$data = array(
+			'qr_scanned'   => 1,
+			'status'       => 'checked_in',
+			'qr_token'     => $db->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' ),
+			'booking_id'   => $booking_id,
+			'checkin_time' => $now,
+			'updated_at'   => $now,
+		);
+
+		$existing = $db->get_value( 'CHECKIN', 'id', $booking_id, 'booking_id' );
+
+		if ( $existing ) {
+			return $db->update_row( 'CHECKIN', 'booking_id', $booking_id, $data );
+		} else {
+			return $db->insert_row( 'CHECKIN', $data );
+		}
 	}
 }
 
