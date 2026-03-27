@@ -56,7 +56,6 @@ if ( ( filter_input( INPUT_POST, 'savecust' ) ) ) {
 
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap">
     <form role="form" method="post" id="customer_form">
         <h1 style="text-decoration :underline;"><?php $customer_id > 0 ? esc_html_e( 'Customer Details', 'service-booking' ) : esc_html_e( 'Add Customer', 'service-booking' ); ?></h1>
@@ -311,4 +310,3 @@ if ( ( filter_input( INPUT_POST, 'savecust' ) ) ) {
 </div>
 
 <div class="loader_modal"></div>
-</div>

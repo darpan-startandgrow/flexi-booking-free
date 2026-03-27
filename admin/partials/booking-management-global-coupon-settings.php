@@ -41,7 +41,6 @@ if ( filter_input( INPUT_POST, 'save_coupon_global' ) || filter_input( INPUT_POS
     }
 }
 ?>
-<div class="sg-admin-main-box">
 <div class="wrap">
     <h2 class="title" style="font-weight: bold;"><a href="admin.php?page=bm_global"><div class="backbtn">&#8592;</div></a><?php esc_html_e( 'Coupon Settings', 'service-booking' ); ?></h2>
     <form role="form" method="post" action="admin.php?page=bm_global_coupon_settings">
@@ -83,6 +82,5 @@ if ( filter_input( INPUT_POST, 'save_coupon_global' ) || filter_input( INPUT_POS
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 
