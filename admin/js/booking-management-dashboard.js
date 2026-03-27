@@ -39,7 +39,7 @@ function bm_fetch_booking_counts($this) {
 	var type = '';
 	var status = 'booked';
 
-	if ($this != null) {
+	if ($this !== null) {
 		type = jQuery($this).data('type');
 		year_value = jQuery('.' + type + '_year_analytics').length ? jQuery('.' + type + '_year_analytics').val() : year_value;
 		month_value = jQuery('.' + type + '_month_analytics').length ? jQuery('.' + type + '_month_analytics').val() : month_value;
