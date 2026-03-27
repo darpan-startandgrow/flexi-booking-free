@@ -4,7 +4,6 @@ $customers_table->prepare_items();
 ?>
 
 
-<div class="sg-admin-main-box">
 <!-- Customers -->
 <div class="wrap listing_table" id="customer_records_listing">
     <div class="row">
@@ -39,4 +38,3 @@ $customers_table->prepare_items();
 </div>
 
 <div class="loader_modal"></div>
-</div>

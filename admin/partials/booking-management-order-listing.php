@@ -40,7 +40,6 @@ $orders_table->prepare_items();
 ?>
 
 <!-- Orders -->
-<div class="sg-admin-main-box order-listing-admin-main-box">
 <div class="wrap listing_table">
     <div class="order_listing_top">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'All Orders', 'service-booking' ); ?></h2>
@@ -230,7 +229,6 @@ $orders_table->prepare_items();
 </div>
 
 <div class="loader_modal"></div>
-</div>
 
 
 

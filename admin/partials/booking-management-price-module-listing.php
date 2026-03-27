@@ -14,7 +14,6 @@ $pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmrequ
 ?>
 
 
-<div class="sg-admin-main-box">
 <!-- Categories -->
 <div class="wrap listing_table" id="price_module_records_listing">
     <div class="row">
@@ -75,5 +74,4 @@ $pagination    = $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $bmrequ
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

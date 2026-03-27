@@ -22,7 +22,6 @@ $plugin_path = plugin_dir_url( __FILE__ );
 ?>
 
 <!-- Check ins -->
-<div class="sg-admin-main-box checkin-listing-admin-main-box">
 <div class="wrap listing_table">
     <div class="checkin_listing_top">
         <h2 class="title" style="font-weight: bold;"><?php esc_html_e( 'Check Ins', 'service-booking' ); ?></h2>
@@ -110,5 +109,4 @@ $plugin_path = plugin_dir_url( __FILE__ );
 </div>
 
 <div class="loader_modal"></div>
-</div>
 

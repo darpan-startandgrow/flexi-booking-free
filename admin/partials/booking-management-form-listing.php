@@ -36,7 +36,6 @@ $forms_table->prepare_items();
 $total_forms = (int) $dbhandler->bm_count( 'BILLING_FORMS' );
 ?>
 
-<div class="sg-admin-main-box">
 <div class="wrap listing_table" id="forms_listing">
 	<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
 		<div>
@@ -85,4 +84,3 @@ $total_forms = (int) $dbhandler->bm_count( 'BILLING_FORMS' );
 </div>
 
 <div class="loader_modal"></div>
-</div>
