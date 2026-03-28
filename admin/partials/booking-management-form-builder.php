@@ -245,5 +245,7 @@ $field_types = array(
 <input type="hidden" id="bm-fb-form-id" value="<?php echo esc_attr( $form_id ); ?>" />
 <input type="hidden" id="bm-fb-nonce" value="<?php echo esc_attr( wp_create_nonce( 'ajax-nonce' ) ); ?>" />
 <input type="hidden" id="bm-fb-ajax-url" value="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" />
+<input type="hidden" id="bm-fb-rest-url" value="<?php echo esc_url( rest_url( 'sg-booking/v1/' ) ); ?>" />
+<input type="hidden" id="bm-fb-rest-nonce" value="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>" />
 
 <div class="loader_modal"></div>

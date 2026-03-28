@@ -612,20 +612,21 @@ class BM_DBhandler {
 		$bm_activator = $this->get_activator();
 		$table        = $bm_activator->get_db_table_name( $identifier );
 
-		// Exclude specified columns
+		// Exclude specified columns.
 		if ( ! empty( $exclude_columns ) ) {
 			$columns = array_diff( $columns, $exclude_columns );
 		}
 
-		$query = $wpdb->prepare( "SELECT $columns FROM TABLE_NAME = %s', $table" );
+		$safe_cols = implode( ', ', array_map( 'esc_sql', $columns ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded, columns are escaped.
+		$query = "SELECT {$safe_cols} FROM {$table}";
 
 		if ( $result_type === 'results' ) {
-			$results = $wpdb->$method_name( $query, $output );
+			$results = $wpdb->get_results( $query, $output );
 		} else {
-			$results = $wpdb->$method_name( $query );
+			$results = $wpdb->get_var( $query );
 		}
-
-		/**$results = $wpdb->get_results( $query, ARRAY_A );*/
 
 		return $results;
 	}//end get_results_by_columns()

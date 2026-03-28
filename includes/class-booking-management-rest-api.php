@@ -2036,21 +2036,34 @@ class Booking_Management_Rest_API {
 
 		$offset = ( $page - 1 ) * $per_page;
 		$where  = '';
+		$args   = array();
 
 		if ( ! empty( $search ) ) {
 			$like   = '%' . $wpdb->esc_like( $search ) . '%';
-			$where .= $wpdb->prepare( ' WHERE (mail_to LIKE %s OR mail_sub LIKE %s)', $like, $like );
+			$where  = ' WHERE (mail_to LIKE %s OR mail_sub LIKE %s)';
+			$args[] = $like;
+			$args[] = $like;
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}{$where}" );
+		if ( ! empty( $args ) ) {
+			$total = (int) $wpdb->get_var(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->prepare( "SELECT COUNT(*) FROM {$table}{$where}", $args )
+			);
+		} else {
+			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+		}
+
+		$args[] = $per_page;
+		$args[] = $offset;
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$wpdb->prepare(
 				"SELECT id, mail_to, mail_sub, created_at, status FROM {$table}{$where} ORDER BY id DESC LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
+				$args
 			)
 		);
 

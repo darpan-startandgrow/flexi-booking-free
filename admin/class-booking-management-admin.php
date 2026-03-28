@@ -606,11 +606,7 @@ class Booking_Management_Admin {
 			wp_localize_script( $this->plugin_name, 'bm_success_object', $success );
 			wp_localize_script( $this->plugin_name, 'bm_normal_object', $normal );
 
-			if ( $screen->base == 'admin_page_bm_add_order' ) {
-				wp_enqueue_script( 'backennd-order-script', plugin_dir_url( __FILE__ ) . 'js/booking-management-add-order.js', array( 'jquery' ), $this->version, true );
-				wp_localize_script( 'backennd-order-script', 'bm_error_object', $error );
-				wp_localize_script( 'backennd-order-script', 'bm_normal_object', $normal );
-			}
+			
 
 
 
@@ -698,7 +694,7 @@ class Booking_Management_Admin {
 
 		$hook_services = add_submenu_page( 'bm_home', __( 'Services', 'service-booking' ), __( 'Services', 'service-booking' ), 'manage_options', 'bm_all_services', array( $this, 'bm_all_services' ) );
 		add_submenu_page( '', __( 'Add Service', 'service-booking' ), __( 'Add Service', 'service-booking' ), 'manage_options', 'bm_add_service', array( $this, 'bm_add_service' ) );
-		add_submenu_page( 'bm_home', __( 'Shared Extras', 'service-booking' ), __( 'Shared Extras', 'service-booking' ), 'manage_options', 'bm_shared_extras', array( $this, 'bm_shared_extras' ) );
+		$hook_shared_extras = add_submenu_page( 'bm_home', __( 'Shared Extras', 'service-booking' ), __( 'Shared Extras', 'service-booking' ), 'manage_options', 'bm_shared_extras', array( $this, 'bm_shared_extras' ) );
 		$hook_categories = add_submenu_page( 'bm_home', __( 'Categories', 'service-booking' ), __( 'Categories', 'service-booking' ), 'manage_options', 'bm_all_categories', array( $this, 'bm_all_categories' ) );
 		add_submenu_page( '', __( 'Add Category', 'service-booking' ), __( 'Add Category', 'service-booking' ), 'manage_options', 'bm_add_category', array( $this, 'bm_add_category' ) );
 
@@ -784,6 +780,7 @@ class Booking_Management_Admin {
 			$hook_email_records,
 			$hook_vouchers,
 			$hook_checkins,
+			$hook_shared_extras,
 		);
 		foreach ( $screen_option_hooks as $hook ) {
 			if ( $hook ) {
@@ -857,7 +854,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_add_customer() {
-		include 'partials/booking-management-add-customer.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_customer()
 
 
@@ -942,12 +939,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_svc_booking_settings() {
-		include 'partials/booking-management-global-svc-booking-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_svc_booking_settings()
 
 
 	public function bm_global_css_settings() {
-		include 'partials/booking-management-global-css-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_css_settings()
 
 
@@ -973,7 +970,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_global_format_settings() {
-		include 'partials/booking-management-global-format-settings.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_global_format_settings()
 
 
@@ -14693,6 +14690,7 @@ class Booking_Management_Admin {
 			'bm_email_records'  => 'BM_Email_Records_List_Table',
 			'bm_voucher_records' => 'BM_Vouchers_List_Table',
 			'bm_check_ins'      => 'BM_Checkins_List_Table',
+			'bm_shared_extras'  => 'BM_Global_Extras_List_Table',
 		);
 
 		if ( isset( $map[ $page ] ) && class_exists( $map[ $page ] ) ) {

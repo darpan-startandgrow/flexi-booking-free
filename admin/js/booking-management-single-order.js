@@ -32,14 +32,20 @@ jQuery(document).ready(function($) {
     // Load personal information tab content
     function loadPersonalInfo(bookingId, container) {
         $.ajax({
-            url: bm_ajax_object.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'bm_get_order_personal_info',
-                booking_id: bookingId,
+
+            url: bm_ajax_object.rest_url + 'admin-action/bm_get_order_personal_info',
+
+            method: 'POST',
+
+            data: {                booking_id: bookingId,
                 nonce: bm_ajax_object.nonce
             },
-            success: function(response) {
+
+            beforeSend: function(xhr) {
+
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+
+            },            success: function(response) {
                 if (response.success) {
                     container.html(`
                         <div class="personal-info-content">
@@ -100,14 +106,20 @@ jQuery(document).ready(function($) {
     // Load payment details tab content
     function loadPaymentDetails(bookingId, container) {
         $.ajax({
-            url: bm_ajax_object.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'bm_get_order_payment_details',
-                booking_id: bookingId,
+
+            url: bm_ajax_object.rest_url + 'admin-action/bm_get_order_payment_details',
+
+            method: 'POST',
+
+            data: {                booking_id: bookingId,
                 nonce: bm_ajax_object.nonce
             },
-            success: function(response) {
+
+            beforeSend: function(xhr) {
+
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+
+            },            success: function(response) {
                 if (response.success) {
                     container.html(`
                         <table class="products-table">
@@ -144,14 +156,20 @@ jQuery(document).ready(function($) {
     // Load email information tab content
     function loadEmailInfo(bookingId, container) {
         $.ajax({
-            url: bm_ajax_object.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'bm_get_order_email_info',
-                booking_id: bookingId,
+
+            url: bm_ajax_object.rest_url + 'admin-action/bm_get_order_email_info',
+
+            method: 'POST',
+
+            data: {                booking_id: bookingId,
                 nonce: bm_ajax_object.nonce
             },
-            success: function(response) {
+
+            beforeSend: function(xhr) {
+
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+
+            },            success: function(response) {
                 if (response.success) {
                     if (response.data.emails.length > 0) {
                         // Build email table
@@ -215,14 +233,26 @@ jQuery(document).ready(function($) {
         $msg.text('').removeClass('success error');
 
         $.ajax({
-            url: bm_ajax_object.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'bm_resend_order_email',
-                booking_id: bookingId,
+
+
+            url: bm_ajax_object.rest_url + 'admin-action/bm_resend_order_email',
+
+
+            method: 'POST',
+
+
+            data: {                booking_id: bookingId,
                 nonce: bm_ajax_object.nonce
             },
-            success: function(response) {
+
+
+            beforeSend: function(xhr) {
+
+
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+
+
+            },            success: function(response) {
                 if (response.success) {
                     $msg.text(bm_normal_object.email_sent_success).addClass('success');
                     setTimeout(function() {
@@ -243,14 +273,20 @@ jQuery(document).ready(function($) {
     // Load default products table
     function loadProductsTable(bookingId, container) {
         $.ajax({
-            url: bm_ajax_object.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'bm_get_order_products',
-                booking_id: bookingId,
+
+            url: bm_ajax_object.rest_url + 'admin-action/bm_get_order_products',
+
+            method: 'POST',
+
+            data: {                booking_id: bookingId,
                 nonce: bm_ajax_object.nonce
             },
-            success: function(response) {
+
+            beforeSend: function(xhr) {
+
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+
+            },            success: function(response) {
                 if (response.success) {
                     container.html(`
                         <table class="products-table">

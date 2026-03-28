@@ -12,6 +12,17 @@ function bmPublicRestRequest(action, data, successCallback) {
     });
 }
 
+/**
+ * Safely parse a response that may already be an object (auto-parsed by jQuery)
+ * or still a JSON string.
+ */
+function bmSafeParse(response) {
+    if ( typeof response === 'string' ) {
+        return bmSafeParse(response);
+    }
+    return response;
+}
+
 jQuery(document).ready(function ($) {
 	// $.datepicker.setDefaults($.datepicker.regional[bm_normal_object.current_language]);
 
@@ -123,7 +134,7 @@ function bm_fetch_all_services(pagenum = '', $type = '') {
 		jQuery('.listview').html('');
 
 		if (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var active_ids = jsondata.service_ids;
 
 			jQuery('.gridview').html(jsondata.data);
@@ -203,7 +214,7 @@ function bm_filter_services($this) {
 		jQuery('.gridview').html('');
 		jQuery('.listview').html('');
 		if (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			jQuery('.gridview').html(jsondata.data);
 			jQuery('.listview').html(jsondata.data);
 			jQuery('.pagination').html(jsondata.pagination);
@@ -248,7 +259,7 @@ function bm_filter_categories($this) {
 		jQuery('.gridview').html('');
 		jQuery('.listview').html('');
 		if (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			jQuery('.gridview').html(jsondata.data);
 			jQuery('.listview').html(jsondata.data);
 			jQuery('.pagination').html(jsondata.pagination);
@@ -288,7 +299,7 @@ function bm_filter_service_by_category() {
 		jQuery('.gridview').html('');
 		jQuery('.listview').html('');
 		if (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			jQuery('.gridview').html(jsondata.data);
 			jQuery('.listview').html(jsondata.data);
 			jQuery('.pagination').html(jsondata.pagination);
@@ -335,7 +346,7 @@ function bm_filter_services_by_id() {
 		jQuery('.gridview').html('');
 		jQuery('.listview').html('');
 		if (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			jQuery('.gridview').html(jsondata.data);
 			jQuery('.listview').html(jsondata.data);
 			jQuery('.pagination').html(jsondata.pagination);
@@ -362,7 +373,7 @@ jQuery(document).on('click', '.product-gallery-btn, .gallery-btn', function (e) 
 	bmPublicRestRequest('bm_fetch_service_gallry_images', data, function (response) {
 		jQuery('.loader_modal').hide();
 		jQuery('#service_gallery_images_html').html('');
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		if (jsondata.status == true) {
 			jQuery('#service_gallery_images_html').html(jsondata.data);
 			galleryCurrentSlide(1);
@@ -420,7 +431,7 @@ jQuery(document).on('click', '.get_slot_details', function (e) {
 	bmPublicRestRequest('bm_fetch_frontend_service_time_slots', data, function (response) {
 		jQuery('.loader_modal').hide();
 		jQuery('#slot_details').html('');
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status;
 		var min_cap = jsondata.min_cap;
 		var data = jsondata.data;
@@ -460,7 +471,7 @@ jQuery(document).on('click', '.get_calendar_and_slot_details', function (e) {
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmPublicRestRequest('bm_fetch_frontend_service_time_slots', data, function (response) {
 		jQuery('#calendar_and_slot_details').html('');
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status;
 		var min_cap = jsondata.min_cap;
 		var data = jsondata.data;
@@ -745,7 +756,7 @@ jQuery(document).on('click', '.get_checkout_form', function (e) {
 	bmPublicRestRequest('bm_fetch_order_info_and_redirect_to_checkout', data, function (response) {
 		$currentLoader.hide();
 		
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status;
 		var data = jsondata.data;
 
@@ -809,7 +820,7 @@ jQuery(document).on('click', '.get_svc_by_cat_checkout_form', function (e) {
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmPublicRestRequest('bm_fetch_order_info_and_redirect_to_checkout', data, function (response) {
 		jQuery('.loader_modal').hide();
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status;
 		var data = jsondata.data;
 
@@ -1061,7 +1072,7 @@ jQuery(document).on('click', '#confirm_booking', function (e) {
 			jQuery('.loader_modal').hide();
 			jQuery('#user_form_modal').removeClass('active-slot');
 			jQuery('#user_form').html('');
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status;
 			var data = jsondata.data;
 
@@ -1463,7 +1474,7 @@ function bm_fetch_all_services_by_categories() {
 		jQuery('.service_by_category_gridview slider1').html('');
 
 		if (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			jQuery('.service_by_category_gridview').html(jsondata.data);
 			jQuery('.service_by_category_gridview slider1').html(jsondata.data);
 
@@ -1557,7 +1568,7 @@ function initiateServiceCalendar($container, service_id = 0, $this = '') {
 					bmPublicRestRequest('bm_fetch_frontend_service_time_slots', data, function (response) {
 						jQuery('.loader_modal').hide();
 						jQuery('#' + $container).find('.modalcontentbox').html('');
-						var jsondata = JSON.parse(response);
+						var jsondata = bmSafeParse(response);
 						var status = jsondata.status ? jsondata.status : '';
 						var data = jsondata.data ? jsondata.data : '';
 
@@ -1661,7 +1672,7 @@ function initiateServiceCalendar($container, service_id = 0, $this = '') {
 
 // 	var data = { 'id': service_id, 'nonce': bm_ajax_object.nonce };
 // 	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-// 		var jsondata = JSON.parse(response);
+// 		var jsondata = bmSafeParse(response);
 // 		var status = jsondata.status;
 // 		if (status == true) {
 // 			var default_price = jsondata.default_price ?? '';
@@ -1801,7 +1812,7 @@ function bm_get_service_price($this = '', $container, service_id = 0) {
 	};
 
 	bmPublicRestRequest('bm_get_frontend_service_prices', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status;
 
 		if (status == true) {
@@ -1993,7 +2004,7 @@ jQuery(document).on('keyup', '#search_service_by_name', function (e) {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmPublicRestRequest('bm_fetch_services_by_name', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		jQuery(element).find('.service_by_category_gridview').html('');
 
 		if (jsondata != null && jsondata != "") {
@@ -2110,7 +2121,7 @@ jQuery(document).on('click', '#check_checkout_discount', function (e) {
 		var data = { 'post': formData, 'nonce': bm_ajax_object.nonce };
 		bmPublicRestRequest('bm_check_discount', data, function (response) {
 			jQuery('.loader_modal').hide();
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var data = jsondata.data ? jsondata.data : '';
 			var negative_discount = jsondata.negative_discount ? jsondata.negative_discount : 0;
@@ -2171,7 +2182,7 @@ jQuery(document).on('click', '#reset_checkout_discount', function (e) {
 	var data = { 'booking_key': getUrlParameter('flexi_booking'), 'nonce': bm_ajax_object.nonce };
 	bmPublicRestRequest('bm_reset_discount', data, function (response) {
 		jQuery('.loader_modal').hide();
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var data = jsondata.data ? jsondata.data : '';
 		var currency_symbol = bm_normal_object.currency_symbol;
@@ -2347,7 +2358,7 @@ function change_flexi_language($this) {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmPublicRestRequest('bm_flexi_set_frontend_lang', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 
 		if (status == true) {
