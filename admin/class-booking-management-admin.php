@@ -12233,43 +12233,6 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
-	public function bm_update_checkin_status_old() {
-		$nonce = filter_input( INPUT_POST, 'nonce' );
-
-		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
-			wp_send_json_error( __( 'Failed security check', 'service-booking' ) );
-			return;
-		}
-
-		$checkin_id = sanitize_text_field( filter_input( INPUT_POST, 'checkin_id', FILTER_VALIDATE_INT ) );
-		$status     = sanitize_text_field( filter_input( INPUT_POST, 'new_status' ) );
-
-		$dbhandler = new BM_DBhandler();
-		$checkin   = $dbhandler->get_row( 'CHECKIN', $checkin_id, 'id' );
-
-		if ( ! $checkin ) {
-			wp_send_json_error( esc_html__( 'Checkin data not found', 'service-booking' ) );
-			return;
-		}
-
-		$data = array( 'status' => $status );
-
-		if ( $status === 'checked_in' ) {
-			$data['checkin_time'] = current_time( 'mysql' );
-		} else {
-			$data['checkin_time'] = null;
-		}
-
-		$updated = $dbhandler->update_row( 'CHECKIN', 'id', $checkin_id, $data );
-		wp_send_json_success();
-	} //end bm_update_checkin_status()
-
-
-	/**
-	 * Update checkin status
-	 *
-	 * @author Darpan
-	 */
 	public function bm_update_checkin_status() {
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 
@@ -13644,35 +13607,6 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
-	public function bm_show_email_body_old() {
-		$nonce = filter_input( INPUT_POST, 'nonce' );
-		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
-			die( esc_html__( 'Failed security check', 'service-booking' ) );
-		}
-
-		$bmrequests = new BM_Request();
-		$post       = filter_input( INPUT_POST, 'post', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-		$email_body = '';
-
-		if ( $post != false && $post != null ) {
-			$email_id   = isset( $post['id'] ) ? $post['id'] : 0;
-			$email_body = $bmrequests->bm_fetch_mail_body( $email_id );
-
-			if ( empty( $email_body ) ) {
-				$email_body = '<div class="textcenter">' . esc_html__( 'Nothing to show', 'service-booking' ) . '</div>';
-			}
-		}
-
-		echo wp_kses( $email_body, $bmrequests->bm_fetch_expanded_allowed_tags() );
-		die;
-	} //end bm_show_email_body()
-
-
-	/**
-	 * Fetch email body
-	 *
-	 * @author Darpan
-	 */
 	public function bm_show_email_body() {
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
@@ -13696,70 +13630,6 @@ class Booking_Management_Admin {
 		echo wp_kses( $email_body, $bmrequests->bm_fetch_expanded_allowed_tags() );
 		die;
 	}//end bm_show_email_body()
-
-
-	/**
-	 * Open email body
-	 *
-	 * @author Darpan
-	 */
-	public function bm_open_email_body_old() {
-		$nonce = filter_input( INPUT_POST, 'nonce' );
-		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
-			die( esc_html__( 'Failed security check', 'service-booking' ) );
-		}
-
-		$dbhandler  = new BM_DBhandler();
-		$bmrequests = new BM_Request();
-		$bm_mail    = new BM_Email();
-		$post       = filter_input( INPUT_POST, 'post', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-		$data       = array();
-
-		if ( $post != false && $post != null ) {
-			$email_id        = isset( $post['id'] ) ? $post['id'] : 0;
-			$email_body      = $bmrequests->bm_fetch_mail_body( $email_id );
-			$template_id     = $dbhandler->get_value( 'EMAILS', 'template_id', $email_id, 'id' );
-			$module_type     = $dbhandler->get_value( 'EMAILS', 'module_type', $email_id, 'id' );
-			$email_type      = $dbhandler->get_value( 'EMAILS', 'mail_type', $email_id, 'id' );
-			$module_id       = $dbhandler->get_value( 'EMAILS', 'module_id', $email_id, 'id' );
-			$to_email        = $dbhandler->get_value( 'EMAILS', 'mail_to', $email_id, 'id' );
-			$mail_cc         = $dbhandler->get_value( 'EMAILS', 'mail_cc', $email_id, 'id' );
-			$mail_bcc        = $dbhandler->get_value( 'EMAILS', 'mail_bcc', $email_id, 'id' );
-			$mail_attahments = $dbhandler->get_value( 'EMAILS', 'mail_attachments', $email_id, 'id' );
-			$attachments     = ! empty( $mail_attahments ) ? maybe_unserialize( $mail_attahments ) : array();
-
-			$mail_subject = $bm_mail->bm_get_template_email_subject( $template_id );
-
-			if ( $email_type == 'failed_order' ) {
-				$module_key = $dbhandler->get_value( $module_type, 'booking_key', $module_id, 'id' );
-				if ( empty( $to_email ) ) {
-					$to_email = $bmrequests->bm_fetch_customer_email_from_booking_form_data( (string) $module_key );
-				}
-			} elseif ( empty( $to_email ) ) {
-					$to_email = $bmrequests->bm_fetch_customer_email_from_booking_form_data( (int) $module_id );
-			}
-
-			if ( empty( $email_body ) ) {
-				$email_body = '<div class="textcenter">' . esc_html__( 'Type here', 'service-booking' ) . '</div>';
-			}
-
-			$email_body = wp_kses( $email_body, $bmrequests->bm_fetch_expanded_allowed_tags() );
-
-			if ( empty( $mail_subject ) ) {
-				$mail_subject = esc_html__( 'Resending mail', 'service-booking' );
-			}
-
-			$data['to']          = $to_email;
-			$data['cc']          = $mail_cc;
-			$data['bcc']         = $mail_bcc;
-			$data['attachments'] = ! empty( $attachments ) && ! empty( array_filter( $attachments, fn( $v ) => ! empty( array_filter( $v ) ) ) ) ? $attachments : array();
-			$data['subject']     = $mail_subject;
-			$data['body']        = $email_body;
-		}
-
-		echo wp_json_encode( $data );
-		die;
-	} //end bm_open_email_body()
 
 
 	/**
