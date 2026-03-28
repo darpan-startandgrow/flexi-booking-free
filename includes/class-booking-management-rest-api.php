@@ -2130,10 +2130,20 @@ class Booking_Management_Rest_API {
 	public function get_dashboard_counts( $request ) {
 		$bmrequests = new BM_Request();
 
+		$allowed_types    = array( '', 'total', 'upcoming', 'revenue', 'weekly' );
+		$allowed_statuses = array( 'booked', 'completed', 'cancelled', 'pending', '' );
+
 		$type   = $request->get_param( 'type' ) ? sanitize_text_field( $request->get_param( 'type' ) ) : '';
-		$year   = $request->get_param( 'year' ) ? sanitize_text_field( $request->get_param( 'year' ) ) : '';
-		$month  = $request->get_param( 'month' ) ? sanitize_text_field( $request->get_param( 'month' ) ) : '';
+		$year   = $request->get_param( 'year' ) ? absint( $request->get_param( 'year' ) ) : '';
+		$month  = $request->get_param( 'month' ) ? absint( $request->get_param( 'month' ) ) : '';
 		$status = $request->get_param( 'status' ) ? sanitize_text_field( $request->get_param( 'status' ) ) : '';
+
+		if ( ! in_array( $type, $allowed_types, true ) ) {
+			$type = '';
+		}
+		if ( ! in_array( $status, $allowed_statuses, true ) ) {
+			$status = '';
+		}
 
 		$data = array();
 
@@ -2168,11 +2178,23 @@ class Booking_Management_Rest_API {
 	public function get_dashboard_status_chart( $request ) {
 		$bmrequests = new BM_Request();
 
+		$from = $request->get_param( 'from' ) ? sanitize_text_field( $request->get_param( 'from' ) ) : '';
+		$to   = $request->get_param( 'to' ) ? sanitize_text_field( $request->get_param( 'to' ) ) : '';
+
+		// Validate date format (DD/MM/YY as sent by the JS).
+		$date_pattern = '/^\d{2}\/\d{2}\/\d{2}$/';
+		if ( '' !== $from && ! preg_match( $date_pattern, $from ) ) {
+			$from = '';
+		}
+		if ( '' !== $to && ! preg_match( $date_pattern, $to ) ) {
+			$to = '';
+		}
+
 		$post = array(
 			'type'   => 'monthly',
 			'status' => 'order_status',
-			'from'   => $request->get_param( 'from' ) ? sanitize_text_field( $request->get_param( 'from' ) ) : '',
-			'to'     => $request->get_param( 'to' ) ? sanitize_text_field( $request->get_param( 'to' ) ) : '',
+			'from'   => $from,
+			'to'     => $to,
 		);
 
 		$status_data = $bmrequests->bm_fetch_booking_status_count( $post );
