@@ -1157,9 +1157,6 @@ function bm_open_close_tab(a) {
 			jQuery('#link_external_price_module').prop('checked', false);
 			jQuery('#bulk_link_external_price_module').prop('checked', false);
 		}
-		if (a == 'stripe_credentials_checkbox') {
-			jQuery('#stripe_credentials').hide();
-		}
 	} else {
 		jQuery('#' + a).show();
 		if (a == 'wc_products_section') {
@@ -1190,10 +1187,6 @@ function bm_open_close_tab(a) {
 			jQuery('#up_bulk_svc_price').hide();
 			jQuery('#bulk_variable_price').hide();
 			jQuery('#up_bulk_vc_price_module').show();
-		}
-		if (a == 'stripe_credentials_checkbox' && jQuery('#bm_show_stripe_credentials').is(':checked')) {
-			jQuery('#bm_show_stripe_credentials').prop('checked', false);
-			// jQuery('#stripe_credentials').show();
 		}
 	}
 
@@ -8296,7 +8289,7 @@ function bm_search_order_data(type = '') {
 								} else {
 									orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
 								}
-								var payment_info = bookings[i].stripe_status + '' + ( bookings[i].updated_paid_at != '' ? convertDateFormat(bookings[i].updated_paid_at, 'atTimeOnDate') : convertDateFormat(bookings[i].paid_at, 'atTimeOnDate') );
+								var payment_info = bookings[i].payment_status + '' + ( bookings[i].updated_paid_at != '' ? convertDateFormat(bookings[i].updated_paid_at, 'atTimeOnDate') : convertDateFormat(bookings[i].paid_at, 'atTimeOnDate') );
 								orderListing += "&nbsp;&nbsp;<i class='fa fa-info-circle' aria-hidden='true' title='" + payment_info + "' style='cursor:pointer;'></i>";
 								orderListing += "</td>";
 							}
@@ -8312,7 +8305,7 @@ function bm_search_order_data(type = '') {
 								orderListing += "</td>";
 							}
 							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'payment_status') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].stripe_status + " </td>";
+								orderListing += "<td style='text-align: center;'>" + bookings[i].payment_status + " </td>";
 							}
 							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'order_attachments') {
 								orderListing += "<td style='text-align: center;'><div class='show-order-attachments' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-paperclip' aria-hidden='true'></i></div></td>";
@@ -9919,13 +9912,11 @@ function bm_payment_settings_validation() {
 
 	jQuery('.bm_required').each(
 		function (index, element) {
-			if (jQuery('#bm_enable_stripe').is(':checked')) {
-				var value = jQuery.trim(jQuery(this).children('input').val());
-				if (value == '') {
-					jQuery(this).children('.errortext').html(bm_error_object.required_field);
-					jQuery(this).children('.errortext').show();
-					error++;
-				}
+			var value = jQuery.trim(jQuery(this).children('input').val());
+			if (value == '') {
+				jQuery(this).children('.errortext').html(bm_error_object.required_field);
+				jQuery(this).children('.errortext').show();
+				error++;
 			}
 		});
 
@@ -9934,121 +9925,6 @@ function bm_payment_settings_validation() {
 	} else {
 		return false;
 	}
-}
-
-
-// Show admin credentials prompt for stripe credentials
-function show_stripe_credentials($this) {
-	if (jQuery($this).is(':checked')) {
-		promptForAdminPassword();
-	} else {
-		jQuery('#stripe_credentials').hide();
-	}
-}
-
-
-// Dialog to prompt for the admin password
-function promptForAdminPassword() {
-	jQuery('#stripe_credentials').hide();
-	jQuery('.errortext').html('');
-	jQuery('.errortext').hide();
-	var error = 0;
-	var html = '';
-	// Create a jQuery dialog box
-	var dialog = jQuery('<div>').dialog({
-		title: bm_normal_object.enter_admin_credentials,
-		modal: true,
-		width: "450px",
-		show: {
-			effect: "slide",
-			direction: 'down',
-			duration: 1000
-		},
-		hide: {
-			effect: "slide",
-			direction: 'up',
-			duration: 1000
-		},
-		close: function () {
-			// Close the dialog box
-			jQuery('#bm_show_stripe_credentials').prop('checked', false);
-			dialog.dialog('destroy');
-		},
-		buttons: {
-			'OK': function () {
-				error = 0;
-				jQuery('#stripe_credentials').hide();
-				jQuery('.errortext').html('');
-				jQuery('.errortext').hide();
-
-				// Get the password from the input field
-				var username = jQuery('#admin-username').val();
-				var password = jQuery('#admin-password').val();
-
-				jQuery('.bm_admin_required').each(function (index, element) {
-					var value = jQuery.trim(jQuery(this).children('input').val());
-					if (value == '') {
-						jQuery(this).children('.errortext').html(bm_error_object.required_field);
-						jQuery(this).children('.errortext').show();
-						error++;
-					}
-				});
-
-				if (error > 0) {
-					return false;
-				} else {
-					var post = {
-						'username': username,
-						'password': password,
-					}
-
-					var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-					bmRestRequest('bm_check_admin_password', data, function (status) {
-						if (status == true) {
-							jQuery('#bm_show_stripe_credentials').prop('checked', true);
-							jQuery('#stripe_credentials').show();
-							dialog.dialog('destroy');
-						} else {
-							// Display an error message
-							jQuery('#bm_show_stripe_credentials').prop('checked', false);
-							jQuery('#admin-password-parent').children('.errortext').html(bm_error_object.verification_failed);
-							jQuery('#admin-password-parent').children('.errortext').show();
-							return false;
-						}
-					});
-				}
-			},
-			'Cancel': function () {
-				jQuery('#stripe_credentials').hide();
-				jQuery('.errortext').html('');
-				jQuery('.errortext').hide();
-
-				// Close the dialog box
-				jQuery('#bm_show_stripe_credentials').prop('checked', false);
-				dialog.dialog('destroy');
-			}
-		}
-	});
-
-	// Add inputs to dialogue
-	html += '<table role="presentation">';
-	html += '<tr>';
-	html += '<th scope="row"><label for="admin-username">' + bm_normal_object.username + '<strong class="required_asterisk"> *</strong></label></th>';
-	html += '<td class="bminput bm_admin_required">';
-	html += '<input type="text" id="admin-username" placeholder="' + bm_normal_object.admin_username + '" value="" class="regular-text" style="width:316px;" autocomplete="off">';
-	html += '<div class="errortext"></div>';
-	html += '</td>';
-	html += '</tr>';
-	html += '<tr>';
-	html += '<th scope="row"><label for="admin-password">' + bm_normal_object.password + '<strong class="required_asterisk"> *</strong></label></th>';
-	html += '<td class="bminput bm_admin_required" id="admin-password-parent">';
-	html += '<input type="password" id="admin-password" placeholder="' + bm_normal_object.admin_password + '" value="" class="regular-text" style="width:316px;" autocomplete="new-password">';
-	html += '<div class="errortext"></div>';
-	html += '</td>';
-	html += '</tr>';
-	html += '</table>';
-
-	dialog.append(html);
 }
 
 
