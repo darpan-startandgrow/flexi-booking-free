@@ -13,6 +13,8 @@
 		formId: 0,
 		nonce: '',
 		ajaxUrl: '',
+		restUrl: '',
+		restNonce: '',
 		activeFieldId: null,
 
 		/**
@@ -21,10 +23,45 @@
 		init: function () {
 			this.formId  = $('#bm-fb-form-id').val();
 			this.nonce   = $('#bm-fb-nonce').val();
-			this.ajaxUrl = $('#bm-fb-ajax-url').val();
+			this.ajaxUrl   = $('#bm-fb-ajax-url').val();
+			this.restUrl   = $('#bm-fb-rest-url').val() || '';
+			this.restNonce = $('#bm-fb-rest-nonce').val() || '';
 
 			this.initSortable();
 			this.bindEvents();
+		},
+
+		/**
+		 * Perform a REST API request via the admin-action bridge.
+		 */
+		restRequest: function (action, data, successCb, errorCb) {
+			var url = this.restUrl
+				? this.restUrl + 'admin-action/' + action
+				: this.ajaxUrl;
+
+			var settings = {
+				url: url,
+				method: 'POST',
+				data: data,
+				success: function (res) {
+					var parsed;
+					try {
+						parsed = typeof res === 'string' ? JSON.parse(res) : res;
+					} catch (e) {
+						parsed = null;
+					}
+					if (successCb) { successCb(parsed, res); }
+				},
+				error: errorCb || $.noop
+			};
+
+			if (BmFormBuilder.restUrl && BmFormBuilder.restNonce) {
+				settings.beforeSend = function (xhr) {
+					xhr.setRequestHeader('X-WP-Nonce', BmFormBuilder.restNonce);
+				};
+			}
+
+			return $.ajax(settings);
 		},
 
 		/**
@@ -103,7 +140,7 @@
 		},
 
 		/**
-		 * Save the current field order via AJAX.
+		 * Save the current field order via REST API.
 		 */
 		saveFieldOrder: function () {
 			var order = [];
@@ -119,31 +156,18 @@
 				return;
 			}
 
-			$.ajax({
-				url: BmFormBuilder.ajaxUrl,
-				method: 'POST',
-				data: {
-					action: 'bm_save_form_field_order',
-					nonce: BmFormBuilder.nonce,
-					form_id: BmFormBuilder.formId,
-					field_order: order
-				},
-				success: function (res) {
-					var data;
-					try {
-						data = typeof res === 'string' ? JSON.parse(res) : res;
-					} catch (e) {
-						data = null;
-					}
-					if (data && data.status === 'success') {
-						BmFormBuilder.showToast(data.message || 'Field order saved.', 'success');
-					} else {
-						BmFormBuilder.showToast((data && data.message) || 'Could not save field order.', 'error');
-					}
-				},
-				error: function () {
-					BmFormBuilder.showToast('Network error. Please try again.', 'error');
+			BmFormBuilder.restRequest('bm_save_form_field_order', {
+				nonce: BmFormBuilder.nonce,
+				form_id: BmFormBuilder.formId,
+				field_order: order
+			}, function (data) {
+				if (data && data.status === 'success') {
+					BmFormBuilder.showToast(data.message || 'Field order saved.', 'success');
+				} else {
+					BmFormBuilder.showToast((data && data.message) || 'Could not save field order.', 'error');
 				}
+			}, function () {
+				BmFormBuilder.showToast('Network error. Please try again.', 'error');
 			});
 		},
 
@@ -166,31 +190,18 @@
 			$('#bm-fb-settings-panel').addClass('bm-fb-panel-open');
 			$('#bm-fb-settings-footer').show();
 
-			// Fetch field data via AJAX.
-			$.ajax({
-				url: BmFormBuilder.ajaxUrl,
-				method: 'POST',
-				data: {
-					action: 'bm_get_field_settings',
-					nonce: BmFormBuilder.nonce,
-					id: fieldId
-				},
-				success: function (res) {
-					var data;
-					try {
-						data = typeof res === 'string' ? JSON.parse(res) : res;
-					} catch (e) {
-						data = null;
-					}
-					if (data && data.common) {
-						BmFormBuilder.renderFieldSettings(data.common, data.field_options || {});
-					} else {
-						$('#bm-fb-settings-body').html('<p style="text-align:center;color:#ef4444;">Could not load field settings.</p>');
-					}
-				},
-				error: function () {
-					$('#bm-fb-settings-body').html('<p style="text-align:center;color:#ef4444;">Network error.</p>');
+			// Fetch field data via REST API.
+			BmFormBuilder.restRequest('bm_get_field_settings', {
+				nonce: BmFormBuilder.nonce,
+				id: fieldId
+			}, function (data) {
+				if (data && data.common) {
+					BmFormBuilder.renderFieldSettings(data.common, data.field_options || {});
+				} else {
+					$('#bm-fb-settings-body').html('<p style="text-align:center;color:#ef4444;">Could not load field settings.</p>');
 				}
+			}, function () {
+				$('#bm-fb-settings-body').html('<p style="text-align:center;color:#ef4444;">Network error.</p>');
 			});
 		},
 
@@ -327,35 +338,21 @@
 
 			$('#bm-fb-save-field-btn').prop('disabled', true).text(bmFbI18n.saving);
 
-			$.ajax({
-				url: BmFormBuilder.ajaxUrl,
-				method: 'POST',
-				data: {
-					action: 'bm_save_field_and_setting',
-					nonce: BmFormBuilder.nonce,
-					post: postData
-				},
-				success: function (res) {
-					var data;
-					try {
-						data = typeof res === 'string' ? JSON.parse(res) : res;
-					} catch (e) {
-						data = null;
-					}
+			BmFormBuilder.restRequest('bm_save_field_and_setting', {
+				nonce: BmFormBuilder.nonce,
+				post: postData
+			}, function (data) {
+				$('#bm-fb-save-field-btn').prop('disabled', false).text(bmFbI18n.save_field);
 
-					$('#bm-fb-save-field-btn').prop('disabled', false).text(bmFbI18n.save_field);
-
-					if (data && (data.status === 'saved' || data.status === 'updated')) {
-						BmFormBuilder.showToast(bmFbI18n.field_saved, 'success');
-						BmFormBuilder.updateFieldCard(fieldId, commonData, conditional);
-					} else {
-						BmFormBuilder.showToast((data && data.message) || bmFbI18n.save_error, 'error');
-					}
-				},
-				error: function () {
-					$('#bm-fb-save-field-btn').prop('disabled', false).text(bmFbI18n.save_field);
-					BmFormBuilder.showToast(bmFbI18n.network_error, 'error');
+				if (data && (data.status === 'saved' || data.status === 'updated')) {
+					BmFormBuilder.showToast(bmFbI18n.field_saved, 'success');
+					BmFormBuilder.updateFieldCard(fieldId, commonData, conditional);
+				} else {
+					BmFormBuilder.showToast((data && data.message) || bmFbI18n.save_error, 'error');
 				}
+			}, function () {
+				$('#bm-fb-save-field-btn').prop('disabled', false).text(bmFbI18n.save_field);
+				BmFormBuilder.showToast(bmFbI18n.network_error, 'error');
 			});
 		},
 
@@ -412,23 +409,20 @@
 			$body.html('<p style="text-align:center;padding:40px 0;color:#94a3b8;"><span class="dashicons dashicons-update" style="animation:rotation 1s infinite linear;"></span> ' + bmFbI18n.loading + '</p>');
 			$('#bm-fb-preview-modal').fadeIn(200);
 
-			$.ajax({
-				url: BmFormBuilder.ajaxUrl,
-				method: 'POST',
-				data: {
-					action: 'bm_fetch_preview_form',
-					nonce: BmFormBuilder.nonce
-				},
-				success: function (res) {
-					if (res && res.length > 10) {
-						$body.html(res);
-					} else {
-						$body.html('<p style="text-align:center;color:#ef4444;">' + bmFbI18n.preview_error + '</p>');
-					}
-				},
-				error: function () {
-					$body.html('<p style="text-align:center;color:#ef4444;">' + bmFbI18n.network_error + '</p>');
+			BmFormBuilder.restRequest('bm_fetch_preview_form', {
+				nonce: BmFormBuilder.nonce
+			}, function (data, rawRes) {
+				// Preview returns HTML, use raw response.
+				var html = (typeof rawRes === 'string') ? rawRes : '';
+				if (html && html.length > 10) {
+					$body.html(html);
+				} else if (data && typeof data === 'object' && data.html) {
+					$body.html(data.html);
+				} else {
+					$body.html('<p style="text-align:center;color:#ef4444;">' + bmFbI18n.preview_error + '</p>');
 				}
+			}, function () {
+				$body.html('<p style="text-align:center;color:#ef4444;">' + bmFbI18n.network_error + '</p>');
 			});
 		},
 

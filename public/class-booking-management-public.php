@@ -202,7 +202,6 @@ class Booking_Management_Public {
 		wp_enqueue_script( 'jquery-timeslot-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-timeslot-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-public.js', array( 'jquery' ), $this->version, true );
-		wp_enqueue_script( 'frontend-add-order-js', plugin_dir_url( __FILE__ ) . 'js/booking-management-add-order.js', array( 'jquery' ), $this->version, true );
 		$original_title = get_the_title( $post_id );
 		global $sitepress;
 		if ( isset( $sitepress ) ) {

@@ -548,6 +548,11 @@ class Booking_Management {
 			'bm_get_email_content' => 'bm_get_email_content',
 			'bm_check_if_exisiting_customer' => 'bm_check_if_exisiting_customer',
 			'get_states' => 'bm_fetch_states_by_country',
+			'bm_get_service_saleswitch' => 'bm_get_service_saleswitch',
+			'bm_get_serice_stopsales' => 'bm_get_serice_stopsales',
+			'bm_get_service_time_slots' => 'bm_get_service_time_slots',
+			'bm_get_service_max_cap' => 'bm_get_service_max_cap',
+			'bm_resend_order_email' => 'bm_resend_order_email',
 		);
 
 		foreach ( $map as $action => $method ) {

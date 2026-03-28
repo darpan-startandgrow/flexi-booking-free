@@ -14,6 +14,17 @@ jQuery(document).ready(function ($) {
 			success: successCallback
 		});
 	}
+
+	/**
+	 * Safely parse a response that may already be an object (auto-parsed by jQuery)
+	 * or still a JSON string.
+	 */
+	function bmSafeParse(response) {
+		if ( typeof response === 'string' ) {
+			return bmSafeParse(response);
+		}
+		return response;
+	}
 	$.datepicker.setDefaults($.datepicker.regional[bm_normal_object.current_language]);
 
 	// Success and Error Messages Display Limit
@@ -194,7 +205,7 @@ function bm_sort_service_listing(ids = [], pagenum = 1) {
 
     var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
     bmRestRequest('bm_sort_service_listing', data, function (response) {
-        var jsondata = JSON.parse(response);
+        var jsondata = bmSafeParse(response);
         var status = jsondata.status ? jsondata.status : '';
         if (status == true) {
             jQuery(".service_records").html('');
@@ -313,7 +324,7 @@ jQuery(document).on('click', '#delsvc', function () {
 
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_remove_service', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == true) {
 				jQuery(".service_records").html('');
@@ -374,7 +385,7 @@ jQuery(document).on('click', '.bm-duplicate-service', function () {
 		var serviceId = jQuery(this).data('service-id');
 		var data = { 'service_id': serviceId, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_duplicate_service', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status === true) {
 				location.reload();
 			} else {
@@ -392,7 +403,7 @@ function bm_change_service_visibility($this) {
 		var service_id = id.split('_')[5];
 		var data = { 'id': service_id, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_change_service_visibility', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -416,7 +427,7 @@ function bm_change_extra_service_visibility($this) {
 		var extra_id = id.split('_')[6];
 		var data = { 'id': extra_id, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_change_extra_service_visibility', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -445,7 +456,7 @@ jQuery(document).on('click', '#deltemplate', function () {
 
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_remove_template', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				jQuery(".template_records").html('');
 				jQuery(".template_pagination").html('');
@@ -498,7 +509,7 @@ jQuery(document).on('click', '#delprocess', function () {
 
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_remove_process', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				jQuery(".notification_process_records").html('');
 				jQuery(".notification_process_pagination").html('');
@@ -550,7 +561,7 @@ function bm_sort_category_listing(ids = [], pagenum = 1) {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_sort_category_listing', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		if (status == true) {
 			jQuery(".category_records").html('');
@@ -619,7 +630,7 @@ function bm_change_category_visibility($this) {
 		var category_id = id.split('_')[5];
 		var data = { 'id': category_id, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_change_category_visibility', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -644,7 +655,7 @@ function bm_change_customer_visibility($this) {
 		var customer_id = id.split('_')[3];
 		var data = { 'id': customer_id, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_change_customer_visibility', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				showMessage(bm_success_object.status_successfully_changed, 'success');
 			} else {
@@ -672,7 +683,7 @@ jQuery(document).on('click', '#delcat', function () {
 		}
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_remove_category', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == true) {
 				jQuery(".category_records").html('');
@@ -2232,9 +2243,9 @@ jQuery(document).ready(function ($) {
 						var id = getUrlParameter('id');
 						var data = { 'id': id, 'date': date, 'nonce': bm_ajax_object.nonce };
 						bmRestRequest('bm_get_specific_time_slot', data, function (response) {
-							if (JSON.parse(response).status == true) {
+							if (bmSafeParse(response).status == true) {
 
-								var slot_data = JSON.parse(response).slot_data;
+								var slot_data = bmSafeParse(response).slot_data;
 
 								if (slot_data.total_slots != 0) {
 									var time_slot_html = '';
@@ -4092,7 +4103,7 @@ function remove_time_slot(date) {
 			var data = { 'id': getUrlParameter('id'), 'date': date, 'nonce': bm_ajax_object.nonce };
 			bmRestRequest('bm_remove_variable_time_slot', data, function (response) {
 
-				var jsondata = JSON.parse(response);
+				var jsondata = bmSafeParse(response);
 				var dates = jsondata.dates;
 				var slot_id = jsondata.slot_ids;
 				var date_array = [];
@@ -4232,7 +4243,7 @@ function edit_calendar_service_price(values = [], type = '') {
 	var data = { 'data': values, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest(type == 'single' ? 'bm_set_serice_price' : 'bm_set_bulk_serice_price', data, function (response) {
 		jQuery('.bm-set_price-spiner').hide();
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status;
 
 		if (status == true) {
@@ -4331,10 +4342,10 @@ function edit_calendar_service_stopsales(values = [], type = '') {
 	var data = { 'data': values, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest(type == 'single' ? 'bm_set_serice_stopsales' : 'bm_set_bulk_serice_stopsales', data, function (response) {
 		jQuery('.bm-set_stopsales-spiner').hide();
-		if (JSON.parse(response).status == true) {
-			if (JSON.parse(response).default_stopsales != 0) jQuery('#old_default_stopsales').attr('value', JSON.parse(response).default_stopsales);
+		if (bmSafeParse(response).status == true) {
+			if (bmSafeParse(response).default_stopsales != 0) jQuery('#old_default_stopsales').attr('value', bmSafeParse(response).default_stopsales);
 			jQuery('select[name^="default_stopsales"] option:selected').attr("selected", null);
-			if (JSON.parse(response).default_stopsales != 0) jQuery('select[name^="default_stopsales"] option[value="' + JSON.parse(response).default_stopsales + '"]').attr("selected", "selected");
+			if (bmSafeParse(response).default_stopsales != 0) jQuery('select[name^="default_stopsales"] option[value="' + bmSafeParse(response).default_stopsales + '"]').attr("selected", "selected");
 
 			setTimeout(function () {
 				jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
@@ -4346,7 +4357,7 @@ function edit_calendar_service_stopsales(values = [], type = '') {
 					var year = jQuery(this).parent().data('year');
 					var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-					var jsondata = JSON.parse(response);
+					var jsondata = bmSafeParse(response);
 					var stopsales = jsondata.default_stopsales;
 
 					if (jsondata.variable_stopsales != null && jsondata.variable_stopsales != '') {
@@ -4407,10 +4418,10 @@ function edit_calendar_service_saleswitch(values = [], type = '') {
 	var data = { 'data': values, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest(type == 'single' ? 'bm_set_service_saleswitch' : 'bm_set_bulk_service_saleswitch', data, function (response) {
 		jQuery('.bm-set_saleswitch-spiner').hide();
-		if (JSON.parse(response).status == true) {
-			if (JSON.parse(response).default_saleswitch != 0) jQuery('#old_default_saleswitch').attr('value', JSON.parse(response).default_saleswitch);
+		if (bmSafeParse(response).status == true) {
+			if (bmSafeParse(response).default_saleswitch != 0) jQuery('#old_default_saleswitch').attr('value', bmSafeParse(response).default_saleswitch);
 			jQuery('select[name^="default_saleswitch"] option:selected').attr("selected", null);
-			if (JSON.parse(response).default_saleswitch != 0) jQuery('select[name^="default_saleswitch"] option[value="' + JSON.parse(response).default_saleswitch + '"]').attr("selected", "selected");
+			if (bmSafeParse(response).default_saleswitch != 0) jQuery('select[name^="default_saleswitch"] option[value="' + bmSafeParse(response).default_saleswitch + '"]').attr("selected", "selected");
 
 			setTimeout(function () {
 				jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
@@ -4422,7 +4433,7 @@ function edit_calendar_service_saleswitch(values = [], type = '') {
 					var year = jQuery(this).parent().data('year');
 					var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-					var jsondata = JSON.parse(response);
+					var jsondata = bmSafeParse(response);
 					var saleswitch = jsondata.default_saleswitch;
 
 					if (jsondata.variable_saleswitch != null && jsondata.variable_saleswitch != '') {
@@ -4483,9 +4494,9 @@ function edit_calendar_service_max_cap(values = [], type = '') {
 	var data = { 'data': values, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest(type == 'single' ? 'bm_set_serice_max_cap' : 'bm_set_bulk_serice_max_cap', data, function (response) {
 		jQuery('.bm-capacity-spiner').hide();
-		if (JSON.parse(response).status == true) {
-			jQuery('#old_default_max_cap').attr('value', JSON.parse(response).default_max_cap);
-			jQuery('#default_max_cap').attr('value', JSON.parse(response).default_max_cap);
+		if (bmSafeParse(response).status == true) {
+			jQuery('#old_default_max_cap').attr('value', bmSafeParse(response).default_max_cap);
+			jQuery('#default_max_cap').attr('value', bmSafeParse(response).default_max_cap);
 
 			setTimeout(function () {
 				jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
@@ -4497,7 +4508,7 @@ function edit_calendar_service_max_cap(values = [], type = '') {
 					var year = jQuery(this).parent().data('year');
 					var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-					var jsondata = JSON.parse(response);
+					var jsondata = bmSafeParse(response);
 					var capacity = jsondata.default_max_cap;
 
 					if (jsondata.variable_max_cap != null && jsondata.variable_max_cap != '') {
@@ -4545,7 +4556,7 @@ function edit_calendar_service_variable_time_slots(values = []) {
 	var data = { 'data': values, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_set_variable_time_slot', data, function (response) {
 
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var slot_data = jsondata.variable_slot_data;
 		var date_array = [];
 		var slot_ids = [];
@@ -4618,7 +4629,7 @@ function bm_get_service_price() {
 			'id': serviceId,
 			'nonce': bm_ajax_object.nonce
 		}, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 
 			if (jsondata.status !== true) {
 				jQuery('.calendar_errortext').html(bm_error_object.server_error).show();
@@ -4765,7 +4776,7 @@ function bm_get_service_stopsales() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_get_serice_stopsales', data, function (response) {
-			if (JSON.parse(response).status == true) {
+			if (bmSafeParse(response).status == true) {
 				setTimeout(function () {
 					jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
 						var date = jQuery(this).text();
@@ -4776,7 +4787,7 @@ function bm_get_service_stopsales() {
 						var year = jQuery(this).parent().data('year');
 						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-						var jsondata = JSON.parse(response);
+						var jsondata = bmSafeParse(response);
 						var stopsales = jsondata.default_stopsales;
 
 						if (jsondata.variable_stopsales != null && jsondata.variable_stopsales != '') {
@@ -4904,7 +4915,7 @@ function bm_get_service_saleswitch() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_get_service_saleswitch', data, function (response) {
-			if (JSON.parse(response).status == true) {
+			if (bmSafeParse(response).status == true) {
 				setTimeout(function () {
 					jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
 						var date = jQuery(this).text();
@@ -4915,7 +4926,7 @@ function bm_get_service_saleswitch() {
 						var year = jQuery(this).parent().data('year');
 						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-						var jsondata = JSON.parse(response);
+						var jsondata = bmSafeParse(response);
 						var saleswitch = jsondata.default_saleswitch;
 
 						if (jsondata.variable_saleswitch != null && jsondata.variable_saleswitch != '') {
@@ -5046,7 +5057,7 @@ function bm_get_service_max_cap() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_get_service_max_cap', data, function (response) {
-			if (JSON.parse(response).status == true) {
+			if (bmSafeParse(response).status == true) {
 				setTimeout(function () {
 					jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
 						var date = jQuery(this).text();
@@ -5057,7 +5068,7 @@ function bm_get_service_max_cap() {
 						var year = jQuery(this).parent().data('year');
 						var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
 
-						var jsondata = JSON.parse(response);
+						var jsondata = bmSafeParse(response);
 						var capacity = jsondata.default_max_cap;
 
 						if (jsondata.variable_max_cap != null && jsondata.variable_max_cap != '') {
@@ -5169,7 +5180,7 @@ function bm_get_service_time_slots() {
 	if (getUrlParameter('id') != '') {
 		var data = { 'id': getUrlParameter('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_get_service_time_slots', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var dates = jsondata.dates;
 			var slot_id = jsondata.slot_ids;
 			var date_array = [];
@@ -5354,7 +5365,7 @@ function get_fieldkey_and_order(type) {
 
 	var data = { 'type': type, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_get_fieldkey_and_order', data, function (response) {
-		var data = JSON.parse(response);
+		var data = bmSafeParse(response);
 		if (data.length != 0) {
 			var type = data.type;
 			var ordering = data.ordering;
@@ -6040,7 +6051,7 @@ function checkFieldKey($this) {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_check_if_existing_field_key', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		if (jsondata != '' && jsondata != null) {
 			var status = jsondata.status;
 			var is_existing = jsondata.is_existing;
@@ -6075,7 +6086,7 @@ function check_if_any_primary_email($this) {
 
 	var data = { 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_get_primary_email_field_key', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		jQuery('#active_emails_details').html('');
 
 		if (jsondata != '' && jsondata != null) {
@@ -6094,7 +6105,7 @@ function check_if_any_primary_email($this) {
 				if (confirm(bm_normal_object.are_you_sure)) {
 					var data = { 'field_key': field_key, 'nonce': bm_ajax_object.nonce };
 					bmRestRequest('bm_save_non_primary_email_as_primary', data, function (response) {
-						var jsondata = JSON.parse(response);
+						var jsondata = bmSafeParse(response);
 						if (jsondata != '' && jsondata != null) {
 							var status = jsondata.status;
 							if (status == true) {
@@ -6160,7 +6171,7 @@ jQuery(document).on('click', '.save_primary_email', function () {
 
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_save_primary_email_field_key', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata != '' && jsondata != null) {
 				var status = jsondata.status;
 				if (status == true) {
@@ -6271,7 +6282,7 @@ jQuery(document).ready(function ($) {
 				if (id != 0) {
 					var data = { 'id': id, 'nonce': bm_ajax_object.nonce };
 					bmRestRequest('bm_remove_field', data, function (response) {
-						if (JSON.parse(response).status == 'deleted') {
+						if (bmSafeParse(response).status == 'deleted') {
 							showMessage(bm_success_object.field_remove_success, 'success');
 							// jQuery(".field_successtext").html(bm_success_object.field_remove_success);
 							// jQuery(".field_successtext").show();
@@ -6355,7 +6366,7 @@ function saveField(id) {
 			if (response != '' && response != null) {
 
 				var crossSign = "✕";
-				var jsonData = JSON.parse(response);
+				var jsonData = bmSafeParse(response);
 				var field = jsonData.data;
 				var status = jsonData.status;
 				var is_default = jsonData.is_default;
@@ -6495,9 +6506,9 @@ function bm_get_all_field_labels(ordering = []) {
 
 	var data = { 'ordering': ordering, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_get_all_field_labels', data, function (response) {
-		if (JSON.parse(response) != null) {
+		if (bmSafeParse(response) != null) {
 			jQuery(".content_body").html('');
-			var fields = JSON.parse(response);
+			var fields = bmSafeParse(response);
 			var crossSign = "✕";
 			var fieldBox = '';
 
@@ -6549,8 +6560,8 @@ function get_field_Settings(id) {
 
 	var data = { 'id': id, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_get_field_settings', data, function (response) {
-		if (JSON.parse(response) != null) {
-			var settings = JSON.parse(response);
+		if (bmSafeParse(response) != null) {
+			var settings = bmSafeParse(response);
 			if (settings.length != 0) {
 				showFieldSettings(settings.common.field_type, settings.common.field_key, settings.common.ordering, settings.common.field_position, settings.common.primary_mail_key, settings);
 			} else {
@@ -6794,7 +6805,7 @@ function bm_fetch_timezone() {
 	var country_code = jQuery('#bm_booking_country').val();
 	var data = { 'country_code': country_code, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_fetch_timezone', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		jQuery('#bm_booking_time_zone').html('');
 
 		if (jsondata.status == true) {
@@ -6872,7 +6883,7 @@ jQuery(document).on('click', '#show-product-dialog', function (e) {
 		jQuery('#booked_service_details').html('');
 
 		if (response != null && response != '') {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 
 			if (jsondata.status == true) {
 				var products = jsondata.products;
@@ -6953,7 +6964,7 @@ function saveProductChanges() {
 		var data = { 'post': updatedProducts, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_save_product_order', data, function (response) {
 			if (response != null && response != '') {
-				var jsondata = JSON.parse(response);
+				var jsondata = bmSafeParse(response);
 				var products = jsondata.products;
 				if (products.length !== 0) {
 					products.forEach(function (product) {
@@ -7001,7 +7012,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-customer-dialog", function () {
 		var data = { 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_fetch_customer_data_for_order', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			$("#customer-list").empty();
 
 			if (jsondata.status == true) {
@@ -7037,7 +7048,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-order-attachments", function () {
 		var data = { 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_fetch_attachments_for_order', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			$("#attachments-list").empty();
 
@@ -7073,7 +7084,7 @@ jQuery(document).ready(function ($) {
 	$(document).on("click", ".show-order-ticket", function () {
 		var data = { 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_fetch_attachments_for_order', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			$("#ticket-list").empty();
 
@@ -7124,7 +7135,7 @@ function bm_fetch_bookable_services(category_id) {
 	if (category_id !== '') {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_fetch_bookable_services_by_category_id_and_date', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			jQuery('#service_id').html('');
 
 			if (jsondata.status == true) {
@@ -7173,7 +7184,7 @@ function bm_fetch_service_time_slots_by_service_id(service_id) {
 
 		bmRestRequest('bm_fetch_new_order_service_time_slots', data, function (response) {
 			jQuery('#booking_slots').html('');
-			var slots = JSON.parse(response);
+			var slots = bmSafeParse(response);
 
 			if (slots != null && slots.length != 0) {
 				jQuery('#booking_slots').prop('disabled', false);
@@ -7214,7 +7225,7 @@ function bm_fetch_bookable_no_of_slots_by_slot($this) {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		bmRestRequest('bm_fetch_mincap_and_cap_left', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 
 			if (jsondata.status == true) {
 				var slot_info = jsondata.slot_info ? jsondata.slot_info : {};
@@ -7279,7 +7290,7 @@ function bm_fetch_svc_total_price() {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		bmRestRequest('bm_fetch_service_price_for_backend_order', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				if (typeof (jsondata.price) != "undefined" && jsondata.price != null) {
 					var price = jsondata.price;
@@ -7331,7 +7342,7 @@ function bm_fetch_service_extra() {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_fetch_service_extras_for_backend_order', data, function (response) {
 			if (response) {
-				var extras = JSON.parse(response);
+				var extras = bmSafeParse(response);
 				if (extras.length != 0) {
 					jQuery.each(extras, function (index, extra) {
 						addExtraService(index, extra);
@@ -7703,7 +7714,7 @@ function bm_change_order_status_to_complete_or_cancelled($this) {
 			var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
 			bmRestRequest('bm_change_order_status_to_complete_or_cancelled', data, function (response) {
-				var jsondata = JSON.parse(response);
+				var jsondata = bmSafeParse(response);
 				if (jsondata.status == true) {
 					location.reload();
 				} else {
@@ -7729,7 +7740,7 @@ function bm_change_order_status($this) {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
 		bmRestRequest('bm_change_order_status', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			if (jsondata.status == true) {
 				location.reload();
 			} else {
@@ -7746,7 +7757,7 @@ jQuery(document).ready(function ($) {
 	if (current_screen == 'flexibooking_page_bm_all_orders') {
 		var data = { 'module': 'orders', 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_fetch_saved_order_search', data, function (response) {
-			var saved_search = JSON.parse(response);
+			var saved_search = bmSafeParse(response);
 			if (saved_search != null && saved_search != "") {
 				if (typeof (saved_search.global_search) != "undefined") {
 					$('#global_search').val(saved_search.global_search ? saved_search.global_search : '');
@@ -8137,7 +8148,7 @@ function bm_search_order_data(type = '') {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_fetch_order_as_per_search', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		if (jsondata.status == true) {
 			jQuery(".order_records").html('');
 			jQuery("#order_pagination").html('');
@@ -8428,7 +8439,7 @@ jQuery(document).on('click', '.export_order_records', function (e) {
 	var data = { 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_fetch_export_order_modal_html', data, function (response) {
 		jQuery('#export_orders').html('');
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var html = jsondata.html ? jsondata.html : '';
 
@@ -8513,7 +8524,7 @@ function fetchAndExportData(moduleType, type, startPage = 0, endPage = 0) {
 
     bmRestRequest(ajaxAction, data, function(response) {
         jQuery('#order_export_modal, #checkin_export_modal').removeClass('active-modal');
-		var response = JSON.parse(response);
+		var response = bmSafeParse(response);
 
         const status = response.status || false;
         const orders = response.orders || [];
@@ -9098,7 +9109,7 @@ function bm_return_value_for_event_condition_type(a, b) {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_fetch_event_condition_value', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var value = jsondata.value ? jsondata.value : '';
 
@@ -9178,7 +9189,7 @@ function bm_change_process_visibility($this) {
 	if (confirm(bm_normal_object.change_pro_visibility)) {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_change_process_visibility', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			if (status == 'error') {
 				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
@@ -9210,7 +9221,7 @@ function bm_update_transaction($this) {
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_update_transaction', data, function (response) {
 		jQuery('#edit_transaction').html('');
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		var is_active = jsondata.is_active ? jsondata.is_active : 0;
 		var html = jsondata.html ? jsondata.html : '';
@@ -9494,7 +9505,7 @@ function bm_open_email_body($this, $module_type = '') {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_open_email_body', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var to = jsondata.to ? jsondata.to : '';
 		var cc = jsondata.cc ? jsondata.cc : '';
 		var bcc = jsondata.bcc ? jsondata.bcc : '';
@@ -9625,7 +9636,7 @@ function bm_resend_email(type='') {
 		jQuery('#resend_email_modal').removeClass('active-modal');
 		sessionStorage.removeItem("current_resend_mail_id");
 		jQuery('#resend_email_attachment').val('');
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 		if (status == true) {
 			showMessage(bm_success_object.mail_send_success, 'success');
@@ -9738,7 +9749,7 @@ function add_email_attachment() {
 			processData: false,
 			contentType: false,
 			success: function (response) {
-				var jsondata = JSON.parse(response);
+				var jsondata = bmSafeParse(response);
 				var status = jsondata.status ? jsondata.status : '';
 				var guids = jsondata.guids ? jsondata.guids : [];
 
@@ -9805,7 +9816,7 @@ function remove_email_attachmment($this) {
 	if (confirm(bm_normal_object.sure_remove_attchmnt)) {
 		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_remove_email_attachment', data, function (response) {
-			var jsondata = JSON.parse(response);
+			var jsondata = bmSafeParse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var guids = jsondata.guids ? jsondata.guids : [];
 
@@ -10100,7 +10111,7 @@ function bm_fetch_notification_processes_listing(pagenum = '') {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_fetch_notification_processes_listing', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		if (jsondata.status == true) {
 			jQuery(".notification_process_records").html('');
 			jQuery(".notification_process_pagination").html('');
@@ -10184,7 +10195,7 @@ function change_flexi_language($this) {
 
 	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 	bmRestRequest('bm_flexi_set_lang', data, function (response) {
-		var jsondata = JSON.parse(response);
+		var jsondata = bmSafeParse(response);
 		var status = jsondata.status ? jsondata.status : '';
 
 		if (status == true) {
