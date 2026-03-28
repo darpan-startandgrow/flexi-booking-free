@@ -10470,47 +10470,7 @@ class Booking_Management_Admin {
 		$refund_id = '';
 
 		if ( $booking_id > 0 ) {
-			$dbhandler      = new BM_DBhandler();
-			$transaction_id = $dbhandler->get_value( 'TRANSACTIONS', 'transaction_id', $booking_id, 'booking_id' );
-
-			if ( $transaction_id > 0 ) {
-				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-
-					if ( $payment_processor->isConnected() ) {
-						$cancelled_intent = $payment_processor->cancelPaymentIntent( $transaction_id );
-
-						if ( ! empty( $cancelled_intent ) && isset( $cancelled_intent['status'] ) && $cancelled_intent['status'] == 'canceled' ) {
-							$charge_data = isset( $cancelled_intent['charges']['data'][0] ) ? $cancelled_intent['charges']['data'][0] : array();
-
-							if ( ! empty( $charge_data ) ) {
-								$refund_data = isset( $charge_data['refunds']['data'][0] ) ? $charge_data['refunds']['data'][0] : array();
-
-								if ( ! empty( $refund_data ) ) {
-									$refund_id = isset( $refund_data['id'] ) ? $refund_data['id'] : '';
-								}
-							}
-
-							$bmrequests       = new BM_Request();
-							$transaction_data = array(
-								'payment_status'         => 'refunded',
-								'refund_id'              => $refund_id,
-								'is_active'              => 0,
-								'transaction_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-							);
-
-							$booking_data = array(
-								'order_status'       => 'refunded',
-								'is_active'          => 0,
-								'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-							);
-
-							$dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
-							$dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-						}
-					}
-				}
-			}
+			// Free version uses WooCommerce for payment handling; no Stripe refund. Returns empty refund_id.
 		}
 
 		return $refund_id;
@@ -11085,24 +11045,6 @@ class Booking_Management_Admin {
 			return $status;
 		}
 
-		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-			$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
-			$get_paid_amount   = isset( $get_transaction['amount'] ) ? $get_transaction['amount'] : 0;
-			$get_paid_amount   = ( $get_paid_amount / 100 );
-			$get_paid_currency = isset( $get_transaction['currency'] ) ? $get_transaction['currency'] : '';
-			$get_customer_id   = isset( $get_transaction['customer'] ) ? $get_transaction['customer'] : '';
-
-			$customer_id                    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-			$stripe_customer_id             = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $customer_id, 'id' );
-			$transaction_data_before_update = $dbhandler->bm_fetch_data_from_transient( 'transaction_data_before_update_' . $booking_id );
-			$paid_currency_before_update    = $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id );
-
-			if ( ! $get_transaction || ( $paid_amount_before_update != $get_paid_amount ) || ( $paid_currency_before_update != $get_paid_currency ) || ( $stripe_customer_id != $get_customer_id ) ) {
-				$status = 2;
-			}
-		}
-
 		return $status;
 	}//end bm_flexibooking_verify_if_valid_transaction_id()
 
@@ -11122,17 +11064,6 @@ class Booking_Management_Admin {
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
-		}
-
-		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-			$payment_processor    = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-			$get_transaction      = $payment_processor->getPaymentIntent( $transaction_id );
-			$get_payment_status   = isset( $get_transaction['status'] ) ? $get_transaction['status'] : '';
-			$paid_intent_statuses = apply_filters( 'flexibooking_paid_transaction_statuses', $bmrequests->bm_fetch_paid_transaction_statuses() );
-
-			if ( ! in_array( $get_payment_status, $paid_intent_statuses ) ) {
-				$status = 2;
-			}
 		}
 
 		return $status;
@@ -11176,17 +11107,6 @@ class Booking_Management_Admin {
 			return $status;
 		}
 
-		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-			$payment_processor       = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-			$get_transaction_result  = $payment_processor->getPaymentIntent( $transaction_id );
-			$get_payment_status      = isset( $get_transaction_result['status'] ) ? $get_transaction_result['status'] : '';
-			$pending_payment_statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
-
-			if ( ! in_array( $get_payment_status, $pending_payment_statuses, true ) ) {
-				$status = 2;
-			}
-		}
-
 		return $status;
 	}//end bm_flexibooking_verify_if_pending_transaction_id()
 
@@ -11205,16 +11125,6 @@ class Booking_Management_Admin {
 
 		if ( $is_frontend_booking == 0 && empty( $transaction_id ) ) {
 			return $status;
-		}
-
-		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-			$get_transaction   = $payment_processor->getPaymentIntent( $transaction_id );
-			$get_cancel_status = isset( $get_transaction['canceled_at'] ) ? $get_transaction['canceled_at'] : '';
-
-			if ( $get_cancel_status == null ) {
-				$status = 2;
-			}
 		}
 
 		return $status;
@@ -11252,15 +11162,6 @@ class Booking_Management_Admin {
 	 */
 	public function bm_flexibooking_verify_if_refunded_transaction_id( $refund_id ) {
 		$status = 1;
-
-		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-			$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-			$refund            = $payment_processor->getRefund( $refund_id );
-
-			if ( ! $refund ) {
-				$status = 4;
-			}
-		}
 
 		return $status;
 	}//end bm_flexibooking_verify_if_refunded_transaction_id()
@@ -11376,9 +11277,8 @@ class Booking_Management_Admin {
 			return $status;
 		}
 
-		$customer_id        = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-		$stripe_customer_id = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $customer_id, 'id' );
-		$customer           = $dbhandler->get_row( 'CUSTOMERS', $customer_id, 'id' );
+		$customer_id = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
+		$customer    = $dbhandler->get_row( 'CUSTOMERS', $customer_id, 'id' );
 		$booking_key        = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
 		$checkout_key       = $dbhandler->get_value( 'BOOKING', 'checkout_key', $booking_id, 'id' );
 		$refund_id          = $dbhandler->bm_fetch_data_from_transient( 'refund_id_before_update_' . $booking_id );
@@ -11430,7 +11330,7 @@ class Booking_Management_Admin {
 		$failed_transaction_data = array(
 			'customer_id'        => $customer_id,
 			'transaction_id'     => $transaction_id,
-			'stripe_customer_id' => $stripe_customer_id,
+			'stripe_customer_id' => '', // Empty string maintains DB schema compatibility; free version does not use Stripe.
 			'amount'             => $dbhandler->bm_fetch_data_from_transient( 'paid_amount_before_update_' . $booking_id ),
 			'amount_currency'    => $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id ),
 			'booking_data'       => $failed_booking_data,
