@@ -370,6 +370,7 @@ class Booking_Management_Admin {
             $normal['cancel_bor_order']        = __( 'Are you sure you want to cancel this order ? The process can not be reverted once done.', 'service-booking' );
             $normal['approve_bor_order']       = __( 'Are you sure you want to approve this order ? The process can not be reverted once done.', 'service-booking' );
             $normal['sure_remove_service']     = __( 'Are you sure you want to remove this service ? The process can not be reverted once done.', 'service-booking' );
+            $normal['confirm_duplicate_service'] = __( 'Duplicate this service?', 'service-booking' );
             $normal['sure_remove_category']    = __( 'Are you sure you want to remove this category ? The process can not be reverted once done.', 'service-booking' );
             $normal['sure_remove_template']    = __( 'Are you sure you want to remove this template ? The process can not be reverted once done.', 'service-booking' );
             $normal['sure_remove_process']     = __( 'Are you sure you want to remove this notification ? The process can not be reverted once done.', 'service-booking' );
@@ -14836,4 +14837,124 @@ class Booking_Management_Admin {
 		echo wp_json_encode( $data );
 		die;
 	}//end bm_fetch_value_for_coupon_type()
+
+
+	/**
+	 * Duplicate a service and its related data (time slots, gallery, extras, availability periods).
+	 */
+	public function bm_duplicate_service() {
+		$nonce = filter_input( INPUT_POST, 'nonce' );
+		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
+			die( esc_html__( 'Failed security check', 'service-booking' ) );
+		}
+
+		$service_id = filter_input( INPUT_POST, 'service_id', FILTER_VALIDATE_INT );
+		$data       = array( 'status' => false );
+
+		if ( empty( $service_id ) ) {
+			echo wp_json_encode( $data );
+			die;
+		}
+
+		$dbhandler  = new BM_DBhandler();
+		$bmrequests = new BM_Request();
+
+		$service = $dbhandler->get_row( 'SERVICE', $service_id );
+		if ( empty( $service ) ) {
+			echo wp_json_encode( $data );
+			die;
+		}
+
+		$now = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+
+		// Determine the next position value.
+		$max_position = $dbhandler->get_all_result( 'SERVICE', 'MAX(service_position) as max_pos', 1, 'var' );
+		$new_position = is_numeric( $max_position ) ? ( (int) $max_position + 1 ) : 1;
+
+		// Build new service data from the original, excluding auto-generated fields.
+		$service_arr            = (array) $service;
+		$exclude_fields         = array( 'id', 'service_created_at', 'service_updated_at' );
+		$new_service            = array_diff_key( $service_arr, array_flip( $exclude_fields ) );
+		$new_service['service_name']       = sprintf( __( '%s (Copy)', 'service-booking' ), $service->service_name );
+		$new_service['service_position']   = $new_position;
+		$new_service['service_created_at'] = $now;
+
+		$new_service_id = $dbhandler->insert_row( 'SERVICE', $new_service );
+
+		if ( empty( $new_service_id ) ) {
+			echo wp_json_encode( $data );
+			die;
+		}
+
+		// Duplicate TIME slots.
+		$time_rows = $dbhandler->get_all_result( 'TIME', '*', array( 'service_id' => $service_id ), 'results' );
+		if ( ! empty( $time_rows ) ) {
+			foreach ( $time_rows as $time_row ) {
+				$new_time                    = (array) $time_row;
+				unset( $new_time['id'] );
+				$new_time['service_id']      = $new_service_id;
+				$new_time['time_created_at'] = $now;
+				unset( $new_time['time_updated_at'] );
+				$dbhandler->insert_row( 'TIME', $new_time );
+			}
+		}
+
+		// Duplicate GALLERY.
+		$gallery_rows = $dbhandler->get_all_result(
+			'GALLERY',
+			'*',
+			array(
+				'module_type' => 'SERVICE',
+				'module_id'   => $service_id,
+			),
+			'results'
+		);
+		if ( ! empty( $gallery_rows ) ) {
+			foreach ( $gallery_rows as $gallery_row ) {
+				$new_gallery                       = (array) $gallery_row;
+				unset( $new_gallery['id'] );
+				$new_gallery['module_id']          = $new_service_id;
+				$new_gallery['gallery_created_at'] = $now;
+				unset( $new_gallery['gallery_updated_at'] );
+				$dbhandler->insert_row( 'GALLERY', $new_gallery );
+			}
+		}
+
+		// Duplicate EXTRA services.
+		$extra_rows = $dbhandler->get_all_result( 'EXTRA', '*', array( 'service_id' => $service_id ), 'results' );
+		if ( ! empty( $extra_rows ) ) {
+			foreach ( $extra_rows as $extra_row ) {
+				$new_extra                      = (array) $extra_row;
+				unset( $new_extra['id'] );
+				$new_extra['service_id']        = $new_service_id;
+				$new_extra['extras_created_at'] = $now;
+				unset( $new_extra['extras_updated_at'] );
+				$dbhandler->insert_row( 'EXTRA', $new_extra );
+			}
+		}
+
+		// Duplicate AVAILABILITY_PERIOD entries.
+		$periods = $dbhandler->get_all_result( 'AVAILABILITY_PERIOD', '*', array( 'service_id' => $service_id ), 'results' );
+		if ( ! empty( $periods ) ) {
+			foreach ( $periods as $period ) {
+				$new_period               = (array) $period;
+				unset( $new_period['id'] );
+				$new_period['service_id'] = $new_service_id;
+				$new_period['created_at'] = $now;
+				$dbhandler->insert_row( 'AVAILABILITY_PERIOD', $new_period );
+			}
+		}
+
+		// Duplicate service category mappings.
+		$original_cat_ids = $bmrequests->bm_get_service_category_ids( $service_id );
+		if ( ! empty( $original_cat_ids ) ) {
+			$bmrequests->bm_save_service_categories( $new_service_id, $original_cat_ids );
+		}
+
+		$data['status']         = true;
+		$data['new_service_id'] = $new_service_id;
+
+		echo wp_json_encode( $data );
+		die;
+	}//end bm_duplicate_service()
 }//end class

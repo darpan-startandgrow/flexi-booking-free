@@ -498,6 +498,7 @@ class Booking_Management {
 			'bm_flexi_set_lang' => 'bm_flexibooking_set_language',
 			'bm_sort_service_listing' => 'bm_sort_service_listing',
 			'bm_remove_service' => 'bm_remove_service',
+			'bm_duplicate_service' => 'bm_duplicate_service',
 			'bm_remove_category' => 'bm_remove_category',
 			'bm_sort_category_listing' => 'bm_sort_category_listing',
 			'bm_get_service_prices' => 'bm_get_service_prices',

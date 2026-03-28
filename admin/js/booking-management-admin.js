@@ -368,6 +368,22 @@ jQuery(document).on('click', '#delsvc', function () {
 	}
 });
 
+// Duplicate a service
+jQuery(document).on('click', '.bm-duplicate-service', function () {
+	if (confirm(bm_normal_object.confirm_duplicate_service)) {
+		var serviceId = jQuery(this).data('service-id');
+		var data = { 'service_id': serviceId, 'nonce': bm_ajax_object.nonce };
+		bmRestRequest('bm_duplicate_service', data, function (response) {
+			var jsondata = JSON.parse(response);
+			if (jsondata.status === true) {
+				location.reload();
+			} else {
+				showMessage(bm_error_object.server_error, 'error');
+			}
+		});
+	}
+});
+
 // Change service visiblity
 function bm_change_service_visibility($this) {
 	var id = jQuery($this).attr('id');

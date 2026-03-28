@@ -605,6 +605,21 @@ class Booking_Management_Activator {
 
 		$this->migrate_legacy_global_extras();
 
+		// --- Service-Category mapping (many-to-many) ---
+		$table_name = $this->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
+		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+		`service_id` int(11) NOT NULL,
+		`category_id` int(11) NOT NULL,
+		PRIMARY KEY (`id`),
+		UNIQUE KEY `idx_svc_cat` (`service_id`, `category_id`),
+		KEY `idx_svc_cat_svc` (`service_id`),
+		KEY `idx_svc_cat_cat` (`category_id`)
+		)$charset_collate;";
+		dbDelta( $sql );
+
+		$this->migrate_service_category_to_map();
+
 		$this->add_error_column_to_emails();
 		$this->create_default_form_fields();
 		$this->create_default_email_templates();
@@ -702,6 +717,9 @@ class Booking_Management_Activator {
 				break;
 			case 'SERVICE_GLOBAL_EXTRA':
 				$table_name = $plugin_prefix . 'service_global_extras';
+				break;
+			case 'SERVICE_CATEGORY_MAP':
+				$table_name = $plugin_prefix . 'service_category_map';
 				break;
 			default:
 				$classname = "BM_Helper_$identifier";
@@ -2313,6 +2331,44 @@ class Booking_Management_Activator {
 		}
 
 		update_option( 'bm_global_extras_migrated', '1' );
+	}
+
+
+	/**
+	 * Migrate legacy service_category column values into the mapping table.
+	 *
+	 * @since 1.5.0
+	 */
+	private function migrate_service_category_to_map() {
+		global $wpdb;
+
+		if ( get_option( 'bm_service_category_map_migrated', '0' ) === '1' ) {
+			return;
+		}
+
+		$service_table = $this->get_db_table_name( 'SERVICE' );
+		$map_table     = $this->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time migration, table name from get_db_table_name() is safe
+		$services = $wpdb->get_results(
+			"SELECT id, service_category FROM `{$service_table}` WHERE service_category IS NOT NULL AND service_category > 0"
+		);
+
+		if ( ! empty( $services ) ) {
+			foreach ( $services as $svc ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
+				$wpdb->insert(
+					$map_table,
+					array(
+						'service_id'  => absint( $svc->id ),
+						'category_id' => absint( $svc->service_category ),
+					),
+					array( '%d', '%d' )
+				);
+			}
+		}
+
+		update_option( 'bm_service_category_map_migrated', '1' );
 	}
 
 

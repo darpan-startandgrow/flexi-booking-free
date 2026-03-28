@@ -2017,21 +2017,42 @@ class BM_Request {
 
 
 	/**
-	 * Fetch category name by service id
+	 * Fetch category name by service id.
 	 *
-	 * @author Darpan
+	 * Uses the many-to-many mapping table with a fallback to the legacy
+	 * service_category column for backward compatibility.
+	 *
+	 * @since 1.5.0
+	 * @param int $service_id Service ID.
+	 * @return string Comma-separated category names.
 	 */
 	public function bm_fetch_category_name_by_service_id( $service_id = 0 ) {
-		$dbhandler     = new BM_DBhandler();
-		$service       = $dbhandler->get_row( 'SERVICE', $service_id );
-		$category_name = '';
+		$dbhandler = new BM_DBhandler();
+		$activator = new Booking_Management_Activator();
+		global $wpdb;
 
-		if ( isset( $service ) && ! empty( $service ) ) {
-			$category_id   = isset( $service->service_category ) ? esc_attr( $service->service_category ) : '';
-			$category_name = $this->bm_fetch_category_name_by_category_id( $category_id );
+		$map_table = $activator->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
+		$cat_table = $activator->get_db_table_name( 'CATEGORY' );
+
+		// Try mapping table first.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$names = $wpdb->get_col( $wpdb->prepare(
+			"SELECT c.cat_name FROM `{$map_table}` m INNER JOIN `{$cat_table}` c ON m.category_id = c.id WHERE m.service_id = %d ORDER BY c.cat_name",
+			absint( $service_id )
+		) );
+
+		if ( ! empty( $names ) ) {
+			return implode( ', ', $names );
 		}
 
-		return $category_name;
+		// Fallback to legacy service_category column.
+		$service = $dbhandler->get_row( 'SERVICE', $service_id );
+		if ( isset( $service ) && ! empty( $service ) ) {
+			$category_id = isset( $service->service_category ) ? esc_attr( $service->service_category ) : '';
+			return $this->bm_fetch_category_name_by_category_id( $category_id );
+		}
+
+		return '';
 	}//end bm_fetch_category_name_by_service_id()
 
 
@@ -2077,6 +2098,76 @@ class BM_Request {
 
 		return $category_id;
 	}//end bm_fetch_category_id_by_service_id()
+
+
+	/**
+	 * Get category IDs for a service from the mapping table.
+	 *
+	 * @since 1.5.0
+	 * @param int $service_id Service ID.
+	 * @return array Array of category IDs.
+	 */
+	public function bm_get_service_category_ids( $service_id ) {
+		$activator = new Booking_Management_Activator();
+		global $wpdb;
+
+		$map_table = $activator->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT category_id FROM `{$map_table}` WHERE service_id = %d",
+			absint( $service_id )
+		) );
+
+		if ( ! empty( $ids ) ) {
+			return array_map( 'intval', $ids );
+		}
+
+		// Fallback to legacy column.
+		$dbhandler = new BM_DBhandler();
+		$service   = $dbhandler->get_row( 'SERVICE', $service_id );
+		if ( $service && ! empty( $service->service_category ) ) {
+			return array( (int) $service->service_category );
+		}
+
+		return array();
+	}//end bm_get_service_category_ids()
+
+
+	/**
+	 * Save categories for a service in the mapping table.
+	 *
+	 * @since 1.5.0
+	 * @param int   $service_id   Service ID.
+	 * @param array $category_ids Array of category IDs.
+	 */
+	public function bm_save_service_categories( $service_id, $category_ids ) {
+		$activator = new Booking_Management_Activator();
+		global $wpdb;
+
+		$map_table  = $activator->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
+		$service_id = absint( $service_id );
+
+		// Remove existing mappings.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->delete( $map_table, array( 'service_id' => $service_id ), array( '%d' ) );
+
+		// Insert new mappings.
+		$category_ids = array_filter( array_map( 'absint', (array) $category_ids ) );
+		foreach ( $category_ids as $cat_id ) {
+			if ( $cat_id > 0 ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->insert(
+					$map_table,
+					array(
+						'service_id'  => $service_id,
+						'category_id' => $cat_id,
+					),
+					array( '%d', '%d' )
+				);
+			}
+		}
+	}//end bm_save_service_categories()
 
 
 	/**
