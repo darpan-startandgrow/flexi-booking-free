@@ -22,10 +22,11 @@ This document lists all available WordPress action hooks and filter hooks provid
 14. [Payment Processing Hooks](#payment-processing-hooks)
 15. [Event-Driven Booking Events](#event-driven-booking-events)
 16. [License Management Hooks](#license-management-hooks)
-17. [Event Dispatcher Hooks](#event-dispatcher-hooks)
-18. [Async Queue Hooks](#async-queue-hooks)
-19. [Deactivation Hooks](#deactivation-hooks)
-20. [Hybrid Architecture Overview](#hybrid-architecture-overview)
+17. [Freemius SDK Integration](#freemius-sdk-integration)
+18. [Event Dispatcher Hooks](#event-dispatcher-hooks)
+19. [Async Queue Hooks](#async-queue-hooks)
+20. [Deactivation Hooks](#deactivation-hooks)
+21. [Hybrid Architecture Overview](#hybrid-architecture-overview)
 
 ---
 
@@ -1417,6 +1418,97 @@ Fires after the license admin notice is displayed.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `$status` | `string` | The license status. |
+
+### Freemius SDK Integration
+
+The plugin supports [Freemius](https://freemius.com/) as an alternative licensing and distribution platform. When enabled, Freemius handles license validation, automatic updates, deactivation tracking, and upsell flows.
+
+#### Architecture
+
+```
+Lite Plugin (free, wp.org)
+  └── includes/class-sg-freemius.php    → sg_booking_fs() initialisation
+  └── includes/class-sg-license-manager.php → provider-based validation
+  └── includes/class-booking-management-feature-control.php → is_pro() gate
+
+Pro Plugin (separate add-on, distributed via Freemius)
+  └── Hooks sg_booking_is_pro_active filter → returns true when valid
+```
+
+**Key principle:** The Lite plugin contains zero Pro code. Pro features are delivered exclusively through a separate add-on plugin. Even if someone cracks the Lite plugin, they find no Pro code to unlock.
+
+#### Enabling Freemius
+
+1. **Define credentials** in `wp-config.php` (or a mu-plugin):
+
+```php
+define( 'SG_BOOKING_LICENSE_PROVIDER', 'freemius' );
+define( 'SG_BOOKING_FS_ID', 12345 );              // Your Freemius product ID.
+define( 'SG_BOOKING_FS_PUBLIC_KEY', 'pk_abc...' ); // Your Freemius public key.
+define( 'SG_BOOKING_FS_SLUG', 'sg-flexi-booking' ); // Optional, defaults to 'sg-flexi-booking'.
+```
+
+2. **Bundle the Freemius SDK** in the plugin root at `freemius/start.php`. The SDK is loaded automatically when the provider is `'freemius'` and valid credentials are configured.
+
+3. The `sg_booking_fs()` global function returns the Freemius SDK instance (or `null` when inactive).
+
+#### How It Works
+
+| Step | Description |
+|------|-------------|
+| 1 | Plugin loads `includes/class-sg-freemius.php`. |
+| 2 | `sg_booking_fs()` checks `SG_BOOKING_LICENSE_PROVIDER` via the `sg_license_validation_method` filter. |
+| 3 | If provider is `'freemius'` and credentials are set, `fs_dynamic_init()` initialises the SDK. |
+| 4 | `Booking_Management_Feature_Control::is_pro()` checks `sg_booking_fs()->is_paying()`. |
+| 5 | If the user has a valid Freemius license, Pro features are unlocked. |
+| 6 | The License admin page (`admin.php?page=sg_booking_license`) shows Freemius account info. |
+
+#### Validation Flow
+
+```
+sg_booking_fs()->is_paying()
+  ├── true  → is_pro() returns true → free restrictions skipped
+  └── false → is_pro() falls back to sg_booking_is_pro_active filter (default false)
+```
+
+#### Constants Reference
+
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `SG_BOOKING_LICENSE_PROVIDER` | `'edd'` | License provider: `'edd'`, `'freemius'`, or `'custom'`. |
+| `SG_BOOKING_FS_ID` | `0` | Freemius product/plugin ID. |
+| `SG_BOOKING_FS_PUBLIC_KEY` | `''` | Freemius public key for your product. |
+| `SG_BOOKING_FS_SLUG` | `'sg-flexi-booking'` | Freemius product slug. |
+| `SG_BOOKING_EDD_STORE_URL` | `'https://startandgrow.in'` | EDD store URL (when provider is `'edd'`). |
+| `SG_BOOKING_EDD_ITEM_ID` | `0` | EDD download/item ID. |
+| `SG_BOOKING_EDD_ITEM_NAME` | `'SG Flexi Booking Pro'` | EDD item name (fallback when item ID is 0). |
+
+#### Filter: `sg_license_validation_method`
+
+Controls which license provider is used.
+
+```php
+// Switch to Freemius at runtime.
+add_filter( 'sg_license_validation_method', function () {
+    return 'freemius';
+} );
+```
+
+#### Uninstall Cleanup
+
+When the plugin is uninstalled via Freemius, the `sg_booking_fs_uninstall_cleanup` callback removes:
+- `sg_booking_license_key` option
+- `sg_booking_license_status` option
+- `sg_booking_license_expiry` option
+- `sg_booking_license_cache` transient
+
+#### Files
+
+| File | Purpose |
+|------|---------|
+| `includes/class-sg-freemius.php` | `sg_booking_fs()` initialisation and uninstall hook. |
+| `includes/class-sg-license-manager.php` | Provider-based license validation, activation, deactivation. Admin UI. |
+| `includes/class-booking-management-feature-control.php` | Central `is_pro()` gate. Checks Freemius first. |
 
 ---
 
