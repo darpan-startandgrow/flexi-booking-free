@@ -12964,7 +12964,7 @@ class BM_Request {
 						$customer_final['customer_updated_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
 						$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_final, '', '%d' );
 					} else {
-						$customer_final['stripe_id']           = '';
+						$customer_final['stripe_id']           = ''; // DB column preserved for schema compatibility.
 						$customer_final['customer_created_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
 						$customer_id                           = $dbhandler->insert_row( 'CUSTOMERS', $customer_final );
 					}
