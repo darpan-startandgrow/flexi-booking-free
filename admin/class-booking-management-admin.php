@@ -14875,7 +14875,7 @@ class Booking_Management_Admin {
 		$service_arr            = (array) $service;
 		$exclude_fields         = array( 'id', 'service_created_at', 'service_updated_at' );
 		$new_service            = array_diff_key( $service_arr, array_flip( $exclude_fields ) );
-		$new_service['service_name']       = $service->service_name . ' (Copy)';
+		$new_service['service_name']       = sprintf( __( '%s (Copy)', 'service-booking' ), $service->service_name );
 		$new_service['service_position']   = $new_position;
 		$new_service['service_created_at'] = $now;
 

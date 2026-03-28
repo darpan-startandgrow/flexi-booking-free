@@ -599,7 +599,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                             }
                             $allow_multiple = apply_filters( 'bm_allow_multiple_categories', true );
                             ?>
-                            <select name="service_category[]" id="service_category" class="regular-text" <?php echo $allow_multiple ? 'multiple="multiple"' : ''; ?>>
+                            <select name="service_category[]" id="service_category" class="regular-text" aria-label="<?php esc_attr_e( 'Category', 'service-booking' ); ?>" <?php echo $allow_multiple ? 'multiple="multiple"' : ''; ?>>
                                 <?php if ( ! $allow_multiple ) : ?>
                                     <option value="0"><?php echo esc_html( 'uncategorized' ); ?></option>
                                 <?php endif; ?>
@@ -612,7 +612,9 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </select>
-                            <?php if ( ! $allow_multiple ) : ?>
+                            <?php if ( $allow_multiple ) : ?>
+                                <p class="description"><?php esc_html_e( 'Hold Ctrl/Cmd to select multiple categories.', 'service-booking' ); ?></p>
+                            <?php else : ?>
                                 <p class="description"><?php esc_html_e( 'Upgrade to Pro for multiple categories per service.', 'service-booking' ); ?></p>
                             <?php endif; ?>
                         </td>

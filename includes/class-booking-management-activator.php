@@ -2349,9 +2349,9 @@ class Booking_Management_Activator {
 		$service_table = $this->get_db_table_name( 'SERVICE' );
 		$map_table     = $this->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time migration, table name from get_db_table_name() is safe
 		$services = $wpdb->get_results(
-			"SELECT id, service_category FROM `" . esc_sql( $service_table ) . "` WHERE service_category IS NOT NULL AND service_category > 0"
+			"SELECT id, service_category FROM `{$service_table}` WHERE service_category IS NOT NULL AND service_category > 0"
 		);
 
 		if ( ! empty( $services ) ) {

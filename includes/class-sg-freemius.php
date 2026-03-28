@@ -72,8 +72,8 @@ if ( ! function_exists( 'sg_booking_fs' ) ) {
 
 		// The Freemius SDK must be loaded before we can initialise.
 		if ( ! function_exists( 'fs_dynamic_init' ) ) {
-			// Try to load the SDK from the bundled path.
-			$sdk_path = dirname( __DIR__ ) . '/freemius/start.php';
+			// Try to load the SDK from the plugin root.
+			$sdk_path = plugin_dir_path( dirname( __FILE__ ) ) . 'freemius/start.php';
 			if ( file_exists( $sdk_path ) ) {
 				require_once $sdk_path;
 			} else {

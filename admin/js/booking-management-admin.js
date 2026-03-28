@@ -375,7 +375,7 @@ jQuery(document).on('click', '.bm-duplicate-service', function () {
 		var data = { 'service_id': serviceId, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_duplicate_service', data, function (response) {
 			var jsondata = JSON.parse(response);
-			if (jsondata.status == true) {
+			if (jsondata.status === true) {
 				location.reload();
 			} else {
 				showMessage(bm_error_object.server_error, 'error');
