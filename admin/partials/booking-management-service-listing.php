@@ -1,5 +1,8 @@
 <?php
-$services_table = new BM_Services_List_Table();
+$services_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_all_services' ) : null;
+if ( ! $services_table ) {
+	$services_table = new BM_Services_List_Table();
+}
 $services_table->prepare_items();
 ?>
 

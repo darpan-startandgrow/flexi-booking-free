@@ -1,5 +1,8 @@
 <?php
-$checkins_table = new BM_Checkins_List_Table();
+$checkins_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_check_ins' ) : null;
+if ( ! $checkins_table ) {
+	$checkins_table = new BM_Checkins_List_Table();
+}
 $checkins_table->prepare_items();
 
 $bmrequests      = new BM_Request();

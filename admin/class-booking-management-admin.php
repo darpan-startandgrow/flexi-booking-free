@@ -40,6 +40,18 @@ class Booking_Management_Admin {
 	 */
 	private $version;
 
+	/**
+	 * Stores WP_List_Table instances created during load-{page} hooks.
+	 *
+	 * List tables must be instantiated before Screen Options renders so that
+	 * columns are registered via the manage_{screen_id}_columns filter.
+	 *
+	 * @since  1.3.1
+	 * @access private
+	 * @var    array
+	 */
+	private $list_tables = array();
+
 
 	/**
 	 * Initialize the class and set its properties.
@@ -14662,7 +14674,42 @@ class Booking_Management_Admin {
 				'option'  => 'bm_list_per_page',
 			)
 		);
+
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return;
+		}
+
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+
+		$map = array(
+			'bm_all_orders'     => 'BM_Orders_List_Table',
+			'bm_all_customers'  => 'BM_Customers_List_Table',
+			'bm_all_services'   => 'BM_Services_List_Table',
+			'bm_all_categories' => 'BM_Categories_List_Table',
+			'bm_email_templates' => 'BM_Email_Templates_List_Table',
+			'sg-booking-forms'  => 'BM_Forms_List_Table',
+			'bm_email_records'  => 'BM_Email_Records_List_Table',
+			'bm_voucher_records' => 'BM_Vouchers_List_Table',
+			'bm_check_ins'      => 'BM_Checkins_List_Table',
+		);
+
+		if ( isset( $map[ $page ] ) && class_exists( $map[ $page ] ) ) {
+			$this->list_tables[ $page ] = new $map[ $page ]();
+		}
 	}//end bm_add_screen_options()
+
+
+	/**
+	 * Retrieve a list table instance created during the load-{page} hook.
+	 *
+	 * @since 1.3.1
+	 * @param string $page Admin page slug.
+	 * @return \WP_List_Table|null
+	 */
+	public function get_list_table( $page ) {
+		return isset( $this->list_tables[ $page ] ) ? $this->list_tables[ $page ] : null;
+	}//end get_list_table()
 
 
 	/**

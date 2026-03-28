@@ -1,6 +1,9 @@
 <?php
 $dbhandler       = new BM_DBhandler();
-$templates_table = new BM_Email_Templates_List_Table();
+$templates_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_email_templates' ) : null;
+if ( ! $templates_table ) {
+	$templates_table = new BM_Email_Templates_List_Table();
+}
 $templates_table->prepare_items();
 
 $total_count = (int) $dbhandler->bm_count( 'EMAIL_TMPL' );

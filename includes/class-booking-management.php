@@ -87,11 +87,7 @@ class Booking_Management {
 		// Initialize hybrid architecture components.
 		$this->init_event_system();
 
-		// ✅ Initialize the API
-        $this->init_api();
 
-		// Initialize the Shortcodes
-		$this->init_react_shortcodes();
 		ob_start();
 	}
 
@@ -156,7 +152,6 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-woocommerce.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-email.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-sanitized.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-payment-gateway.php';
 
 		/**
 		 * Freemium gatekeeper and feature control.
@@ -174,8 +169,6 @@ class Booking_Management {
 		 */
 		do_action( 'sg_booking_load_pro_libraries' );
 
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-api.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-react-shortcodes.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-validation.php';
 
 		/**
@@ -199,8 +192,7 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-async-queue.php';
 
 		/**
-		 * Core REST API for the Lite plugin's own frontend.
-		 * Separate from the React v2 API in class-booking-api.php.
+		 * Core REST API for the plugin's admin and public endpoints.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-rest-api.php';
 
@@ -531,20 +523,7 @@ class Booking_Management {
 		do_action( 'sg_booking_register_pro_public_hooks', $this->loader, $plugin_public );
 	}
 
-	/**
-	 * Initializes the Booking API by creating a new instance of the Booking_API class.
-	 * This method is intended to set up API-related functionality for booking management.
-	 *
-	 * @access private
-	 */
-	private function init_api() {
-		new Booking_API( $this->get_plugin_name(), $this->get_version() );
-	}
 
-
-	private function init_react_shortcodes() {
-		new React_Shortcodes_Plugin();
-	}
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.

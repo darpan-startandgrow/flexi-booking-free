@@ -4,8 +4,7 @@
  *
  * Registers essential v1 endpoints consumed by the Lite plugin's own
  * frontend (shortcodes, calendar, checkout). This is separate from the
- * React v2 API in class-booking-api.php which is meant for the React
- * frontend.
+ * All admin and public endpoints are registered here.
  *
  * Endpoints:
  *   GET  /sg-booking/v1/timeslots    — Fetch available timeslots.

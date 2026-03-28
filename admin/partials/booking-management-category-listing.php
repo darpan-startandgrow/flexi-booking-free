@@ -1,6 +1,9 @@
 <?php
 $dbhandler    = new BM_DBhandler();
-$categories_table = new BM_Categories_List_Table();
+$categories_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_all_categories' ) : null;
+if ( ! $categories_table ) {
+	$categories_table = new BM_Categories_List_Table();
+}
 $categories_table->prepare_items();
 
 // Build category IDs for bulk shortcode.

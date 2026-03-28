@@ -19,7 +19,10 @@
  */
 do_action( 'sg_booking_before_email_records_page' );
 
-$table = new BM_Email_Records_List_Table();
+$table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_email_records' ) : null;
+if ( ! $table ) {
+	$table = new BM_Email_Records_List_Table();
+}
 $table->prepare_items();
 
 $total_count = $table->get_pagination_arg( 'total_items' );
