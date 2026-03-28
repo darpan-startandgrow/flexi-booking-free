@@ -294,36 +294,23 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_remove_field', $plugin_admin, 'bm_remove_field' );
 		$this->loader->add_action( 'wp_ajax_bm_save_form_field_order', $plugin_admin, 'bm_save_form_field_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_preview_form', $plugin_admin, 'bm_fetch_preview_form' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_template_listing', $plugin_admin, 'bm_fetch_template_listing' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_template', $plugin_admin, 'bm_remove_template' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_timezone', $plugin_admin, 'bm_fetch_timezone' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_product_details', $plugin_admin, 'bm_fetch_ordered_product_details' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_service_details', $plugin_admin, 'bm_fetch_ordered_service_details' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_customer_data_for_order', $plugin_admin, 'bm_fetch_customer_data_for_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_customer_data_for_failed_order', $plugin_admin, 'bm_fetch_customer_data_for_failed_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_customer_data_for_archived_order', $plugin_admin, 'bm_fetch_customer_data_for_archived_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_attachments_for_order', $plugin_admin, 'bm_fetch_attachments_for_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_attachments_for_archived_order', $plugin_admin, 'bm_fetch_attachments_for_archived_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_attachments_for_failed_order', $plugin_admin, 'bm_fetch_attachments_for_failed_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_services_by_category_id', $plugin_admin, 'bm_fetch_services_by_category_id' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_new_order_service_time_slots', $plugin_admin, 'bm_fetch_new_order_service_time_slots' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_extras_for_backend_order', $plugin_admin, 'bm_fetch_service_extras_for_backend_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_mincap_and_cap_left', $plugin_admin, 'bm_fetch_mincap_and_cap_left' );
-		$this->loader->add_action( 'wp_ajax_bm_archive_order', $plugin_admin, 'bm_archive_order' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_order', $plugin_admin, 'bm_remove_order' );
-		$this->loader->add_action( 'wp_ajax_bm_restore_order', $plugin_admin, 'bm_restore_order' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_failed_order', $plugin_admin, 'bm_remove_failed_order' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_bookable_services_by_category_id_and_date', $plugin_admin, 'bm_fetch_bookable_services_by_category_id_and_date' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_service_price_for_backend_order', $plugin_admin, 'bm_fetch_service_price_for_backend_order' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status_to_complete_or_cancelled', $plugin_admin, 'bm_change_order_status_to_complete_or_cancelled' );
 		$this->loader->add_action( 'wp_ajax_bm_change_order_status', $plugin_admin, 'bm_change_order_status' );
 
 		$this->loader->add_action( 'wp_ajax_bm_fetch_order_as_per_search', $plugin_admin, 'bm_fetch_order_as_per_search' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_archived_order_as_per_search', $plugin_admin, 'bm_fetch_archived_order_as_per_search' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_failed_order_as_per_search', $plugin_admin, 'bm_fetch_failed_order_as_per_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_all_orders', $plugin_admin, 'bm_fetch_all_orders' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_saved_order_search', $plugin_admin, 'bm_fetch_saved_order_search' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_dashoboard_order_global_search', $plugin_admin, 'bm_fetch_dashoboard_order_global_search' );
 		$this->loader->add_action( 'wp_ajax_bm_get_primary_email_field_key', $plugin_admin, 'bm_get_primary_email_field_key' );
 		$this->loader->add_action( 'wp_ajax_bm_save_primary_email_field_key', $plugin_admin, 'bm_save_primary_email_field_key' );
 		$this->loader->add_action( 'wp_ajax_bm_save_non_primary_email_as_primary', $plugin_admin, 'bm_save_non_primary_email_as_primary' );
@@ -343,7 +330,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_notification_processes_listing', $plugin_admin, 'bm_fetch_notification_processes_listing' );
 		$this->loader->add_action( 'wp_ajax_bm_remove_process', $plugin_admin, 'bm_remove_notification_process' );
 		$this->loader->add_action( 'wp_ajax_bm_change_process_visibility', $plugin_admin, 'bm_change_notification_process_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_change_template_visibility', $plugin_admin, 'bm_change_email_template_visibility' );
 
 		$this->loader->add_action( 'wp_ajax_bm_update_transaction', $plugin_admin, 'bm_update_order_transaction' );
 		$this->loader->add_action( 'wp_ajax_bm_save_order_transaction', $plugin_admin, 'bm_save_order_transaction' );
@@ -382,8 +368,6 @@ class Booking_Management {
 		$this->loader->add_filter( 'flexibooking_update_booking_data_after_transaction_update', $plugin_admin, 'bm_flexibooking_update_booking_data_after_transaction_update', 10, 2 );
 		$this->loader->add_filter( 'flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table', $plugin_admin, 'bm_flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table', 10, 1 );
 		$this->loader->add_filter( 'flexibooking_revert_transaction_update', $plugin_admin, 'bm_flexibooking_revert_transaction_update', 10, 1 );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_export_order_modal_html', $plugin_admin, 'bm_fetch_export_order_modal_options_html' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_export_order_records', $plugin_admin, 'bm_fetch_export_order_records_as_per_type' );
 		$this->loader->add_action( 'wp_ajax_bm_check_if_exisiting_customer', $plugin_admin, 'bm_check_if_exisiting_customer' );
 		$this->loader->add_action( 'woocommerce_admin_order_data_after_order_details', $plugin_admin, 'bm_display_service_date_in_admin', 10, 1 );
 		$this->loader->add_action( 'before_delete_post', $plugin_admin, 'bm_remove_flexi_order_if_woocommerce_order_is_permanently_deleted' );
