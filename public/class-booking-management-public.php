@@ -346,8 +346,10 @@ class Booking_Management_Public {
 			$this->plugin_name,
 			'bm_ajax_object',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'ajax-nonce' ),
+				'ajax_url'   => admin_url( 'admin-ajax.php' ),
+				'nonce'      => wp_create_nonce( 'ajax-nonce' ),
+				'rest_url'   => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
+				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 			)
 		);
 
@@ -355,8 +357,10 @@ class Booking_Management_Public {
 			'stripes_checkout',
 			'bm_ajax_object',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'ajax-nonce' ),
+				'ajax_url'   => admin_url( 'admin-ajax.php' ),
+				'nonce'      => wp_create_nonce( 'ajax-nonce' ),
+				'rest_url'   => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
+				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 			)
 		);
 
@@ -364,8 +368,10 @@ class Booking_Management_Public {
 			'jquery-fullcalendar-custom',
 			'bm_ajax_object',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'ajax-nonce' ),
+				'ajax_url'   => admin_url( 'admin-ajax.php' ),
+				'nonce'      => wp_create_nonce( 'ajax-nonce' ),
+				'rest_url'   => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
+				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 			)
 		);
 	}//end enqueue_scripts()
@@ -484,6 +490,8 @@ class Booking_Management_Public {
 			array(
 				'ajax_url'   => admin_url( 'admin-ajax.php' ),
 				'nonce'      => wp_create_nonce( 'ajax-nonce' ),
+				'rest_url'   => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
+				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 				'plugin_url' => plugin_dir_url( __FILE__ ),
 			)
 		);

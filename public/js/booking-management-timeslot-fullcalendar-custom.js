@@ -165,14 +165,16 @@ jQuery(document).ready(function ($) {
         };
 
         $.ajax({
-            url: bm_ajax_object.ajax_url,
+            url: bm_ajax_object.rest_url + 'public-action/bm_filter_timeslot_fullcalendar_events',
             type: 'POST',
             data: {
-                action: 'bm_filter_timeslot_fullcalendar_events',
                 post,
                 nonce: bm_ajax_object.nonce,
             },
-            beforeSend: () => $('.timeslot-calendar-container').find('.loader_modal').show(),
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+                $('.timeslot-calendar-container').find('.loader_modal').show();
+            },
             success: (response) => {
                 if (response.success) {
                     calendar.removeAllEvents();
@@ -298,14 +300,14 @@ jQuery(document).on('click', '#timeslot_fullcalendar_slot_value', function () {
     const post = { mincap, capacity_left, service_id, date, time_slot_value };
 
     jQuery.ajax({
-        url: bm_ajax_object.ajax_url,
+        url: bm_ajax_object.rest_url + 'public-action/bm_fetch_timeslot_dialog_content',
         type: 'POST',
         data: {
-            action: 'bm_fetch_timeslot_dialog_content',
             post,
             nonce: bm_ajax_object.nonce
         },
-        beforeSend: function () {
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
             jQuery('#timeslot-capacity-dialog .loader_modal').show();
         },
         success: function (response) {

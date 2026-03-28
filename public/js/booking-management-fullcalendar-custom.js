@@ -152,14 +152,16 @@ jQuery(document).ready(function ($) {
         const post = { start: formattedStart, end: formattedEnd, services, categories, cat_ids };
 
         $.ajax({
-            url: bm_ajax_object.ajax_url,
+            url: bm_ajax_object.rest_url + 'public-action/bm_filter_fullcalendar_events',
             type: 'POST',
             data: {
-                action: 'bm_filter_fullcalendar_events',
                 post,
                 nonce: bm_ajax_object.nonce,
             },
-            beforeSend: () => $('.calendar-container').find('.loader_modal').show(),
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+                $('.calendar-container').find('.loader_modal').show();
+            },
             success: (response) => {
                 if (response.success) {
                     calendar.removeAllEvents();
