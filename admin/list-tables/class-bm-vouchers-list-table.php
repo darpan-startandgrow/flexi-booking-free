@@ -49,6 +49,9 @@ class BM_Vouchers_List_Table extends WP_List_Table {
 
 		$status = filter_input( INPUT_GET, 'status' );
 		$this->filter_status = ( $status !== null && $status !== '' ) ? absint( $status ) : '';
+
+		// Register columns with WordPress Screen Options for column visibility.
+		add_filter( 'manage_' . $this->screen->id . '_columns', array( $this, 'get_columns' ) );
 	}
 
 	/**
@@ -241,11 +244,6 @@ class BM_Vouchers_List_Table extends WP_List_Table {
 			)
 		);
 
-		$this->_column_headers = array(
-			$this->get_columns(),
-			array(),
-			$this->get_sortable_columns(),
-		);
 	}
 
 	/**

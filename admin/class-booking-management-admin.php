@@ -898,7 +898,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_check_ins() {
-		$this->bm_pro_upsell_page();
+		include 'partials/booking-management-check_ins.php';
 	} //end bm_check_ins()
 
 

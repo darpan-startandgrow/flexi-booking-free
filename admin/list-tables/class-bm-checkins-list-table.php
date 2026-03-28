@@ -48,6 +48,9 @@ class BM_Checkins_List_Table extends WP_List_Table {
 		);
 		$this->dbhandler  = new BM_DBhandler();
 		$this->bmrequests = new BM_Request();
+
+		// Register columns with WordPress Screen Options for column visibility.
+		add_filter( 'manage_' . $this->screen->id . '_columns', array( $this, 'get_columns' ) );
 	}
 
 	/**
@@ -360,11 +363,6 @@ class BM_Checkins_List_Table extends WP_List_Table {
 			)
 		);
 
-		$this->_column_headers = array(
-			$this->get_columns(),
-			array(),
-			$this->get_sortable_columns(),
-		);
 	}
 
 	/**

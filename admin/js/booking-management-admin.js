@@ -8376,23 +8376,7 @@ jQuery(document).on('click', '.edit_order_columns', function (e) {
 
 
 
-// Fetch checkin columns
-jQuery(document).on('click', '.edit_checkin_columns', function (e) {
-	e.preventDefault();
 
-	var data = { 'action': 'bm_fetch_columns_screen_options', 'type': 'checkin', 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		jQuery('#checkin_columns').html('');
-		if (response != null && response != '') {
-			jQuery('#checkin_columns').html(response);
-			jQuery('#checkin_columns_modal').addClass('active-modal');
-			sortable_columns('available_columns');
-		} else {
-			jQuery('#checkin_columns').html(bm_error_object.server_error);
-			jQuery('#checkin_columns_modal').addClass('active-modal');
-		}
-	});
-});
 
 
 
@@ -8493,8 +8477,6 @@ jQuery(document).on('click', '.submit_columns', function (e) {
 			if (jsondata.status == true) {
 				jQuery('#order_columns_modal').removeClass('active-modal');
 				jQuery('#order_columns').html('');
-				jQuery('#checkin_columns_modal').removeClass('active-modal');
-				jQuery('#checkin_columns').html('');
 				location.reload();
 			} else {
 				jQuery(document).find('.column_errortext').html(bm_error_object.server_error);
