@@ -58,6 +58,9 @@ class BM_Email_Templates_List_Table extends WP_List_Table {
 		$language       = $this->dbhandler->get_global_option_value( 'bm_flexi_current_language', 'en' );
 		$back_lang      = $this->dbhandler->get_global_option_value( 'bm_flexi_current_language_backend', '' );
 		$this->language = ! empty( $back_lang ) ? $back_lang : $language;
+
+		// Register columns with WordPress Screen Options for column visibility.
+		add_filter( 'manage_' . $this->screen->id . '_columns', array( $this, 'get_columns' ) );
 	}
 
 	/**
@@ -219,11 +222,6 @@ class BM_Email_Templates_List_Table extends WP_List_Table {
 			)
 		);
 
-		$this->_column_headers = array(
-			$this->get_columns(),
-			array(),
-			$this->get_sortable_columns(),
-		);
 	}
 
 	/**

@@ -151,7 +151,6 @@ jQuery(document).ready(function ($) {
 	});
 
 
-
 	// Service Extra Add Button
 	$("#add_extra").click(function (e) {
 		if ($("#svc_extra_fields").not(':visible')) $("#svc_extra_fields").css('display', 'block');
@@ -159,7 +158,6 @@ jQuery(document).ready(function ($) {
 		if ($("#extraTitle").is(':visible')) $("#extraTitle").css('display', 'none');
 		if ($("#existing_extra_content").is(':visible')) $("#existing_extra_content").hide();
 	});
-
 
 
 	// Service Extra Cancel Button
@@ -170,7 +168,6 @@ jQuery(document).ready(function ($) {
 		if ($("#existing_extra_content").not(':visible')) $("#existing_extra_content").show();
 	});
 });
-
 
 
 // Ajax for sorting service listing on Page Load
@@ -264,13 +261,11 @@ function bm_sort_service_listing(ids = [], pagenum = 1) {
 }
 
 
-
 // Redirect to edit service page
 jQuery(document).on('click', '#editsvc', function () {
 	var id = jQuery(this).val();
 	window.location = 'admin.php?page=bm_add_service&id=' + id;
 });
-
 
 
 // Redirect to edit template page
@@ -280,13 +275,11 @@ jQuery(document).on('click', '#edittemplate', function () {
 });
 
 
-
 // Redirect to edit process page
 jQuery(document).on('click', '#editprocess', function () {
 	var id = jQuery(this).val();
 	window.location = 'admin.php?page=bm_add_notification_process&id=' + id;
 });
-
 
 
 // Redirect to edit order page
@@ -387,7 +380,6 @@ function bm_change_service_visibility($this) {
 }
 
 
-
 function bm_change_extra_service_visibility($this) {
 	var id = jQuery($this).attr('id');
 
@@ -410,8 +402,6 @@ function bm_change_extra_service_visibility($this) {
 		}
 	}
 }
-
-
 
 
 // Remove a template
@@ -467,7 +457,6 @@ jQuery(document).on('click', '#deltemplate', function () {
 });
 
 
-
 // Remove a process
 jQuery(document).on('click', '#delprocess', function () {
 	if (confirm(bm_normal_object.sure_remove_process)) {
@@ -519,7 +508,6 @@ jQuery(document).on('click', '#delprocess', function () {
 		});
 	}
 });
-
 
 
 // Ajax for sorting category listing on Page Load
@@ -580,7 +568,6 @@ function bm_sort_category_listing(ids = [], pagenum = 1) {
 }
 
 
-
 // Redirect to edit category page
 jQuery(document).on('click', '#editcat', function () {
 	var id = jQuery(this).val();
@@ -588,13 +575,11 @@ jQuery(document).on('click', '#editcat', function () {
 });
 
 
-
 // Redirect to edit customer page
 jQuery(document).on('click', '#editcust', function () {
 	var id = jQuery(this).val();
 	window.location = 'admin.php?page=bm_add_customer&id=' + id;
 });
-
 
 
 // Change category visiblity
@@ -622,7 +607,6 @@ function bm_change_category_visibility($this) {
 }
 
 
-
 // Change customer visiblity
 function bm_change_customer_visibility($this) {
 	var id = jQuery($this).attr('id');
@@ -646,7 +630,6 @@ function bm_change_customer_visibility($this) {
 		}
 	}
 }
-
 
 
 // Remove a category
@@ -716,163 +699,11 @@ jQuery(document).on('click', '#delcat', function () {
 });
 
 
-
 // Redirect to edit price module page
 jQuery(document).on('click', '#editmodule', function () {
 	var id = jQuery(this).val();
 	window.location = 'admin.php?page=bm_add_external_service_price&id=' + id;
 });
-
-
-
-// Remove a price module
-jQuery(document).on('click', '#delmodule', function () {
-	if (confirm(bm_normal_object.sure_remove_prce_module)) {
-		var post = {
-			'pagenum': sessionStorage.getItem("priceModulePagno") != null ? sessionStorage.getItem("priceModulePagno") : jQuery('#price_module_pagenum').val(),
-			'base': jQuery(location).attr("href"),
-			'limit': jQuery.trim(jQuery('#limit_count').val()),
-			'id': jQuery(this).val(),
-		}
-
-		var data = { 'action': 'bm_remove_price_module', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			var removeable_status = jsondata.is_removeable ? jsondata.is_removeable : '';
-
-			if (status == true) {
-				if (removeable_status == true) {
-					jQuery(".price_module_records").html('');
-					jQuery(".price_module_pagination").html('');
-					var priceModules = jsondata.price_modules ? jsondata.price_modules : [];
-					var pagination = jsondata.pagination ? jsondata.pagination : '';
-					var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : 1;
-					var priceModuleListing = '';
-					var j = 0;
-
-					if (priceModules.length != 0) {
-						for (var i = 0; i < priceModules.length; i++) {
-							priceModuleListing += "<tr class='single_price_module_record'><form role='form' method='post'>" +
-								"<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-								"<td style='text-align: center;' title=" + (priceModules[i].module_name ? priceModules[i].module_name : '') + ">" + (priceModules[i].module_name ? priceModules[i].module_name.substring(0, 80) : '') + '...' + " </td>" +
-								"<td style='text-align: center;'>" +
-								"<button type='button' name='editmodule' class='edit-button' id='editmodule' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + priceModules[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-								"<button type='button' name='delmodule' class='delete-button' id='delmodule' title='" + bm_normal_object.remove + "' value='" + priceModules[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-								"</td>" +
-								"</form></tr>";
-							current_pagenumber++;
-							j++;
-						}
-					} else {
-						location.reload();
-					}
-
-					jQuery(".price_module_records").append(priceModuleListing);
-					jQuery(".price_module_pagination").append(pagination);
-				} else if (removeable_status == false) {
-					showMessage(bm_error_object.linked_module, 'error')
-				} else {
-					showMessage(bm_error_object.server_error, 'error')
-				}
-			} else {
-				showMessage(bm_error_object.server_error, 'error')
-			}
-		});
-	}
-});
-
-
-
-// Restore an order
-jQuery(document).on('click', '#restoreorder', function() {
-    if (confirm(bm_normal_object.sure_restore_order)) {
-        var archive_id = jQuery(this).val();
-        var data = { 
-            'action': 'bm_restore_order', 
-            'id': archive_id, 
-            'nonce': bm_ajax_object.nonce 
-        };
-        
-        jQuery.post(bm_ajax_object.ajax_url, data, function(result) {
-			if (result.success === true) {
-				alert(bm_normal_object.order_restored);
-				location.reload();
-			} else {
-				alert(result.data || bm_error_object.restore_failed);
-			}
-		});
-
-    }
-});
-
-
-
-// Delete an order
-jQuery(document).on('click', '#archiveorder', function() {
-    if (confirm(bm_normal_object.sure_archive_order)) {
-        var id = jQuery(this).val();
-        var data = { 
-            'action': 'bm_archive_order', 
-            'id': id, 
-            'nonce': bm_ajax_object.nonce 
-        };
-		jQuery.post(bm_ajax_object.ajax_url, data, function(result) {
-			if (result.success === true) {
-				alert(bm_normal_object.order_archived);
-				location.reload();
-			} else {
-				alert(result.data || bm_error_object.server_error);
-			}
-		});
-    }
-});
-
-
-
-// Delete an order
-jQuery(document).on('click', '#delorder', function() {
-    if (confirm(bm_normal_object.sure_restore_order)) {
-        var archive_id = jQuery(this).val();
-        var data = { 
-            'action': 'bm_remove_order', 
-            'id': archive_id, 
-            'nonce': bm_ajax_object.nonce 
-        };
-
-		jQuery.post(bm_ajax_object.ajax_url, data, function(result) {
-			if (result.success === true) {
-				alert(bm_success_object.remove_success);
-				location.reload();
-			} else {
-				alert(result.data || bm_error_object.server_error);
-			}
-		});
-    }
-});
-
-
-
-// Delete a failed order
-jQuery(document).on('click', '#delfailedorder', function() {
-    if (confirm(bm_normal_object.are_you_sure)) {
-        var id = jQuery(this).val();
-        var data = { 
-            'action': 'bm_remove_failed_order', 
-            'id': id, 
-            'nonce': bm_ajax_object.nonce 
-        };
-        jQuery.post(bm_ajax_object.ajax_url, data, function(result) {
-			if (result.success === true) {
-				alert(bm_success_object.remove_success);
-				location.reload();
-			} else {
-				alert(result.data || bm_error_object.server_error);
-			}
-		});
-    }
-});
-
 
 
 // Service Image Remove
@@ -927,7 +758,6 @@ function openSection(evt, sectionName) {
 	document.getElementById(sectionName).style.display = "block";
 	evt.currentTarget.className += " active";
 }
-
 
 
 // Service Gallery Image Selection
@@ -1019,7 +849,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
 // Service Gallery Image Remove
 function svc_gallery_remove($this) {
 
@@ -1041,7 +870,6 @@ function svc_gallery_remove($this) {
 }
 
 
-
 // Get Url Param
 function getUrlParameter(sParam) {
 	var sPageURL = window.location.search.substring(1),
@@ -1060,12 +888,10 @@ function getUrlParameter(sParam) {
 }
 
 
-
 // Add Session Value on Extra Service Edit, Update, Delete
 function extraUpdate() {
 	if (sessionStorage.getItem("extravalue") == null) sessionStorage.setItem("extravalue", 1);
 }
-
 
 
 // Form Validation
@@ -1186,7 +1012,6 @@ function add_form_validation(type = '') {
 }
 
 
-
 // Field Icon
 jQuery(document).ready(function ($) {
 
@@ -1253,8 +1078,6 @@ jQuery(document).ready(function ($) {
 		custom_uploader.open();
 	});
 });
-
-
 
 
 // Show/Hide Section
@@ -1337,16 +1160,12 @@ function bm_open_close_tab(a) {
 }
 
 
-
-
 // Field Icon Image Remove
 function field_remove_image() {
 	jQuery('#field_icon').val('');
 	jQuery('#field_image_preview').attr('src', '');
 	jQuery('.field_image_container').hide();
 }
-
-
 
 
 // Change Maximum Capacity on Minimum Capacity Change
@@ -1380,8 +1199,6 @@ function changeMaxCap($this) {
 }
 
 
-
-
 // Change Variable Maximum Capacity on Variable Minimum Capacity Change
 function changeVariableMaxCap($this) {
 	jQuery('.variable_capacity_message').html('');
@@ -1411,8 +1228,6 @@ function changeVariableMaxCap($this) {
 		}
 	}
 }
-
-
 
 
 // Dynamic Time Slots
@@ -1544,8 +1359,6 @@ function showSlotsTiming($this) {
 }
 
 
-
-
 // Convert Number to Time
 function convertNumToTime(number) {
 	// Check sign of given number
@@ -1582,8 +1395,6 @@ function convertNumToTime(number) {
 
 	return time;
 }
-
-
 
 
 // Add/Subtract functions for Single or Multiple Times
@@ -1646,8 +1457,6 @@ function timeStringToFloat(time) {
 	var minutes = hoursMinutes[1] ? parseInt(hoursMinutes[1], 10) : 0;
 	return hours + minutes / 60;
 }
-
-
 
 
 // Change Time as per Selection
@@ -1757,8 +1566,6 @@ function checkTime($this) {
 		}
 	}
 }
-
-
 
 
 // Change Time as per Selection
@@ -1873,8 +1680,6 @@ function checkVariableTime($this, slot_data_id = '') {
 }
 
 
-
-
 // Disable Time slot as per Selection
 function disableSlot($this) {
 
@@ -1921,8 +1726,6 @@ function disableSlot($this) {
 }
 
 
-
-
 // Disable external price module age group
 function disableAgeGroup($this) {
 
@@ -1942,8 +1745,6 @@ function disableAgeGroup($this) {
 		slot_to.prop('readonly', true);
 	}
 }
-
-
 
 
 // Disable Variable Time slot as per Selection
@@ -2002,8 +1803,6 @@ function disableVariableSlot($this) {
 }
 
 
-
-
 // Check/Uncheck Hide To Time Slots
 function hideToSlot($this) {
 	if (jQuery($this).prop('checked') == true) {
@@ -2016,8 +1815,6 @@ function hideToSlot($this) {
 }
 
 
-
-
 // On/Off AutoTime Selection For Service Time Slots
 function autoTime() {
 	if (jQuery('#auto_time').val() == '0') {
@@ -2027,8 +1824,6 @@ function autoTime() {
 		jQuery('#auto_time').val('0');
 	}
 }
-
-
 
 
 // On/Off AutoTime Selection For Variable Service Time Slots
@@ -2046,8 +1841,6 @@ function variableAutoTime($this) {
 		jQuery($this).removeAttr('checked');
 	}
 }
-
-
 
 
 // Load Price Calendar
@@ -2148,9 +1941,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
-
 // Load Stopsales Calendar
 jQuery(document).ready(function ($) {
 	if (getUrlParameter('id') != '') $('#old_default_stopsales').val($('#default_stopsales').val());
@@ -2210,8 +2000,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
 // Load Saleswitch Calendar
 jQuery(document).ready(function ($) {
 	if (getUrlParameter('id') != '') $('#old_default_saleswitch').val($('#default_saleswitch').val());
@@ -2269,8 +2057,6 @@ jQuery(document).ready(function ($) {
 	});
 	// getUrlParameter('id') != '' ? bm_get_service_saleswitch() : addSaleswitchInfo(); // if open by default (when you're using <div>)
 });
-
-
 
 
 // Load Capacity Calendar
@@ -2338,8 +2124,6 @@ jQuery(document).ready(function ($) {
 	});
 	// getUrlParameter('id') != '' ? bm_get_service_max_cap() : addCapacityInfo(); // if open by default (when you're using <div>)
 });
-
-
 
 
 // Load Time Slots Calendar
@@ -2485,8 +2269,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
 // Set Price Value in Calendar in fresh service
 function addPriceInfo(type = '') {
 	if ((getUrlParameter('id') != '') && (jQuery('#old_default_price').val() !== jQuery('#default_price').val())) {
@@ -2577,8 +2359,6 @@ function addPriceInfo(type = '') {
 }
 
 
-
-
 // Set Stopsales Value in Calendar in fresh service
 function addStopsalesInfo(type = '') {
 	if ((getUrlParameter('id') != '') && (jQuery('#old_default_stopsales').val() !== jQuery('#default_stopsales').val())) {
@@ -2649,7 +2429,6 @@ function addStopsalesInfo(type = '') {
 }
 
 
-
 // Set Saleswitch Value in Calendar in fresh service
 function addSaleswitchInfo(type = '') {
 	if ((getUrlParameter('id') != '') && (jQuery('#old_default_saleswitch').val() !== jQuery('#default_saleswitch').val())) {
@@ -2718,8 +2497,6 @@ function addSaleswitchInfo(type = '') {
 		});
 	});
 }
-
-
 
 
 // Set Capacity Value in Calendar in fresh service
@@ -2855,8 +2632,6 @@ function addCapacityInfo(type = '') {
 }
 
 
-
-
 // Confirm Time Slot change in Calendar
 function confirm_slot_change($this) {
 	if ((getUrlParameter('id') != '')) {
@@ -2871,8 +2646,6 @@ function confirm_slot_change($this) {
 		return true;
 	}
 }
-
-
 
 
 // Set Time Slot in Calendar in fresh service
@@ -2930,8 +2703,6 @@ function addTimeSlotInfo(type = '') {
 		});
 	});
 }
-
-
 
 
 // Variable Service Price Field Validation and Submission
@@ -3001,7 +2772,6 @@ function variable_price_validation_submit() {
 }
 
 
-
 // Variable Service Price Module Validation and Submission
 function variable_price_module_validation_submit() {
 
@@ -3042,7 +2812,6 @@ function variable_price_module_validation_submit() {
 			'default_price': default_price,
 			'old_default_price': old_default_price,
 		}
-		edit_calendar_service_price_module(data, 'single');
 	} else {
 		var done = 0;
 		var date_parts = date.split("-");
@@ -3062,8 +2831,6 @@ function variable_price_module_validation_submit() {
 		}
 	}
 }
-
-
 
 
 // Variable Service Price Field Validation and Submission
@@ -3123,7 +2890,6 @@ function variable_stopsales_validation_submit() {
 }
 
 
-
 // Variable Service saleswitch Field Validation and Submission
 function variable_saleswitch_validation_submit() {
 
@@ -3179,8 +2945,6 @@ function variable_saleswitch_validation_submit() {
 		}
 	}
 }
-
-
 
 
 // Service Maximum Capacity Field Validation and Submission
@@ -3246,7 +3010,6 @@ function validate_capacity_and_submit() {
 		}
 	}
 }
-
 
 
 // Service Time Slots Field Validation and Submission
@@ -3358,8 +3121,6 @@ function validate_slots_and_submit() {
 }
 
 
-
-
 // Validation for variable time slots
 function validateVariableSlots() {
 	jQuery('.variable_slots_errortext').html('');
@@ -3394,8 +3155,6 @@ function validateVariableSlots() {
 		return false;
 	}
 }
-
-
 
 
 // Bulk Service Price Validation and Submission
@@ -3487,7 +3246,6 @@ function bulk_price_validation_submit() {
 }
 
 
-
 // Bulk Service Price Module Validation and Submission
 function bulk_variable_price_module_validation_submit() {
 
@@ -3542,7 +3300,6 @@ function bulk_variable_price_module_validation_submit() {
 			'default_price': default_price,
 			'old_default_price': old_default_price,
 		}
-		edit_calendar_service_price_module(data, 'multiple');
 	} else {
 		var done = 0;
 		var daysArray = getDaysArray(from_date, to_date);
@@ -3568,7 +3325,6 @@ function bulk_variable_price_module_validation_submit() {
 		}
 	}
 }
-
 
 
 // Bulk Service Stopsales Validation and Submission
@@ -3650,7 +3406,6 @@ function bulk_stopsales_validation_submit() {
 }
 
 
-
 // Bulk Service Saleswitch Validation and Submission
 function bulk_saleswitch_validation_submit() {
 
@@ -3728,7 +3483,6 @@ function bulk_saleswitch_validation_submit() {
 		}
 	}
 }
-
 
 
 // Bulk Service Maximum Capacity Validation and Submission
@@ -3815,8 +3569,6 @@ function validate_bulk_capacity_and_submit() {
 		}
 	}
 }
-
-
 
 
 // Save Service Calendar Price
@@ -3914,8 +3666,6 @@ function save_calendar_service_price(year = '', month = '', day = '', date = '',
 }
 
 
-
-
 // Save Service Calendar Price
 function save_calendar_service_price_module(year = '', month = '', day = '', date = '', module = '', done = 0) {
 	var element = jQuery("#price_datepicker").find('[data-year="' + year + '"][data-month="' + month + '"]').filter(function () {
@@ -3995,8 +3745,6 @@ function save_calendar_service_price_module(year = '', month = '', day = '', dat
 
 	return done;
 }
-
-
 
 
 // Save Service Calendar Stopsales
@@ -4097,8 +3845,6 @@ function save_calendar_service_stopsales(year = '', month = '', day = '', date =
 }
 
 
-
-
 // Save Service Calendar Saleswitch
 function save_calendar_service_saleswitch(year = '', month = '', day = '', date = '', saleswitch = '', default_saleswitch = '', done = false) {
 	var element = jQuery("#saleswitch_datepicker").find('[data-year="' + year + '"][data-month="' + month + '"]').filter(function () {
@@ -4197,8 +3943,6 @@ function save_calendar_service_saleswitch(year = '', month = '', day = '', date 
 }
 
 
-
-
 // Save Service Calendar Maximum Capacity
 function save_calendar_service_max_cap(year = '', month = '', day = '', date = '', capacity = '', default_max_cap = '', done = false) {
 	var element = jQuery("#cap_datepicker").find('[data-year="' + year + '"][data-month="' + month + '"]').filter(function () {
@@ -4264,8 +4008,6 @@ function save_calendar_service_max_cap(year = '', month = '', day = '', date = '
 }
 
 
-
-
 // Save Service Calendar Time Slot
 function save_calendar_variable_time_slots(year = '', month = '', day = '', date = '', time_slots_data = {}, slot_nextindex = '', done = false) {
 	var element = jQuery("#time_slots_datepicker").find('[data-year="' + year + '"][data-month="' + month + '"]').filter(function () {
@@ -4307,8 +4049,6 @@ function save_calendar_variable_time_slots(year = '', month = '', day = '', date
 
 	return done;
 }
-
-
 
 
 // Remove Service Calendar Time Slot
@@ -4441,8 +4181,6 @@ function remove_time_slot(date) {
 }
 
 
-
-
 // Edit Service Calendar Price
 function edit_calendar_service_price(values = [], type = '') {
 	jQuery('.bm-set_price-spiner').show();
@@ -4518,81 +4256,6 @@ function edit_calendar_service_price(values = [], type = '') {
 }
 
 
-
-
-// Edit Service Calendar Price
-function edit_calendar_service_price_module(values = [], type = '') {
-	jQuery('.bm-set_price-spiner').show();
-	var module = values['module'] ? values['module'] : '';
-	var default_price = values['default_price'] ? values['default_price'] : '';
-	var date = '';
-	var daysArray = [];
-
-	if (type == 'single') {
-		date = values['date'] ? values['date'] : '';
-	} else if (type == 'multiple') {
-		var from_date = values['from_date'] ? values['from_date'] : '';
-		var to_date = values['to_date'] ? values['to_date'] : '';
-
-		if (from_date != '' && to_date != '') {
-			daysArray = getDaysArray(from_date, to_date);
-		}
-	}
-
-	var data = { 'action': type == 'single' ? 'bm_set_serice_price_module' : 'bm_set_bulk_serice_price_module', 'data': values, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		jQuery('.bm-set_price-spiner').hide();
-		var jsondata = JSON.parse(response);
-		var status = jsondata.status;
-
-		if (status == true) {
-			if (module != '' && default_price != '') {
-				jQuery('#old_default_price').attr('value', default_price);
-				jQuery('#default_price').attr('value', default_price);
-
-				if (type == 'single') {
-					if (date != '') {
-						var day = date.split('-')[2];
-						var month = Number(date.split('-')[1]) - 1;
-						var year = date.split('-')[0];
-						set_value_in_price_calendar(day, month, year, module, '', 'module');
-					}
-				} else if (type == 'multiple') {
-					if (daysArray.length != 0) {
-						for (var i = 0; i < daysArray.length; i++) {
-							date = new Date(daysArray[i]);
-							year = date.getFullYear();
-							month = date.getMonth();
-							day = date.getDate();
-							set_value_in_price_calendar(day, month, year, module, '', 'module');
-						}
-					}
-				}
-
-				var changeMonth = jQuery("#price_datepicker").datepicker("option", "changeMonth");
-				var changeYear = jQuery("#price_datepicker").datepicker("option", "changeYear");
-
-				if (changeMonth == false || changeYear == false) {
-					if (changeMonth == false) jQuery("#price_datepicker").datepicker("option", "changeMonth", true);
-					if (changeYear == false) jQuery("#price_datepicker").datepicker("option", "changeYear", true);
-					bm_get_service_price();
-				}
-
-				jQuery('#svc_price_modal').hide();
-				jQuery('.price_update_successtext').html(bm_success_object.module_set);
-				jQuery('.price_update_successtext').show();
-			}
-		} else {
-			jQuery('#svc_price_modal').hide();
-			jQuery('.price_update_errortext').html(bm_error_object.server_error);
-			jQuery('.price_update_errortext').show();
-		}
-	});
-}
-
-
-
-
 // Set module values in service price calendar
 function set_value_in_price_calendar(day, month, year, value, default_value, type) {
 	var text = '';
@@ -4631,8 +4294,6 @@ function set_value_in_price_calendar(day, month, year, value, default_value, typ
 		}
 	}
 }
-
-
 
 
 // Edit Service Calendar Stopsales
@@ -4711,8 +4372,6 @@ function edit_calendar_service_stopsales(values = [], type = '') {
 }
 
 
-
-
 // Edit Service Calendar Saleswitch
 function edit_calendar_service_saleswitch(values = [], type = '') {
 	jQuery('.bm-set_saleswitch-spiner').show();
@@ -4789,8 +4448,6 @@ function edit_calendar_service_saleswitch(values = [], type = '') {
 }
 
 
-
-
 // Edit Service Calendar Maximum Capacity
 function edit_calendar_service_max_cap(values = [], type = '') {
 	jQuery('.bm-capacity-spiner').show();
@@ -4854,8 +4511,6 @@ function edit_calendar_service_max_cap(values = [], type = '') {
 }
 
 
-
-
 // Edit Service Calendar Time Slot
 function edit_calendar_service_variable_time_slots(values = []) {
 	var data = { 'action': 'bm_set_variable_time_slot', 'data': values, 'nonce': bm_ajax_object.nonce };
@@ -4916,8 +4571,6 @@ function edit_calendar_service_variable_time_slots(values = []) {
 		}
 	});
 }
-
-
 
 
 // Variable Service Price Ajax on Page Load
@@ -5069,8 +4722,6 @@ function bm_get_service_price() {
 }
 
 
-
-
 // Variable Service Stopsales Ajax on Page Load
 function bm_get_service_stopsales() {
 	jQuery('.stopsales_errortext').hide();
@@ -5208,8 +4859,6 @@ function bm_get_service_stopsales() {
 		if (jQuery('.stopsales_errortext').not(':visible')) jQuery('.stopsales_errortext').show();
 	}
 }
-
-
 
 
 // Variable Service Saleswitch Ajax on Page Load
@@ -5351,8 +5000,6 @@ function bm_get_service_saleswitch() {
 }
 
 
-
-
 // Maximum Service Capacity Ajax on Page Load
 function bm_get_service_max_cap() {
 	jQuery('.capacity_calendar_errortext').hide();
@@ -5480,8 +5127,6 @@ function bm_get_service_max_cap() {
 }
 
 
-
-
 // Variable Service Price Ajax on Page Load
 function bm_get_service_time_slots() {
 	jQuery('.time_slot_calendar_errortext').hide();
@@ -5603,8 +5248,6 @@ function bm_get_service_time_slots() {
 }
 
 
-
-
 // Show To Service Date In Bulk Price/Stopsales Change
 function showToDate(type = '') {
 	if (type == 'price') {
@@ -5634,8 +5277,6 @@ function showToDate(type = '') {
 }
 
 
-
-
 // Get All Dates in Range
 function getDaysArray(start, end) {
 	for (var arr = [], dt = new Date(start); dt <= new Date(end); dt.setDate(dt.getDate() + 1)) {
@@ -5643,7 +5284,6 @@ function getDaysArray(start, end) {
 	}
 	return arr;
 };
-
 
 
 // Field Tabs
@@ -5678,8 +5318,6 @@ function fieldTabs(evt, fieldSection) {
 }
 
 
-
-
 // get fieldkey and order
 function get_fieldkey_and_order(type) {
 	jQuery(".field_errortext").html('');
@@ -5700,8 +5338,6 @@ function get_fieldkey_and_order(type) {
 		}
 	});
 }
-
-
 
 
 // Show/Hide Field Content
@@ -5734,8 +5370,6 @@ function add_bm_field(type, ordering, field_key, primary_mail_key) {
 }
 
 
-
-
 // Change Maximum Capacity on Minimum Capacity Change
 function changeFieldMaxCap($this) {
 
@@ -5762,8 +5396,6 @@ function changeFieldMaxCap($this) {
 		}
 	}
 }
-
-
 
 
 //get Minimum Length for types of fields
@@ -5816,15 +5448,11 @@ function getMinLength(type, settings = null) {
 }
 
 
-
-
 //Get week
 Date.prototype.getWeek = function () {
 	var onejan = new Date(this.getFullYear(), 0, 1);
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 }
-
-
 
 
 //HTML templates for rendering field settings
@@ -6369,7 +5997,6 @@ function showFieldSettings(type, field_key, ordering, field_position, primary_ma
 }
 
 
-
 //Check if existing field key
 function checkFieldKey($this) {
 	jQuery($this).parent('.setting_input').find('.field_validate_errortext').html('');
@@ -6406,8 +6033,6 @@ function checkFieldKey($this) {
 		}
 	});
 }
-
-
 
 
 //Check for primary email in active fields
@@ -6470,14 +6095,11 @@ function check_if_any_primary_email($this) {
 }
 
 
-
-
 // Close primary email Modal
 jQuery(document).on('click', '#primary_email_modal .close', function () {
 	jQuery(document).find('#primary_email_modal').removeClass('active-modal');
 	jQuery(document).find('#is_main_email').prop('checked', true);
 });
-
 
 
 // Save primary email
@@ -6529,8 +6151,6 @@ jQuery(document).on('click', '.save_primary_email', function () {
 });
 
 
-
-
 //Add more options for select/checkbox/radio fields
 function addMoreOption($this) {
 	var crossSign = "✕";
@@ -6563,8 +6183,6 @@ function addMoreOption($this) {
 			"&nbsp;<span id='removeoption_" + nextindex + "' data-type='" + type + "' style='color:red;cursor:pointer;' class='remove_option' title='" + bm_normal_object.remove + "' autocomplete='off'>" + crossSign + "</span><div class='field_validate_errortext'></div>");
 	}
 }
-
-
 
 
 //Field section functions
@@ -6694,8 +6312,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
 // Save Field Data
 function saveField(id) {
 
@@ -6757,8 +6373,6 @@ function saveField(id) {
 }
 
 
-
-
 // Hide settings section Field Data
 function hideSettings() {
 	if (jQuery('.field_content').length != 0) {
@@ -6774,8 +6388,6 @@ function hideSettings() {
 	jQuery('#field_settings').html('<p style="text-align: center;">' + bm_normal_object.choose_field + '</p>');
 	jQuery('#field_listing').show();
 }
-
-
 
 
 // Validate Field Data
@@ -6820,8 +6432,6 @@ function validateFields() {
 }
 
 
-
-
 // Get form data
 function getFormData(formId) {
 
@@ -6845,8 +6455,6 @@ function getFormData(formId) {
 
 	return formData;
 }
-
-
 
 
 // Ajax for getting field labels on Page Load
@@ -6897,7 +6505,6 @@ function bm_get_all_field_labels(ordering = []) {
 }
 
 
-
 // Ajax for getting field data on Page Load
 function get_field_Settings(id) {
 	jQuery('.field_successtext').hide();
@@ -6927,7 +6534,6 @@ function get_field_Settings(id) {
 		}
 	});
 }
-
 
 
 // Fetch field preview form
@@ -6964,7 +6570,6 @@ jQuery(document).on('click', '.preview_button', function (e) {
 });
 
 
-
 // Close Modal
 function closeModal(id) {
 	// jQuery('#' + id).removeClass('active-modal');
@@ -6980,7 +6585,6 @@ function closeModal(id) {
 		remove_unsent_temporary_email_attachment();
 	}
 }
-
 
 
 // Template validation
@@ -7017,7 +6621,6 @@ function add_template_validation() {
 }
 
 
-
 // Add admin emails in global mail settings
 function bm_add_admin_email_option() {
 	var email_option_element = jQuery('td.bm_email_option_field').length;
@@ -7032,12 +6635,10 @@ function bm_add_admin_email_option() {
 }
 
 
-
 // Remove admin email in global mail settings
 function bm_remove_shop_admin_email(a) {
 	jQuery(a).parent('div.bm_email_option').remove();
 }
-
 
 
 // Toggle show/hide on conditions
@@ -7057,7 +6658,6 @@ function bm_toggle_tab(instance, id) {
 		}
 	}
 }
-
 
 
 // Test smtp connection
@@ -7103,7 +6703,6 @@ function bm_test_smtp_connection() {
 }
 
 
-
 // Insert email field in wp editor
 function bm_insert_field_in_email(a) {
 	tinyMCE.activeEditor.execCommand('mceInsertContent', false, a);
@@ -7114,7 +6713,6 @@ function bm_insert_field_in_email(a) {
 function bm_clear_content_in_wp_editor_body(a) {
 	tinymce.activeEditor.setContent(a);
 }
-
 
 
 //Tooltip
@@ -7134,7 +6732,6 @@ jQuery(document).ready(function ($) {
 		}
 	});
 });
-
 
 
 // Global General Settings validation
@@ -7162,7 +6759,6 @@ function global_general_settings_validation() {
 }
 
 
-
 // Fetch timezone
 function bm_fetch_timezone() {
 	jQuery('.global_timezone_errortext').html('');
@@ -7187,8 +6783,6 @@ function bm_fetch_timezone() {
 }
 
 
-
-
 //International tel input for phone form fields
 function setIntlInput() {
 	jQuery('#preview_form :input').map(function () {
@@ -7206,8 +6800,6 @@ function setIntlInput() {
 		}
 	});
 }
-
-
 
 
 // Add unavailable dates in service page
@@ -7229,8 +6821,6 @@ function setIntlInput() {
 // 		jQuery('td.date_option_field span.add_dates_button').before(option_box);
 // 	}
 // }
-
-
 
 
 // Remove unavailable dates in service page
@@ -7288,21 +6878,16 @@ jQuery(document).on('click', '#show-product-dialog', function (e) {
 });
 
 
-
-
 // Event handler for adding a new product
 jQuery(document).on("click", "#add-product", function () {
 	addProductToList();
 });
 
 
-
-
 // Event handler for saving product data
 jQuery(document).on("click", "#save-product", function () {
 	saveProductChanges();
 });
-
 
 
 // Remove extra product
@@ -7314,8 +6899,6 @@ jQuery(document).on("click", "#remove-extra-product", function () {
 		productItem.remove();
 	}
 });
-
-
 
 
 // Function to save changes made in the dialog
@@ -7360,8 +6943,6 @@ function saveProductChanges() {
 		});
 	}
 }
-
-
 
 
 //Dialog for customer details
@@ -7424,75 +7005,6 @@ jQuery(document).ready(function ($) {
 		});
 	});
 
-	// Customer information dialogue
-	$(document).on("click", ".show-failed-order-customer-dialog", function () {
-		var data = { 'action': 'bm_fetch_customer_data_for_failed_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			$("#customer-list").empty();
-
-			if (jsondata.status == true) {
-				var customer_info = jsondata.customer_info;
-				if (customer_info.length !== 0) {
-					var first_name = typeof (customer_info.billing_details.billing_first_name) != "undefined" && customer_info.billing_details.billing_first_name != null ? customer_info.billing_details.billing_first_name : 'N/A';
-					var last_name = typeof (customer_info.billing_details.billing_last_name) != "undefined" && customer_info.billing_details.billing_last_name != null ? customer_info.billing_details.billing_last_name : 'N/A';
-					var email = typeof (customer_info.billing_details.billing_email) != "undefined" && customer_info.billing_details.billing_email != null ? customer_info.billing_details.billing_email : 'N/A';
-					var mobile = typeof (customer_info.billing_details.billing_contact) != "undefined" && customer_info.billing_details.billing_contact != null ? customer_info.billing_details.billing_contact : 'N/A';
-					var city = typeof (customer_info.billing_details.billing_city) != "undefined" && customer_info.billing_details.billing_city != null ? customer_info.billing_details.billing_city : 'N/A';
-					var state = typeof (customer_info.billing_details.billing_state) != "undefined" && customer_info.billing_details.billing_state != null ? customer_info.billing_details.billing_state : 'N/A';
-
-					var listItem = $("<li></li>");
-					listItem.append("<div><strong>" + bm_normal_object.first_name + "</strong> : " + first_name + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.last_name + "</strong> : " + last_name + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.email + "</strong> : " + email + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.phone + "</strong> : " + mobile + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.city + "</strong> : " + city + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.state + "</strong> : " + state + "</div>");
-					$("#customer-list").append(listItem);
-				} else {
-					$("#customer-list").append("<div class='error_msg'>" + bm_error_object.customer_error + "</div>");
-				}
-			} else {
-				$("#customer-list").append("<div class='error_msg'>" + bm_error_object.server_error + "</div>");
-			}
-			$("#customer-dialog").dialog("open");
-		});
-	});
-
-	// Customer information dialogue
-	$(document).on("click", ".show-archived-order-customer-dialog", function () {
-		var data = { 'action': 'bm_fetch_customer_data_for_archived_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			$("#customer-list").empty();
-
-			if (jsondata.status == true) {
-				var customer_info = jsondata.customer_info;
-				if (customer_info) {
-					var first_name = typeof (customer_info.billing_first_name) != "undefined" && customer_info.billing_first_name != null ? customer_info.billing_first_name : 'N/A';
-					var last_name = typeof (customer_info.billing_last_name) != "undefined" && customer_info.billing_last_name != null ? customer_info.billing_last_name : 'N/A';
-					var email = typeof (customer_info.billing_email) != "undefined" && customer_info.billing_email != null ? customer_info.billing_email : 'N/A';
-					var mobile = typeof (customer_info.billing_contact) != "undefined" && customer_info.billing_contact != null ? customer_info.billing_contact : 'N/A';
-					var city = typeof (customer_info.billing_city) != "undefined" && customer_info.billing_city != null ? customer_info.billing_city : 'N/A';
-					var state = typeof (customer_info.billing_state) != "undefined" && customer_info.billing_state != null ? customer_info.billing_state : 'N/A';
-
-					var listItem = $("<li></li>");
-					listItem.append("<div><strong>" + bm_normal_object.first_name + "</strong> : " + first_name + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.last_name + "</strong> : " + last_name + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.email + "</strong> : " + email + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.phone + "</strong> : " + mobile + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.city + "</strong> : " + city + "</div>");
-					listItem.append("<div><strong>" + bm_normal_object.state + "</strong> : " + state + "</div>");
-					$("#customer-list").append(listItem);
-				} else {
-					$("#customer-list").append("<div class='error_msg'>" + bm_error_object.customer_error + "</div>");
-				}
-			} else {
-				$("#customer-list").append("<div class='error_msg'>" + bm_error_object.server_error + "</div>");
-			}
-			$("#customer-dialog").dialog("open");
-		});
-	});
 
 	// Order attachments dialogue
 	$(document).on("click", ".show-order-attachments", function () {
@@ -7529,75 +7041,6 @@ jQuery(document).ready(function ($) {
 		});
 	});
 
-	// Order attachments dialogue
-	$(document).on("click", ".show-archived-order-attachments", function () {
-		var data = { 'action': 'bm_fetch_attachments_for_archived_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			$("#attachments-list").empty();
-
-			if (status == true) {
-				var attachments = jsondata.attachments;
-				var order_details = attachments.order_details ? attachments.order_details : '';
-				var customer_details = attachments.customer_details ? attachments.customer_details : '';
-
-				if (attachments.length !== 0) {
-					var listItem = $("<li></li>");
-
-					if (order_details) {
-						listItem.append("<div><strong>" + bm_normal_object.order_details + "</strong>: <a target='_blank' href='" + order_details + "'>" + bm_normal_object.order_details_pdf + "&nbsp;<i class='fa fa-file-pdf-o' style='font-size:16px;color:red'></i></a></div><br>");
-					}
-
-					if (customer_details) {
-						listItem.append("<div><strong>" + bm_normal_object.customer_details + "</strong>: <a target='_blank' href='" + customer_details + "'>" + bm_normal_object.customer_details_pdf + "&nbsp;<i class='fa fa-file-pdf-o' style='font-size:16px;color:red'></i></a></div>");
-					}
-
-					$("#attachments-list").append(listItem);
-				} else {
-					$("#attachments-list").append("<div class='no_attachments'>" + bm_normal_object.no_attachments + "</div>");
-				}
-			} else {
-				$("#attachments-list").append("<div class='error_msg'>" + bm_error_object.server_error + "</div>");
-			}
-			$("#order-attachments-dialog").dialog("open");
-		});
-	});
-
-	// Order attachments dialogue
-	$(document).on("click", ".show-failed-order-attachments", function () {
-		var data = { 'action': 'bm_fetch_attachments_for_failed_order', 'order_id': $(this).attr('id'), 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			$("#attachments-list").empty();
-
-			if (status == true) {
-				var attachments = jsondata.attachments;
-				var order_details = attachments.order_details ? attachments.order_details : '';
-				var customer_details = attachments.customer_details ? attachments.customer_details : '';
-
-				if (attachments.length !== 0) {
-					var listItem = $("<li></li>");
-
-					if (order_details) {
-						listItem.append("<div><strong>" + bm_normal_object.order_details + "</strong>: <a target='_blank' href='" + order_details + "'>" + bm_normal_object.order_details_pdf + "&nbsp;<i class='fa fa-file-pdf-o' style='font-size:16px;color:red'></i></a></div><br>");
-					}
-
-					if (customer_details) {
-						listItem.append("<div><strong>" + bm_normal_object.customer_details + "</strong>: <a target='_blank' href='" + customer_details + "'>" + bm_normal_object.customer_details_pdf + "&nbsp;<i class='fa fa-file-pdf-o' style='font-size:16px;color:red'></i></a></div>");
-					}
-
-					$("#attachments-list").append(listItem);
-				} else {
-					$("#attachments-list").append("<div class='no_attachments'>" + bm_normal_object.no_attachments + "</div>");
-				}
-			} else {
-				$("#attachments-list").append("<div class='error_msg'>" + bm_error_object.server_error + "</div>");
-			}
-			$("#order-attachments-dialog").dialog("open");
-		});
-	});
 
 	// Order attachments dialogue
 	$(document).on("click", ".show-order-ticket", function () {
@@ -7680,8 +7123,6 @@ function bm_fetch_bookable_services(category_id) {
 }
 
 
-
-
 // Fetch service time slots by service id
 function bm_fetch_service_time_slots_by_service_id(service_id) {
 	jQuery('.order_field_errortext').html('');
@@ -7723,8 +7164,6 @@ function bm_fetch_service_time_slots_by_service_id(service_id) {
 		});
 	}
 }
-
-
 
 
 // Fetch service no of slots
@@ -7780,8 +7219,6 @@ function bm_fetch_bookable_no_of_slots_by_slot($this) {
 }
 
 
-
-
 // Event handler for calculating price of a product
 function calculatePrice(price, quantity) {
 
@@ -7796,8 +7233,6 @@ function calculatePrice(price, quantity) {
 
 	return totalPrice;
 }
-
-
 
 
 // Event handler for calculating price of a product
@@ -7855,8 +7290,6 @@ function bm_fetch_svc_total_price() {
 }
 
 
-
-
 // Fetch service no of slots
 function bm_fetch_service_extra() {
 	jQuery('.extra_content').html('');
@@ -7893,47 +7326,6 @@ function bm_fetch_service_extra() {
 		jQuery('.service_extras').hide();
 	}
 }
-
-
-
-// Fetch service no of slots
-function bm_fetch_service_price_discount_module() {
-	jQuery('.price_module_discount_content').html('');
-	jQuery('.price_module_data').hide();
-
-	if (jQuery('#has_discount').is(':checked')) {
-		var post = {
-			'date': jQuery('#booking_date').val(),
-			'id': jQuery('#service_id').val(),
-		}
-
-		var data = { 'action': 'bm_fetch_discount_module_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			var html = jsondata.html ? jsondata.html : '';
-
-			if (status == true) {
-				if (html != '') {
-					jQuery('.price_module_discount_content').html(html);
-					jQuery('.price_module_data').show();
-				} else {
-					jQuery('#has_discount').prop('checked', false);
-					jQuery('.price_module_discount_content').html(bm_error_object.no_price_module_date);
-					jQuery('.price_module_data').show();
-				}
-			} else {
-				jQuery('#has_discount').prop('checked', false);
-				jQuery('.price_module_discount_content').html(bm_error_object.server_error);
-				jQuery('.price_module_data').show();
-			}
-		});
-	} else {
-		jQuery('.price_module_discount_content').html('');
-		jQuery('.price_module_data').hide();
-	}
-}
-
 
 
 // Function to add extra service to the list
@@ -7975,8 +7367,6 @@ function addExtraService(index, product) {
 }
 
 
-
-
 // Function to calculate the new price based on quantity and price inputs
 function checkExtraQuantityInputMaxValue($this) {
 	var id = jQuery($this).attr('id');
@@ -7993,8 +7383,6 @@ function checkExtraQuantityInputMaxValue($this) {
 
 	setExtraTotalInputValue();
 }
-
-
 
 
 // Function to calculate extra service total price based on quantity and price inputs
@@ -8032,8 +7420,6 @@ function calculateExtraPrice(listItem, index = '') {
 }
 
 
-
-
 // Function to calculate extra service total price based on quantity and price inputs
 function getExtraServicePrice($this) {
 	var id = jQuery($this).attr('id');
@@ -8051,8 +7437,6 @@ function getExtraServicePrice($this) {
 }
 
 
-
-
 // Function to set extra service total price input value
 function setExtraTotalInputValue() {
 	var totalPrice = 0.00;
@@ -8062,8 +7446,6 @@ function setExtraTotalInputValue() {
 
 	jQuery('#extra_svc_cost').val(totalPrice.toFixed(2));
 }
-
-
 
 
 // Fetch billing details from order page
@@ -8076,8 +7458,6 @@ jQuery(document).ready(function ($) {
 		});
 	});
 });
-
-
 
 
 // Reset order page
@@ -8094,8 +7474,6 @@ function resetNoOfServiceSelection() {
 	jQuery('#total_service_booking').prop('disabled', true);
 	jQuery('#total_service_booking').html('');
 }
-
-
 
 
 // Reset order page service price content
@@ -8115,8 +7493,6 @@ function resetOrderPageServicePrice() {
 }
 
 
-
-
 // Reset order page extra service content
 function resetExtraContent() {
 	jQuery('.service_add_extra').hide();
@@ -8126,8 +7502,6 @@ function resetExtraContent() {
 }
 
 
-
-
 // Reset order page service content
 function resetTimeSlots() {
 	jQuery('#booking_slots').prop('disabled', true);
@@ -8135,15 +7509,11 @@ function resetTimeSlots() {
 }
 
 
-
-
 // Reset order page customer details content
 function resetCustomerDetails() {
 	jQuery('.billing_details').hide();
 	jQuery('.shipping_details').hide();
 }
-
-
 
 
 // Validate Order Page form
@@ -8233,8 +7603,6 @@ function order_form_validation() {
 }
 
 
-
-
 // Event handler for checking additional number of persons for a service order
 function check_for_more_persons($this) {
 	if (jQuery($this).is(':checked')) {
@@ -8247,8 +7615,6 @@ function check_for_more_persons($this) {
 }
 
 
-
-
 // Fetch billing details from order page
 jQuery(document).ready(function ($) {
 	if (getUrlParameter('id')) {
@@ -8256,8 +7622,6 @@ jQuery(document).ready(function ($) {
 	}
 	setIntlInputForCustomeForm();
 });
-
-
 
 
 //International tel input for phone form fields for backend order
@@ -8279,7 +7643,6 @@ function setIntlInputForBackendOrder() {
 }
 
 
-
 //International tel input for phone form fields for backend order
 function setIntlInputForCustomeForm() {
 	jQuery('#customer_form :input').map(function () {
@@ -8297,8 +7660,6 @@ function setIntlInputForCustomeForm() {
 		}
 	});
 }
-
-
 
 
 // Change backend order status
@@ -8329,8 +7690,6 @@ function bm_change_order_status_to_complete_or_cancelled($this) {
 }
 
 
-
-
 // Change frontend order status
 function bm_change_order_status($this) {
 	if (confirm(bm_normal_object.sure_change_status)) {
@@ -8352,162 +7711,6 @@ function bm_change_order_status($this) {
 		});
 	}
 }
-
-
-
-
-// Fetch order columns
-jQuery(document).on('click', '.edit_order_columns', function (e) {
-	e.preventDefault();
-
-	var data = { 'action': 'bm_fetch_columns_screen_options', 'type': 'orders', 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		jQuery('#order_columns').html('');
-		if (response != null && response != '') {
-			jQuery('#order_columns').html(response);
-			jQuery('#order_columns_modal').addClass('active-modal');
-			sortable_columns('available_columns');
-		} else {
-			jQuery('#order_columns').html(bm_error_object.server_error);
-			jQuery('#order_columns_modal').addClass('active-modal');
-		}
-	});
-});
-
-
-
-// Fetch checkin columns
-jQuery(document).on('click', '.edit_checkin_columns', function (e) {
-	e.preventDefault();
-
-	var data = { 'action': 'bm_fetch_columns_screen_options', 'type': 'checkin', 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		jQuery('#checkin_columns').html('');
-		if (response != null && response != '') {
-			jQuery('#checkin_columns').html(response);
-			jQuery('#checkin_columns_modal').addClass('active-modal');
-			sortable_columns('available_columns');
-		} else {
-			jQuery('#checkin_columns').html(bm_error_object.server_error);
-			jQuery('#checkin_columns_modal').addClass('active-modal');
-		}
-	});
-});
-
-
-
-
-// Sort columns
-function sortable_columns(id) {
-	jQuery(document).find("#" + id).sortable({
-		axis: "y",
-		items: '> :not(.disabled)',
-		cursor: "move",
-		revert: true,
-		update: function (event, ui) {
-			var defaultArr = {};
-			var orderArr = [];
-			var nameArr = [];
-			var textArr = [];
-			jQuery(this).find("div").each(function () {
-				var main_order = jQuery(this).find("input").attr("order");
-				var name = jQuery(this).find("input").attr("name");
-				var text = jQuery(this).find("label").text();
-
-				orderArr.push(main_order);
-				nameArr.push(name);
-				textArr.push(text);
-
-				if (jQuery(this).find("input").is(':checked')) {
-					defaultArr[name] = text;
-				}
-			});
-
-			var is_admin = jQuery("#is_admin").val();
-			var view_type = jQuery("#view_type").val();
-
-			var post = {
-				"default": defaultArr,
-				"orders": orderArr,
-				"names": nameArr,
-				"texts": textArr,
-				"is_admin": is_admin,
-				"view_type": view_type
-			};
-
-			var data = { 'action': 'bm_save_columns_screen_options', 'post': post, 'nonce': bm_ajax_object.nonce };
-			jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-				var jsondata = JSON.parse(response);
-				if (jsondata.status == true) {
-					// location.reload();
-				} else {
-					// alert(bm_error_object.server_error);
-				}
-			});
-		}
-	});
-}
-
-
-
-
-// Save selected order listing columns
-jQuery(document).on('click', '.submit_columns', function (e) {
-	e.preventDefault();
-	jQuery(document).find('.column_errortext').html('');
-	var defaultArr = {};
-	var orderArr = [];
-	var nameArr = [];
-	var textArr = [];
-
-	jQuery('#available_columns').find("div").each(function () {
-		var main_order = jQuery(this).find("input").attr("order");
-		var name = jQuery(this).find("input").attr("name");
-		var text = jQuery(this).find("label").text();
-
-		orderArr.push(main_order);
-		nameArr.push(name);
-		textArr.push(text);
-
-		if (jQuery(this).find("input").is(':checked')) {
-			defaultArr[name] = text;
-		}
-	});
-
-	var is_admin = jQuery("#is_admin").val();
-	var view_type = jQuery("#view_type").val();
-
-	var post = {
-		"default": defaultArr,
-		"orders": orderArr,
-		"names": nameArr,
-		"texts": textArr,
-		"is_admin": is_admin,
-		"view_type": view_type
-	};
-
-	if (jQuery('#available_columns input:checkbox:checked').length > 0) {
-		var data = { 'action': 'bm_save_columns_screen_options', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			if (jsondata.status == true) {
-				jQuery('#order_columns_modal').removeClass('active-modal');
-				jQuery('#order_columns').html('');
-				jQuery('#checkin_columns_modal').removeClass('active-modal');
-				jQuery('#checkin_columns').html('');
-				location.reload();
-			} else {
-				jQuery(document).find('.column_errortext').html(bm_error_object.server_error);
-				jQuery(document).find('.column_errortext').show();
-			}
-		});
-	} else {
-		jQuery(document).find('.column_errortext').html(bm_normal_object.atleast_one_checked);
-		jQuery(document).find('.column_errortext').show();
-	}
-});
-
-
 
 
 jQuery(document).ready(function ($) {
@@ -8566,119 +7769,13 @@ jQuery(document).ready(function ($) {
 				}
 			}
 
-			if ($('#order_type').val() == 'failed') {
-				bm_fetch_failed_order_as_per_search('save_search');
-			} else if ($('#order_type').val() == 'archived') {
-				bm_fetch_archived_order_as_per_search('save_search');
-			} else {
-				bm_search_order_data('save_search');
-			}
+			bm_search_order_data('save_search');
 		});
 	}
 
-	if (current_screen == 'flexibooking_page_bm_check_ins') {
-		var data = { 'action': 'bm_fetch_saved_checkin_search', 'module': 'checkin', 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var saved_search = JSON.parse(response);
-			if (saved_search != null && saved_search != "") {
-				if (typeof (saved_search.global_search) != "undefined") {
-					$('#checkin_global_search').val(saved_search.global_search ? saved_search.global_search : '');
-				}
-				if (typeof (saved_search.service_from) != "undefined") {
-					$('#checkin_service_from').val(saved_search.service_from ? saved_search.service_from : '');
-				}
-				if (typeof (saved_search.service_to) != "undefined") {
-					$('#checkin_service_to').val(saved_search.service_to ? saved_search.service_to : '');
-				}
-				if (typeof (saved_search.checkin_from) != "undefined") {
-					$('#checkin_from').val(saved_search.checkin_from ? saved_search.checkin_from : '');
-				}
-				if (typeof (saved_search.checkin_to) != "undefined") {
-					$('#checkin_to').val(saved_search.checkin_to ? saved_search.checkin_to : '');
-				}
-				if ((typeof (saved_search.service_from) != "undefined" && saved_search.service_from != '') || (typeof (saved_search.service_to) != "undefined" && saved_search.service_to != '') || (typeof (saved_search.checkin_from) != "undefined" && saved_search.checkin_from != '') || (typeof (saved_search.checkin_to) != "undefined" && saved_search.checkin_to != '')) {
-					$("#checkin_advanced_search_box").slideDown("slow");
-				}
-			}
-				bm_search_checkin_data('save_search');
-		});
-	}
-
-	if (current_screen == 'toplevel_page_bm_home') {
-		var data = { 'action': 'bm_fetch_saved_order_search', 'module': 'dashboard_upcoming_orders', 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var saved_search = JSON.parse(response);
-			if (saved_search != null && saved_search != "") {
-				if (typeof (saved_search.service_from) != "undefined") {
-					$('#dashboard_upcoming_orders_service_from').val(saved_search.service_from ? saved_search.service_from : '');
-				}
-				if (typeof (saved_search.service_to) != "undefined") {
-					$('#dashboard_upcoming_orders_service_to').val(saved_search.service_to ? saved_search.service_to : '');
-				}
-				if (typeof (saved_search.order_from) != "undefined") {
-					$('#dashboard_upcoming_orders_order_from').val(saved_search.order_from ? saved_search.order_from : '');
-				}
-				if (typeof (saved_search.order_to) != "undefined") {
-					$('#dashboard_upcoming_orders_order_to').val(saved_search.order_to ? saved_search.order_to : '');
-				}
-			}
-			bm_fetch_upcoming_orders('1', 'search');
-		});
-
-		bm_fetch_booking_counts();
-		bm_fetch_customer_and_total_booked_slot_counts('total');
-		bm_fetch_booking_status_counts();
-		bm_fetch_booking_overview();
-	}
-
-
-	// Fetch results per page
-	$(document).on('click', 'div.dashboard_table a.page-numbers', function (e) {
-		e.preventDefault();
-		var id = $(this).parents('div').attr('id');
-		var divClass = id.split('_pagination')[0];
-		var hrefString = $(this).attr('href');
-		var pagenum = getUrlVars(hrefString)["pagenum"];
-
-		if (divClass == 'dashboard_all_orders') {
-			$('#all_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_dashboard_order_data_global_search(pagenum ? pagenum : '1');
-		}
-
-		if (divClass == 'dashboard_upcoming_orders') {
-			$('#upcoming_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_upcoming_orders(pagenum ? pagenum : '1');
-		}
-
-		if (divClass == 'dashoboard_weekly_orders') {
-			$('#weekly_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_dashboard_weekly_orders(pagenum ? pagenum : '1');
-		}
-
-		if (divClass == 'dashoboard_cat_wise_orders') {
-			$('#cat_wise_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_cat_wise_orders(pagenum ? pagenum : '1');
-		}
-
-		if (divClass == 'dashboard_revenue_orders') {
-			$('#revenue_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_service_wise_revenue(pagenum ? pagenum : '1');
-		}
-
-		if (divClass == 'dashboard_datewise_revenue_orders') {
-			$('#datewise_revenue_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_datewise_revenue_orders(pagenum ? pagenum : '1');
-		}
-
-		if (divClass == 'dashboard_customer_wise_revenue_orders') {
-			$('#customer_wise_revenue_orders_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_customer_wise_revenue_orders(pagenum ? pagenum : '1');
-		}
-	});
 
 	initializeMultiselect('search_order_by_category_id');
 	initializeMultiselect('search_order_by_service_id');
-	initializeMultiselect('checkin_service_advanced_filter');
 	initializeMultiselect('order_status_filter');
     initializeMultiselect('payment_status_filter');
 	initializeMultiselect('service_filter');
@@ -8727,47 +7824,6 @@ jQuery(document).ready(function ($) {
 				order_from.datepicker("option", "maxDate", this.value);
 			});
 
-	checkin_service_from = $("#checkin_service_from")
-		.datepicker({
-			dateFormat: "dd/mm/y",
-			defaultDate: "+1w",
-			changeMonth: true,
-			numberOfMonths: 3
-		})
-		.on("change", function () {
-			checkin_service_to.datepicker("option", "minDate", this.value);
-			checkin_service_to.datepicker("setDate", this.value);
-		}),
-		checkin_service_to = $("#checkin_service_to").datepicker({
-			dateFormat: "dd/mm/y",
-			defaultDate: "+1w",
-			changeMonth: true,
-			numberOfMonths: 3
-		})
-			.on("change", function () {
-				checkin_service_from.datepicker("option", "maxDate", this.value);
-			});
-
-	checkin_from = $("#checkin_from")
-		.datepicker({
-			dateFormat: "dd/mm/y",
-			defaultDate: "+1w",
-			changeMonth: true,
-			numberOfMonths: 3
-		})
-		.on("change", function () {
-			checkin_to.datepicker("option", "minDate", this.value);
-			checkin_to.datepicker("setDate", this.value);
-		}),
-		checkin_to = $("#checkin_to").datepicker({
-			dateFormat: "dd/mm/y",
-			defaultDate: "+1w",
-			changeMonth: true,
-			numberOfMonths: 3
-		})
-			.on("change", function () {
-				checkin_from.datepicker("option", "maxDate", this.value);
-			});
 
 	dashboard_weekly_service_from = $("#weekly_service_from")
 		.datepicker({
@@ -8941,75 +7997,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-// Fetch customer and slot booking counts
-function bm_fetch_customer_and_total_booked_slot_counts(type = '') {
-	var post = {
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_customer_and_total_booked_slot_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery('.slots_booked_count').text(jsondata.slots_booked_count ? jsondata.slots_booked_count : '0');
-			jQuery('.total_customers_count').text(jsondata.total_customers_count ? jsondata.total_customers_count : '0');
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch booking status counts
-function bm_fetch_booking_status_counts() {
-	var post = {
-		'type': jQuery('#booking_status_yearly_or_monthly').val(),
-		'status': jQuery('#booking_status_value').val(),
-		'from': jQuery('#status_from').val(),
-		'to': jQuery('#status_to').val(),
-	}
-
-	var data = { 'action': 'bm_fetch_booking_status_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true && typeof (jsondata.labels) != "undefined" && typeof (jsondata.data) != "undefined") {
-			destroyChart();
-			renderStatusChart(jsondata.labels, jsondata.data);
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Destroy a chart
-function destroyChart() {
-	if (window.dashboardChart != null) {
-		window.dashboardChart.destroy();
-	}
-}
-
-
-
-// Fetch booking overview data for dashboard
-function bm_fetch_booking_overview() {
-	var data = { 'action': 'bm_fetch_booking_overview', 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (typeof (jsondata.comparison) != "undefined" && typeof (jsondata.data) != "undefined") {
-			jQuery(document).find('.booking_increase_percent').html(jsondata.comparison);
-			jQuery(document).find('.booking_overview_data').html(jsondata.data);
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
 // Read a page's or a string's GET URL variables and return them as an associative array.
 function getUrlVars(string = '') {
 	var vars = [], hash;
@@ -9028,565 +8015,16 @@ function getUrlVars(string = '') {
 }
 
 
-
 // Clicking on booking overview tag on dashboard
 jQuery(document).on('click', '.booking_overview_tag', function (e) {
 	e.preventDefault();
 });
 
-
-
 // Fetch order search data by date
 jQuery(document).on('click', '#date_search_button', function (e) {
 	e.preventDefault();
-	if (jQuery('#order_type').val() == 'failed') {
-		bm_fetch_failed_order_as_per_search('save_search');
-	} else if (jQuery('#order_type').val() == 'archived') {
-		bm_fetch_archived_order_as_per_search('save_search');
-	} else {
-		bm_search_order_data('save_search');
-	}
+	bm_search_order_data('save_search');
 });
-
-
-
-// Fetch checkin search data by date
-jQuery(document).on('click', '#checkin_date_search_button', function (e) {
-	e.preventDefault();
-	bm_search_checkin_data('save_search');
-});
-
-
-
-// Fetch order search data by date
-jQuery(document).on('click', '#dashboard_all_orders_date_search_button', function (e) {
-	e.preventDefault();
-	bm_dashboard_order_data_global_search('1', 'save_search');
-});
-
-
-
-// Fetch order search data by date
-jQuery(document).on('click', '#dashboard_upcoming_orders_date_search_button', function (e) {
-	e.preventDefault();
-	bm_fetch_upcoming_orders('1', 'save_search');
-});
-
-
-
-// Fetch dashoboard searched order data
-function bm_dashboard_order_data_global_search(pagenum = '', type = '') {
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#all_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'service_from': jQuery('#dashboard_all_orders_service_from').val(),
-		'service_to': jQuery('#dashboard_all_orders_service_to').val(),
-		'order_from': jQuery('#dashboard_all_orders_order_from').val(),
-		'order_to': jQuery('#dashboard_all_orders_order_to').val(),
-		'search_string': jQuery('#dashboard_global_search').val(),
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_dashoboard_order_global_search', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashboard_all_orders").html('');
-			jQuery("#dashboard_all_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.order_statuses) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined" && typeof (jsondata.saved_search) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-				var status_keys = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return key;
-				});
-				var status_values = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return value;
-				});
-
-				var saved_search = jsondata.saved_search;
-
-				if (saved_search != '' && saved_search != null) {
-					jQuery('#dashboard_global_search').val(typeof (saved_search.global_search) != "undefined" ? saved_search.global_search : '');
-					jQuery('#dashboard_all_orders_service_from').val(typeof (saved_search.service_from) != "undefined" ? saved_search.service_from : '');
-					jQuery('#dashboard_all_orders_service_to').val(typeof (saved_search.service_to) != "undefined" ? saved_search.service_to : '');
-					jQuery('#dashboard_all_orders_order_from').val(typeof (saved_search.order_from) != "undefined" ? saved_search.order_from : '');
-					jQuery('#dashboard_all_orders_order_to').val(typeof (saved_search.order_to) != "undefined" ? saved_search.order_to : '');
-
-					// if (saved_search.service_from != '' || saved_search.service_to != '' || saved_search.order_from != '' || saved_search.order_to != '') {
-					// 	jQuery("#dashboard_all_orders_advanced_search_box").slideDown("slow");
-					// }
-				}
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align: center;' title='" + bookings[i].service_name + "'>" + bookings[i].service_name.substring(0, 20) + '...' + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_created_at + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_date + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "<td style='text-align: center;'><div class='show-customer-dialog linkText' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-file' aria-hidden='true'></i></div></td>";
-						orderListing += "<td style='text-align: center;'>" + (bookings[i].is_frontend_booking == 0 ? bm_normal_object.backend : bm_normal_object.frontend) + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						orderListing += status_values[jQuery.inArray(bookings[i].order_status, status_keys)];
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashboard_all_orders").append(orderListing);
-					jQuery("#dashboard_all_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashboard_all_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch dashoboard upcoming order data
-function bm_fetch_upcoming_orders(pagenum = '', type = '') {
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#upcoming_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'service_from': jQuery('#dashboard_upcoming_orders_service_from').val(),
-		'service_to': jQuery('#dashboard_upcoming_orders_service_to').val(),
-		'order_from': jQuery('#dashboard_upcoming_orders_order_from').val(),
-		'order_to': jQuery('#dashboard_upcoming_orders_order_to').val(),
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_upcoming_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashboard_upcoming_orders").html('');
-			jQuery("#dashboard_upcoming_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.order_statuses) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined" && typeof (jsondata.saved_search) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-				var status_keys = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return key;
-				});
-				var status_values = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return value;
-				});
-
-				var saved_search = jsondata.saved_search;
-
-				if (saved_search != '' && saved_search != null) {
-					jQuery('#dashboard_upcoming_orders_service_from').val(typeof (saved_search.service_from) != "undefined" ? saved_search.service_from : '');
-					jQuery('#dashboard_upcoming_orders_service_to').val(typeof (saved_search.service_to) != "undefined" ? saved_search.service_to : '');
-					jQuery('#dashboard_upcoming_orders_order_from').val(typeof (saved_search.order_from) != "undefined" ? saved_search.order_from : '');
-					jQuery('#dashboard_upcoming_orders_order_to').val(typeof (saved_search.order_to) != "undefined" ? saved_search.order_to : '');
-				}
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align:center;' title='" + bookings[i].service_name + "'>" + bookings[i].service_name.substring(0, 20) + '...' + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_created_at + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_date + " </td>";
-						orderListing += "<td style='text-align: center;'><div class='show-customer-dialog linkText' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-file' aria-hidden='true'></i></div></td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "<td style='text-align: center;'>" + (bookings[i].is_frontend_booking == 0 ? bm_normal_object.backend : bm_normal_object.frontend) + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						orderListing += status_values[jQuery.inArray(bookings[i].order_status, status_keys)];
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashboard_upcoming_orders").append(orderListing);
-					jQuery("#dashboard_upcoming_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashboard_upcoming_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch dashoboard weekly searched order data
-function bm_fetch_dashboard_weekly_orders(pagenum = '', type = '') {
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#weekly_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'service_from': jQuery('#weekly_service_from').val(),
-		'service_to': jQuery('#weekly_service_to').val(),
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_dashboard_weekly_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashoboard_weekly_orders").html('');
-			jQuery("#dashoboard_weekly_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.order_statuses) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-				var status_keys = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return key;
-				});
-				var status_values = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return value;
-				});
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align: center;' title='" + bookings[i].service_name + "'>" + bookings[i].service_name.substring(0, 20) + '...' + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_created_at + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_date + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "<td style='text-align: center;'><div class='show-customer-dialog linkText' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-file' aria-hidden='true'></i></div></td>";
-						orderListing += "<td style='text-align: center;'>" + (bookings[i].is_frontend_booking == 0 ? bm_normal_object.backend : bm_normal_object.frontend) + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						orderListing += status_values[jQuery.inArray(bookings[i].order_status, status_keys)];
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashoboard_weekly_orders").append(orderListing);
-					jQuery("#dashoboard_weekly_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashoboard_weekly_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch dashoboard category wise searched order data
-function bm_fetch_cat_wise_orders(pagenum = '', type = '') {
-	var categories = [];
-	jQuery("#search_order_by_category_id option:selected").each(function () {
-		var id = jQuery(this).val();
-		categories.push(id);
-	});
-
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#cat_wise_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'categories': categories,
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_cat_wise_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashoboard_cat_wise_orders").html('');
-			jQuery("#dashoboard_cat_wise_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.order_statuses) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				var status_keys = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return key;
-				});
-				var status_values = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return value;
-				});
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].category + " </td>";
-						orderListing += "<td style='text-align: center;' title='" + bookings[i].service_name + "'>" + bookings[i].service_name.substring(0, 20) + '...' + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_created_at + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].booking_date + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "<td style='text-align: center;'>" + (bookings[i].is_frontend_booking == 0 ? bm_normal_object.backend : bm_normal_object.frontend) + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						orderListing += status_values[jQuery.inArray(bookings[i].order_status, status_keys)];
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashoboard_cat_wise_orders").append(orderListing);
-					jQuery("#dashoboard_cat_wise_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashoboard_cat_wise_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch dashoboard revenue wise searched order data
-function bm_fetch_service_wise_revenue(pagenum = '', type = '') {
-	var services = [];
-	jQuery("#search_order_by_service_id option:selected").each(function () {
-		var id = jQuery(this).val();
-		services.push(id);
-	});
-
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#revenue_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'services': services,
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_service_wise_revenue', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashboard_revenue_orders").html('');
-			jQuery("#dashboard_revenue_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align: center;' title='" + bookings[i].ordered_service + "'>" + bookings[i].ordered_service.substring(0, 20) + '...' + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_orders + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_slots_booked + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_extra_slots_booked + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashboard_revenue_orders").append(orderListing);
-					jQuery("#dashboard_revenue_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashboard_revenue_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch dashoboard datewise revenue searched order data
-function bm_fetch_datewise_revenue_orders(pagenum = '', type = '') {
-
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#datewise_revenue_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'order_from': jQuery.trim(jQuery('#datewise_revenue_order_from').val()),
-		'order_to': jQuery.trim(jQuery('#datewise_revenue_order_to').val()),
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_datewise_revenue_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashboard_datewise_revenue_orders").html('');
-			jQuery("#dashboard_datewise_revenue_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].order_date_time + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_orders + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_slots_booked + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_extra_slots_booked + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashboard_datewise_revenue_orders").append(orderListing);
-					jQuery("#dashboard_datewise_revenue_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashboard_datewise_revenue_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-
-// Fetch customer wise searched order data
-function bm_fetch_customer_wise_revenue_orders(pagenum = '', type = '') {
-
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#customer_wise_revenue_orders_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'search_string': jQuery('#custom_wise_global_search').val(),
-		'type': type,
-	}
-
-	var data = { 'action': 'bm_fetch_customer_wise_revenue_orders', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".dashboard_customer_wise_revenue_orders").html('');
-			jQuery("#dashboard_customer_wise_revenue_orders_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined") {
-				var bookings = jsondata.bookings;
-				var pagination = jsondata.pagination;
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				var orderListing = '';
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].customer_name + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].customer_email + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_orders + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_slots_booked + " </td>";
-						orderListing += "<td style='text-align: center;'>" + bookings[i].total_extra_slots_booked + " </td>";
-						orderListing += "<td style='text-align: center;'>";
-						if (currency_position == 'before') {
-							orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-						} else {
-							orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-						}
-						orderListing += "</td>";
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-
-					jQuery(".dashboard_customer_wise_revenue_orders").append(orderListing);
-					jQuery("#dashboard_customer_wise_revenue_orders_pagination").append(pagination);
-				} else {
-					jQuery(".dashboard_customer_wise_revenue_orders").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			} else {
-				alert(bm_error_object.server_error);
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
 
 
 // Reset order search
@@ -9600,13 +8038,7 @@ jQuery(document).on('click', '#reset_date_search', function (e) {
     jQuery('#order_to').val('');
     jQuery('#global_search').val('');
     
-    jQuery('#checkin_service_from').val('');
-    jQuery('#checkin_service_to').val('');
-    jQuery('#checkin_from').val('');
-    jQuery('#checkin_to').val('');
-    jQuery('#checkin_global_search').val('');
 
-	jQuery('#checkin_service_advanced_filter').val([]).multiselect('reload');
     jQuery('#order_source_filter').val('');
     
 	jQuery('#order_status_filter').val([]).multiselect('reload');
@@ -9619,79 +8051,14 @@ jQuery(document).on('click', '#reset_date_search', function (e) {
     jQuery('#service_to').datepicker("option", "maxDate", '');
     jQuery('#service_to').datepicker("option", "minDate", '');
 
-    jQuery('#checkin_service_from').datepicker("option", "maxDate", '');
-    jQuery('#checkin_service_from').datepicker("option", "minDate", '');
-    jQuery('#checkin_service_to').datepicker("option", "maxDate", '');
-    jQuery('#checkin_service_to').datepicker("option", "minDate", '');
 
     jQuery('#order_from').datepicker("option", "maxDate", '');
     jQuery('#order_from').datepicker("option", "minDate", '');
     jQuery('#order_to').datepicker("option", "maxDate", '');
     jQuery('#order_to').datepicker("option", "minDate", '');
 
-    jQuery('#checkin_from').datepicker("option", "maxDate", '');
-    jQuery('#checkin_from').datepicker("option", "minDate", '');
-    jQuery('#checkin_to').datepicker("option", "maxDate", '');
-    jQuery('#checkin_to').datepicker("option", "minDate", '');
 
-    if (jQuery('#order_type').val() == 'failed') {
-		bm_fetch_failed_order_as_per_search('save_search');
-	} else if (jQuery('#order_type').val() == 'archived') {
-		bm_fetch_archived_order_as_per_search('save_search');
-	} else {
-		bm_search_order_data('save_search');
-	}
-
-    bm_search_checkin_data('save_search');
-});
-
-
-
-// Reset order search
-jQuery(document).on('click', '#dashboard_all_orders_reset_date_search', function (e) {
-	e.preventDefault();
-
-	jQuery('#dashboard_all_orders_service_from').val('');
-	jQuery('#dashboard_all_orders_service_to').val('');
-	jQuery('#dashboard_all_orders_order_from').val('');
-	jQuery('#dashboard_all_orders_order_to').val('');
-	jQuery('#dashboard_global_search').val('');
-
-	jQuery('#dashboard_all_orders_service_from').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_all_orders_service_from').datepicker("option", "minDate", '');
-	jQuery('#dashboard_all_orders_service_to').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_all_orders_service_to').datepicker("option", "minDate", '');
-
-	jQuery('#dashboard_all_orders_order_from').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_all_orders_order_from').datepicker("option", "minDate", '');
-	jQuery('#dashboard_all_orders_order_to').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_all_orders_order_to').datepicker("option", "minDate", '');
-
-	bm_dashboard_order_data_global_search('1', 'save_search');
-});
-
-
-
-// Reset order search
-jQuery(document).on('click', '#dashboard_upcoming_orders_reset_date_search', function (e) {
-	e.preventDefault();
-
-	jQuery('#dashboard_upcoming_orders_service_from').val('');
-	jQuery('#dashboard_upcoming_orders_service_to').val('');
-	jQuery('#dashboard_upcoming_orders_order_from').val('');
-	jQuery('#dashboard_upcoming_orders_order_to').val('');
-
-	jQuery('#dashboard_upcoming_orders_service_from').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_upcoming_orders_service_from').datepicker("option", "minDate", '');
-	jQuery('#dashboard_upcoming_orders_service_to').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_upcoming_orders_service_to').datepicker("option", "minDate", '');
-
-	jQuery('#dashboard_upcoming_orders_order_from').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_upcoming_orders_order_from').datepicker("option", "minDate", '');
-	jQuery('#dashboard_upcoming_orders_order_to').datepicker("option", "maxDate", '');
-	jQuery('#dashboard_upcoming_orders_order_to').datepicker("option", "minDate", '');
-
-	bm_fetch_upcoming_orders('1', 'save_search');
+    bm_search_order_data('save_search');
 });
 
 
@@ -9699,13 +8066,7 @@ jQuery(document).on('click', '#dashboard_upcoming_orders_reset_date_search', fun
 jQuery(document).ready(function ($) {
 	// Order lsiting page search
 	$('#order_listing_search_icon').on('click', function () {
-		if (jQuery('#order_type').val() == 'failed') {
-			bm_fetch_failed_order_as_per_search('save_search');
-		} else if (jQuery('#order_type').val() == 'archived') {
-			bm_fetch_archived_order_as_per_search('save_search');
-		} else {
-			bm_search_order_data('save_search');
-		}
+		bm_search_order_data('save_search');
 	});
 
 	// Trigger the icon highlight on input
@@ -9713,46 +8074,12 @@ jQuery(document).ready(function ($) {
 		if ($(this).val().trim() !== "") {
 			$('#order_listing_search_icon').css('color', '#195587');
 		} else {
-			if (jQuery('#order_type').val() == 'failed') {
-				bm_fetch_failed_order_as_per_search('save_search');
-			} else if (jQuery('#order_type').val() == 'archived') {
-				bm_fetch_archived_order_as_per_search('save_search');
-			} else {
-				bm_search_order_data('save_search');
-			}
+			bm_search_order_data('save_search');
 			$('#order_listing_search_icon').css('color', '#ccc');
 		}
 	});
 
-	// checkin lsiting page search
-	$('#checkin_listing_search_icon').on('click', function () {
-		bm_search_checkin_data('save_search');
-	});
 
-	// Trigger the icon highlight on input
-	$('#checkin_global_search').on('input', function () {
-		if ($(this).val().trim() !== "") {
-			$('#checkin_listing_search_icon').css('color', '#195587');
-		} else {
-			bm_search_checkin_data('save_search');
-			$('#checkin_listing_search_icon').css('color', '#ccc');
-		}
-	});
-
-	// Dashboard page search
-	$('#dashboard_all_bookings_search_icon').on('click', function () {
-		bm_dashboard_order_data_global_search('1', 'save_search');
-	});
-
-	// Trigger the icon highlight on input
-	$('#dashboard_global_search').on('input', function () {
-		if ($(this).val().trim() !== "") {
-			$('#dashboard_all_bookings_search_icon').css('color', '#195587');
-		} else {
-			bm_dashboard_order_data_global_search('1', 'save_search');
-			$('#dashboard_all_bookings_search_icon').css('color', '#ccc');
-		}
-	});
 });
 
 
@@ -9954,249 +8281,10 @@ function bm_search_order_data(type = '') {
 							}
 							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'actions') {
 								orderListing += "<td style='text-align: center;width:84px;'>";
-								if (bookings[i].booking_type == 'on_request' && bookings[i].is_active == 1 && bookings[i].transaction_status == 'requires_capture') {
-									orderListing += "<button type='button' name='approveorder' id='approveorder' title=" + bm_normal_object.approve + " value=" + bookings[i].id + " onclick='bm_approve_bor_order(this)'><i class='fa fa-check' aria-hidden='true' style='color:green;cursor:pointer;'></i></button>";
-									orderListing += "<button type='button' name='cancelorder' id='cancelorder' title=" + bm_normal_object.cancel + " value=" + bookings[i].id + " onclick='bm_cancel_bor_order(this)'><i class='fa fa-times' aria-hidden='true' style='cursor:pointer;'></i></button>";
-								}
+
 								orderListing += "<button type='button' name='edittransaction' id='" + (bookings[i].is_frontend_booking == 0 ? 'edittransaction' : '') + "' title=" + (bookings[i].is_frontend_booking == 1 ? bm_error_object.transaction_not_editable : bm_normal_object.edit_transaction) + " value=" + bookings[i].id + " onclick='bm_update_transaction(this)' " + (bookings[i].is_frontend_booking == 1 ? 'disabled' : '') + "><i class='fa fa-exchange' aria-hidden='true' style='cursor:pointer;'></i></button>&nbsp;&nbsp;";
 								// orderListing += "<button type='button' name='editorder' id='editorder' title="+bm_normal_object.edit+" value="+bookings[i].id+"><i class='fa fa-edit' aria-hidden='true' style='cursor:pointer;'></i></button>";
 								orderListing += "<button type='button' name='archiveorder' id='archiveorder' title="+bm_normal_object.archive+" value="+bookings[i].id+"><i class='fa fa-archive' aria-hidden='true' style='color:red;cursor:pointer;'></i></button>";
-								orderListing += "</td>";
-							}
-						}
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-					jQuery(".order_records").append(orderListing);
-					jQuery("#order_pagination").append(pagination);
-
-					let prefix = bm_normal_object.total + " = ";
-
-					var totalsRow = "<tr class='totals-row' style='font-weight:bold; background:#f9f9f9;'>";
-					for (var j = 0; j < column_values.length; j++) {
-						if (active_columns != null && jQuery.inArray(column_value_keys[j], active_columns) == -1) {
-							continue;
-						}
-
-						if (typeof(column_values[j].column) != "undefined") {
-							let col = column_values[j].column;
-							if (col == 'service_participants') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.svc_prtcpants + "</td>";
-							} else if (col == 'extra_service_participants') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.ex_svc_prtcpants + "</td>";
-							} else if (col == 'service_cost') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.svc_cost_sum + "</td>";
-							} else if (col == 'extra_service_cost') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.ex_svc_cost_sum + "</td>";
-							} else if (col == 'discount') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.discount_sum + "</td>";
-							} else if (col == 'total_cost') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.total_cost_sum + "</td>";
-							} else {
-								totalsRow += "<td></td>";
-							}
-						}
-					}
-					totalsRow += "</tr>";
-					jQuery(".order_records").append(totalsRow);
-				} else {
-					jQuery(".order_records").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
-function bm_fetch_archived_order_as_per_search(type = '') {
-	var urlParams = new URLSearchParams(window.location.search);
-    var orderby = urlParams.get('orderby') || 'id';
-    var order = urlParams.get('order') || 'desc';
-
-	var post = {
-        'pagenum': jQuery.trim(jQuery('#pagenum').val()),
-        'base': jQuery(location).attr("href"),
-        'limit': jQuery.trim(jQuery('#limit_count').val()),
-        'service_from': jQuery('#service_from').val(),
-        'service_to': jQuery('#service_to').val(),
-        'order_from': jQuery('#order_from').val(),
-        'order_to': jQuery('#order_to').val(),
-        'search_string': jQuery.trim(jQuery('#global_search').val()),
-        'order_source': jQuery('#order_source_filter').val(),
-        'order_status': jQuery('#order_status_filter').val() || [],
-    	'payment_status': jQuery('#payment_status_filter').val() || [],
-		'services': jQuery('#service_filter').val() || [],
-    	'categories': jQuery('#category_filter').val() || [],
-        'type': type,
-        'orderby': orderby,
-        'order': order,
-    }
-
-	var data = { 'action': 'bm_fetch_archived_order_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".order_records").html('');
-			jQuery("#order_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-			var num_of_pages = jsondata.num_of_pages ? jsondata.num_of_pages : 0;
-			jQuery(document).find("#total_pages").val(num_of_pages);
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.active_columns) != "undefined" && typeof (jsondata.column_values) != "undefined" && typeof (jsondata.order_statuses) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined" && typeof (jsondata.saved_search) != "undefined") {
-				var bookings = jsondata.bookings;
-				var status_keys = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return key;
-				});
-				var status_values = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return value;
-				});
-				var active_columns = jQuery.map(jsondata.active_columns, function (value, key) {
-					return value;
-				});
-				var column_value_keys = jQuery.map(jsondata.column_values, function (value, key) {
-					return key;
-				});
-				var column_values = jQuery.map(jsondata.column_values, function (value, key) {
-					return value;
-				});
-				var pagination = jsondata.pagination;
-				var saved_search = jsondata.saved_search;
-
-				if (saved_search != '' && saved_search != null) {
-					jQuery('#global_search').val(typeof(saved_search.global_search) != "undefined" ? saved_search.global_search : '');
-					jQuery('#service_from').val(typeof(saved_search.service_from) != "undefined" ? saved_search.service_from : '');
-					jQuery('#service_to').val(typeof(saved_search.service_to) != "undefined" ? saved_search.service_to : '');
-					jQuery('#order_from').val(typeof(saved_search.order_from) != "undefined" ? saved_search.order_from : '');
-					jQuery('#order_to').val(typeof(saved_search.order_to) != "undefined" ? saved_search.order_to : '');
-					if (typeof(saved_search.order_source) != "undefined" && saved_search.order_source != '') {
-						jQuery('#order_source_filter').val(saved_search.order_source).trigger('change');
-					}
-					if (typeof(saved_search.order_status) != "undefined" && saved_search.order_status != '') {
-						var orderStatusArray = saved_search.order_status.split(',');
-						jQuery('#order_status_filter').val(orderStatusArray);
-						jQuery('#order_status_filter').multiselect('reload');
-					}
-					if (typeof(saved_search.payment_status) != "undefined" && saved_search.payment_status != '') {
-						var paymentStatusArray = saved_search.payment_status.split(',');
-						jQuery('#payment_status_filter').val(paymentStatusArray);
-						jQuery('#payment_status_filter').multiselect('reload');
-					}
-					if (typeof(saved_search.services) != "undefined" && saved_search.services != '') {
-						var servicesArray = saved_search.services.split(',');
-						jQuery('#service_filter').val(servicesArray);
-						jQuery('#service_filter').multiselect('reload');
-					}
-					if (typeof(saved_search.categories) != "undefined" && saved_search.categories != '') {
-						var categoriesArray = saved_search.categories.split(',');
-						jQuery('#category_filter').val(categoriesArray);
-						jQuery('#category_filter').multiselect('reload');
-					}
-
-					if (saved_search.service_from != '' || saved_search.service_to != '' || saved_search.order_from != '' || saved_search.order_to != '' || 
-						saved_search.order_source != '' || saved_search.order_status != '' || saved_search.payment_status != '') {
-						jQuery("#order_advanced_search_box").slideDown("slow");
-					}
-				}
-
-				var orderListing = '';
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				if (bookings != null && bookings.length != 0) {
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						for (var j = 0; j < column_values.length; j++) {
-							if (active_columns != null && jQuery.inArray(column_value_keys[j], active_columns) == -1) {
-								continue;
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'serial_no') {
-								orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_name') {
-								orderListing += "<td style='text-align: center;width:140px;' title='" + bookings[i].service_name + "'>" + bookings[i].service_name.substring(0, 20) + '...' + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'booking_created_at') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].booking_created_at + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'booking_date') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].booking_date + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'first_name') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].first_name + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'last_name') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].last_name + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'contact_no') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].contact_no + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'email_address') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].email_address + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_participants') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].service_participants + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'extra_service_participants') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].extra_service_participants + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_cost') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].service_cost);
-								} else {
-									orderListing += changePriceFormat(bookings[i].service_cost) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'extra_service_cost') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].extra_service_cost);
-								} else {
-									orderListing += changePriceFormat(bookings[i].extra_service_cost) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'discount') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].discount);
-								} else {
-									orderListing += changePriceFormat(bookings[i].discount) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'total_cost') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-								} else {
-									orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-								}
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'customer_data') {
-								orderListing += "<td style='text-align: center;'><div class='show-archived-order-customer-dialog linkText' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-file' aria-hidden='true'></i></div></td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'ordered_from') {
-								orderListing += "<td style='text-align: center;'>" + (bookings[i].is_frontend_booking == 0 ? bm_normal_object.backend : bm_normal_object.frontend) + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'order_status') {
-								orderListing += "<td style='text-align: center;'>";
-								orderListing += status_values[jQuery.inArray(bookings[i].original_order_status, status_keys)];
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'payment_status') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].stripe_status + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'order_attachments') {
-								orderListing += "<td style='text-align: center;'><div class='show-archived-order-attachments' style='cursor:pointer;font-size:16px;' id=" + bookings[i].original_id + "><i class='fa fa-paperclip' aria-hidden='true'></i></div></td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'actions') {
-								orderListing += "<td style='text-align: center;width:84px;'>";
-								orderListing += "<button type='button' name='restoreorder' id='restoreorder' title="+bm_normal_object.restore+" value="+bookings[i].id+"><i class='fa fa-refresh' aria-hidden='true' style='color:red;cursor:pointer;'></i></button>&nbsp;&nbsp;";
-								orderListing += "<button type='button' name='delorder' id='delorder' title="+bm_normal_object.remove+" value="+bookings[i].id+"><i class='fa fa-trash' aria-hidden='true' style='color:red;cursor:pointer;'></i></button>";
 								orderListing += "</td>";
 							}
 						}
@@ -10257,398 +8345,13 @@ function bm_sort_orders(column, direction) {
 }
 
 
-// Search checkin data
-function bm_search_checkin_data(type = '') {
-	var post = {
-		'pagenum': jQuery.trim(jQuery('#pagenum').val()),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'service_from': jQuery('#checkin_service_from').val(),
-		'service_to': jQuery('#checkin_service_to').val(),
-		'checkin_from': jQuery('#checkin_from').val(),
-		'checkin_to': jQuery('#checkin_to').val(),
-		'search_string': jQuery.trim(jQuery('#checkin_global_search').val()),
-		'type': type,
-		'service_ids': jQuery('#checkin_service_advanced_filter').val(),
-	}
-
-	var data = { 'action': 'bm_fetch_checkin_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".checkin_records").html('');
-			jQuery("#checkin_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-			var num_of_pages = jsondata.num_of_pages ? jsondata.num_of_pages : 0;
-			jQuery(document).find("#total_pages").val(num_of_pages);
-
-			if (typeof (jsondata.checkins) != "undefined" && typeof (jsondata.active_columns) != "undefined" && typeof (jsondata.column_values) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined" && typeof (jsondata.saved_search) != "undefined") {
-				var checkins = jsondata.checkins ?? [];
-				var active_columns = jQuery.map(jsondata.active_columns, function (value, key) {
-					return value;
-				});
-				var column_value_keys = jQuery.map(jsondata.column_values, function (value, key) {
-					return key;
-				});
-				var column_values = jQuery.map(jsondata.column_values, function (value, key) {
-					return value;
-				});
-				var pagination = jsondata.pagination;
-				var saved_search = jsondata.saved_search;
-
-				if (saved_search != '' && saved_search != null) {
-					jQuery('#checkin_global_search').val(typeof (saved_search.global_search) != "undefined" ? saved_search.global_search : '');
-					jQuery('#checkin_service_from').val(typeof (saved_search.service_from) != "undefined" ? saved_search.service_from : '');
-					jQuery('#checkin_service_to').val(typeof (saved_search.service_to) != "undefined" ? saved_search.service_to : '');
-					jQuery('#checkin_from').val(typeof (saved_search.checkin_from) != "undefined" ? saved_search.checkin_from : '');
-					jQuery('#checkin_to').val(typeof (saved_search.checkin_to) != "undefined" ? saved_search.checkin_to : '');
-					if (Array.isArray(saved_search.service_ids) && saved_search.service_ids.length > 0) {
-						var serviceIdsArray = saved_search.service_ids.join(',');
-						jQuery('#checkin_service_advanced_filter').val(serviceIdsArray);
-						jQuery('#checkin_service_advanced_filter').multiselect('reload');
-					}
-
-					if (
-						saved_search.service_from ||
-						saved_search.service_to ||
-						saved_search.checkin_from ||
-						saved_search.checkin_to ||
-						(Array.isArray(saved_search.service_ids) && saved_search.service_ids.length > 0)
-					) {
-						jQuery("#checkin_advanced_search_box").slideDown("slow");
-					}
-				}
-
-				var checkinListing = '';
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				if (checkins != null && checkins.length > 0) {
-					for (var i = 0; i < checkins.length; i++) {
-						checkinListing += "<tr><form role='form' method='post'>";
-						for (var j = 0; j < column_values.length; j++) {
-							if (active_columns != null && jQuery.inArray(column_value_keys[j], active_columns) == -1) {
-								continue;
-							}
-
-							checkinListing += `<input type="hidden" id="email_id_${i}" value="${checkins[i].email_id ?? 0}">`;
-							checkinListing += `<input type="hidden" id="module_id_${i}" value="${checkins[i].module_id ?? 0}">`;
-							checkinListing += `<input type="hidden" id="module_type_${i}" value="${checkins[i].module_type ?? ''}">`;
-							checkinListing += `<input type="hidden" id="mail_type_${i}" value="${checkins[i].mail_type ?? ''}">`;
-							checkinListing += `<input type="hidden" id="template_id_${i}" value="${checkins[i].template_id ?? 0}">`;
-							checkinListing += `<input type="hidden" id="process_id_${i}" value="${checkins[i].process_id ?? 0}">`;
-
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'serial_no') {
-								checkinListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_name') {
-								checkinListing += "<td style='text-align: center;width:140px;' title='" + checkins[i].service_name + "'>" + checkins[i].service_name.substring(0, 20) + '...' + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'booking_date') {
-								checkinListing += "<td style='text-align: center;'>" + checkins[i].booking_date + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'first_name') {
-								checkinListing += "<td style='text-align: center;'>" + checkins[i].first_name + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'last_name') {
-								checkinListing += "<td style='text-align: center;'>" + checkins[i].last_name + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'contact_no') {
-								checkinListing += "<td style='text-align: center;'>" + checkins[i].contact_no + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'email_address') {
-								checkinListing += "<td style='text-align: center;'>" + checkins[i].email_address + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'total_cost') {
-								checkinListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									checkinListing += currency_symbol + changePriceFormat(checkins[i].total_cost);
-								} else {
-									checkinListing += changePriceFormat(checkins[i].total_cost) + currency_symbol;
-								}
-								checkinListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'checkin_time') {
-								checkinListing += "<td style='text-align: center;'>" + (checkins[i].checkin_time) + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'checkin_status') {
-								const status = checkins[i].checkin_status;
-								
-								checkinListing += `<td style='text-align: center;'>`;
-								checkinListing += `<select class="checkin-status-dropdown" 
-												data-checkin-id="${checkins[i].checkin_id}"
-												data-booking-id="${checkins[i].booking_id}">
-									<option value="pending" ${status == 'pending' ? 'selected' : ''}>Pending</option>
-									<option value="checked_in" ${status == 'checked_in' ? 'selected' : ''}>Checked In</option>
-									<option value="expired" ${status == 'expired' ? 'selected' : ''}>Expired</option>
-								</select>`;
-								checkinListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'ticket_pdf') {
-								checkinListing += "<td style='text-align: center;'><div class='show-order-ticket' style='cursor:pointer;font-size:16px;' id=" + checkins[i].booking_id + "><i class='fa fa-paperclip' aria-hidden='true'></i></div></td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'actions') {
-								checkinListing += `<td style='text-align: center;'>
-									<div class="action-buttons">
-										<a href="#" class="view-details" data-id="${checkins[i].booking_id}" 
-										title="View Details">
-											<span class="dashicons dashicons-visibility"></span>
-										</a>
-										<span class="resend-email" title="${bm_normal_object.resend_ticket_mail}" id="${checkins[i].email_id ?? 0}" data-id="${i}" onclick="bm_open_email_body(this, 'checkin')">
-											<span class="dashicons dashicons-email-alt"></span>
-										</span>
-									</div>
-								</td>`;
-							}
-						}
-						checkinListing += "</form></tr>";
-						current_pagenumber++;
-					}
-					jQuery(".checkin_records").append(checkinListing);
-					jQuery("#checkin_pagination").append(pagination);
-				} else {
-					jQuery(".checkin_records").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
-
 function bm_show_hide_respective_orders($this) {
-	if ($this.value == 'failed') {
-		jQuery('.status_search_span').hide();
-		jQuery('.payment_status_search_span').hide();
-		jQuery('.service_search_span').hide();
-		jQuery('.category_search_span').hide();
-		bm_fetch_failed_order_as_per_search('save_search');
-	} else if ($this.value == 'all-non-failed') {
-		jQuery('.status_search_span').show();
-		jQuery('.payment_status_search_span').show();
-		jQuery('.service_search_span').show();
-		jQuery('.category_search_span').show();
-		bm_search_order_data('save_search');
-	} else if ($this.value == 'archived') {
-		jQuery('.status_search_span').show();
-		jQuery('.payment_status_search_span').show();
-		jQuery('.service_search_span').show();
-		jQuery('.category_search_span').show();
-		bm_fetch_archived_order_as_per_search('save_search');
-	}
+	jQuery('.status_search_span').show();
+	jQuery('.payment_status_search_span').show();
+	jQuery('.service_search_span').show();
+	jQuery('.category_search_span').show();
+	bm_search_order_data('save_search');
 }
-
-
-function bm_fetch_failed_order_as_per_search(type = '') {
-	var urlParams = new URLSearchParams(window.location.search);
-    var orderby = urlParams.get('orderby') || 'id';
-    var order = urlParams.get('order') || 'desc';
-
-	var post = {
-        'pagenum': jQuery.trim(jQuery('#pagenum').val()),
-        'base': jQuery(location).attr("href"),
-        'limit': jQuery.trim(jQuery('#limit_count').val()),
-        'service_from': jQuery('#service_from').val(),
-        'service_to': jQuery('#service_to').val(),
-        'order_from': jQuery('#order_from').val(),
-        'order_to': jQuery('#order_to').val(),
-        'search_string': jQuery.trim(jQuery('#global_search').val()),
-        'order_source': jQuery('#order_source_filter').val(),
-        'type': type,
-        'orderby': orderby,
-        'order': order
-    };
-
-	var data = { 'action': 'bm_fetch_failed_order_as_per_search', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".order_records").html('');
-			jQuery("#order_pagination").html('');
-			var currency_symbol = bm_normal_object.currency_symbol;
-			var currency_position = bm_normal_object.currency_position;
-			var num_of_pages = jsondata.num_of_pages ? jsondata.num_of_pages : 0;
-			jQuery(document).find("#total_pages").val(num_of_pages);
-
-			if (typeof (jsondata.bookings) != "undefined" && typeof (jsondata.active_columns) != "undefined" && typeof (jsondata.column_values) != "undefined" && typeof (jsondata.order_statuses) != "undefined" && typeof (jsondata.current_pagenumber) != "undefined" && typeof (jsondata.pagination) != "undefined" && typeof (jsondata.saved_search) != "undefined") {
-				var bookings = jsondata.bookings;
-				var status_keys = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return key;
-				});
-				var status_values = jQuery.map(jsondata.order_statuses, function (value, key) {
-					return value;
-				});
-				var active_columns = jQuery.map(jsondata.active_columns, function (value, key) {
-					return value;
-				});
-				var column_value_keys = jQuery.map(jsondata.column_values, function (value, key) {
-					return key;
-				});
-				var column_values = jQuery.map(jsondata.column_values, function (value, key) {
-					return value;
-				});
-				var pagination = jsondata.pagination;
-				var saved_search = jsondata.saved_search;
-
-				if (saved_search != '' && saved_search != null) {
-					jQuery('#global_search').val(typeof (saved_search.global_search) != "undefined" ? saved_search.global_search : '');
-					jQuery('#service_from').val(typeof (saved_search.service_from) != "undefined" ? saved_search.service_from : '');
-					jQuery('#service_to').val(typeof (saved_search.service_to) != "undefined" ? saved_search.service_to : '');
-					jQuery('#order_from').val(typeof (saved_search.order_from) != "undefined" ? saved_search.order_from : '');
-					jQuery('#order_to').val(typeof (saved_search.order_to) != "undefined" ? saved_search.order_to : '');
-
-					if (saved_search.service_from != '' || saved_search.service_to != '' || saved_search.order_from != '' || saved_search.order_to != '') {
-						jQuery("#order_advanced_search_box").slideDown("slow");
-					}
-				}
-
-				var orderListing = '';
-				var current_pagenumber = jsondata.current_pagenumber;
-
-				if (bookings != null && bookings.length != 0) {
-
-					for (var i = 0; i < bookings.length; i++) {
-						orderListing += "<tr><form role='form' method='post'>";
-						for (var j = 0; j < column_values.length; j++) {
-							if (active_columns != null && jQuery.inArray(column_value_keys[j], active_columns) == -1) {
-								continue;
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'serial_no') {
-								orderListing += "<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : i + 1) + "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_name') {
-								orderListing += "<td style='text-align: center;width:140px;' title='" + bookings[i].service_name + "'>" + bookings[i].service_name.substring(0, 20) + '...' + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'booking_created_at') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].booking_created_at + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'booking_date') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].booking_date + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'first_name') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].first_name + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'last_name') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].last_name + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'contact_no') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].contact_no + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'email_address') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].email_address + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_participants') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].service_participants + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'extra_service_participants') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].extra_service_participants + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'service_cost') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].service_cost);
-								} else {
-									orderListing += changePriceFormat(bookings[i].service_cost) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'extra_service_cost') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].extra_service_cost);
-								} else {
-									orderListing += changePriceFormat(bookings[i].extra_service_cost) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'discount') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].discount);
-								} else {
-									orderListing += changePriceFormat(bookings[i].discount) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'total_cost') {
-								orderListing += "<td style='text-align: center;'>";
-								if (currency_position == 'before') {
-									orderListing += currency_symbol + changePriceFormat(bookings[i].total_cost);
-								} else {
-									orderListing += changePriceFormat(bookings[i].total_cost) + currency_symbol;
-								}
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'customer_data') {
-								orderListing += "<td style='text-align: center;'><div class='show-failed-order-customer-dialog' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-file' aria-hidden='true'></i></div></td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'ordered_from') {
-								orderListing += "<td style='text-align: center;'>" + (bookings[i].is_frontend_booking == 0 ? bm_normal_object.backend : bm_normal_object.frontend) + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'order_status') {
-								orderListing += "<td style='text-align: center;'>";
-								orderListing += status_values[jQuery.inArray(bookings[i].order_status, status_keys)];
-								orderListing += "</td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'payment_status') {
-								orderListing += "<td style='text-align: center;'>" + bookings[i].stripe_status + " </td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'order_attachments') {
-								orderListing += "<td style='text-align: center;'><div class='show-failed-order-attachments' style='cursor:pointer;font-size:16px;' id=" + bookings[i].id + "><i class='fa fa-paperclip' aria-hidden='true'></i></div></td>";
-							}
-							if (typeof (column_values[j].column) != "undefined" && column_values[j].column == 'actions') {
-								orderListing += "<td style='text-align: center;width:84px;'>";
-								orderListing += "<button type='button' id='failedtransaction' title='" + bm_error_object.transaction_not_editable + "' value='0' disabled><i class='fa fa-exchange' aria-hidden='true' style='cursor:pointer;'></i></button>&nbsp;&nbsp;";
-								orderListing += "<button type='button' name='delfailedorder' id='delfailedorder' title="+bm_normal_object.remove+" value="+bookings[i].id+"><i class='fa fa-trash' aria-hidden='true' style='color:red;cursor:pointer;'></i></button>";
-								orderListing += "</td>";
-							}
-						}
-						orderListing += "</form></tr>";
-						current_pagenumber++;
-					}
-					jQuery(".order_records").append(orderListing);
-					jQuery("#order_pagination").append(pagination);
-
-					let prefix = bm_normal_object.total + " = ";
-
-					var totalsRow = "<tr class='totals-row' style='font-weight:bold; background:#f9f9f9;'>";
-					for (var j = 0; j < column_values.length; j++) {
-						if (active_columns != null && jQuery.inArray(column_value_keys[j], active_columns) == -1) {
-							continue;
-						}
-
-						if (typeof(column_values[j].column) != "undefined") {
-							let col = column_values[j].column;
-							if (col == 'service_participants') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.svc_prtcpants + "</td>";
-							} else if (col == 'extra_service_participants') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.ex_svc_prtcpants + "</td>";
-							} else if (col == 'service_cost') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.svc_cost_sum + "</td>";
-							} else if (col == 'extra_service_cost') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.ex_svc_cost_sum + "</td>";
-							} else if (col == 'discount') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.discount_sum + "</td>";
-							} else if (col == 'total_cost') {
-								totalsRow += "<td style='text-align: center;'>" + prefix + jsondata.total_cost_sum + "</td>";
-							} else {
-								totalsRow += "<td></td>";
-							}
-						}
-					}
-					totalsRow += "</tr>";
-					jQuery(".order_records").append(totalsRow);
-				} else {
-					jQuery(".order_records").append('<div class="no_records_class">' + bm_normal_object.no_records + '</div>');
-				}
-			}
-		} else {
-			alert(bm_error_object.server_error);
-		}
-	});
-}
-
 
 
 // Export table content
@@ -10688,7 +8391,6 @@ function bm_export_to_csv_old(tableId, filename, excludedColumns = [], includeCo
 }
 
 
-
 // Fetch order export options html
 jQuery(document).on('click', '.export_order_records', function (e) {
 	e.preventDefault();
@@ -10713,7 +8415,6 @@ jQuery(document).on('click', '.export_order_records', function (e) {
 });
 
 
-
 // Show/hide page range
 jQuery(document).on('change', '#exportOption', function () {
 	if (this.value == '3') {
@@ -10722,7 +8423,6 @@ jQuery(document).on('change', '#exportOption', function () {
 		jQuery('#rangeOptions').hide();
 	}
 });
-
 
 
 // Fetch export data on click
@@ -10746,7 +8446,6 @@ jQuery(document).on('click', '#exportButton', function () {
 		fetchAndExportData('orders', 'range', startPage, endPage);
 	}
 });
-
 
 
 // Fetch Export Data
@@ -10806,34 +8505,6 @@ function fetchAndExportData(moduleType, type, startPage = 0, endPage = 0) {
 }
 
 
-
-
-// Checkin export
-jQuery(document).on('click', '.export_checkin_records', function (e) {
-	e.preventDefault();
-	jQuery('#checkinexportButton').show();
-	jQuery('#checkinresendProcess').hide();
-	jQuery('#checkinexportButton').prop('disabled', false);
-
-	var data = { 'action': 'bm_export_checkin_options_html', 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		jQuery('#export_checkin').html('');
-		var jsondata = JSON.parse(response);
-		var status = jsondata.status ? jsondata.status : '';
-		var html = jsondata.html ? jsondata.html : '';
-
-		if (status == false) {
-			jQuery('#checkinexportButton').prop('disabled', true);
-		}
-
-		jQuery('#export_checkin').html(html);
-		jQuery('#checkin_export_modal').addClass('active-modal');
-	});
-});
-
-
-
-
 // Fetch export data on click
 jQuery(document).on('click', '#checkinexportButton', function () {
 	var exportOption = jQuery('#exportOption').val();
@@ -10855,8 +8526,6 @@ jQuery(document).on('click', '#checkinexportButton', function () {
 		fetchAndExportData('checkin', 'range', startPage, endPage);
 	}
 });
-
-
 
 
 // Export to csv
@@ -10886,7 +8555,6 @@ function exportToCSV(data, headers, headerToKey, filename) {
 }
 
 
-
 // Handle special characters in export
 function encodeValue1(value) {
 	value = String(value);
@@ -10897,12 +8565,10 @@ function encodeValue1(value) {
 }
 
 
-
 // Handle special characters in export
 function encodeValue(value) {
 	return `"${value.replace(/"/g, '""')}"`;
 }
-
 
 
 // Show/hide search box
@@ -10923,7 +8589,6 @@ function bm_remove_hidden_class(id) {
 		jQuery("#" + id).addClass("hidden");
 	}
 }
-
 
 
 // Convert one date format to another format
@@ -10984,7 +8649,6 @@ function convertDateFormat_old(date, toFormat) {
 		return false;
 	}
 }
-
 
 
 // Convert one date format to another format
@@ -11105,7 +8769,6 @@ function convertDateFormat(date, toFormat) {
 }
 
 
-
 // Change price format
 function changePriceFormat(price, customLocale = '') {
 	price = !isNaN(parseFloat(price)) ? parseFloat(price) : 0.00;
@@ -11122,7 +8785,6 @@ function changePriceFormat(price, customLocale = '') {
 
 	return formattedPrice;
 }
-
 
 
 // Global search order listing
@@ -11147,7 +8809,6 @@ function bm_global_search_order_data(value) {
 	jQuery("#dashboard_all_orders_pagination").html('');
 	jQuery("#dashboard_all_orders_pagination").html(pagination);
 }
-
 
 
 // Pagination
@@ -11181,14 +8842,12 @@ function generatePagination(pageNumber, baseUrl, totalPages) {
 }
 
 
-
 // Show module pop up message
 jQuery(document).ready(function ($) {
 	$("#close-popup-message").click(function () {
 		hideMessage();
 	});
 });
-
 
 
 // Show module pop up message
@@ -11206,12 +8865,10 @@ function showMessage(message, type) {
 }
 
 
-
 // Hide module pop up message
 function hideMessage() {
 	jQuery("#popup-message-overlay, #popup-message-container").fadeOut();
 }
-
 
 
 // Check validity of age values entered in service
@@ -11300,10 +8957,6 @@ jQuery(document).ready(function ($) {
 		'flexibooking_page_bm_booking_analytics': 2,
 		'admin_page_bm_add_order': 3,
 		'admin_page_bm_single_order':3,
-		'flexibooking_page_bm_service_booking_planner': 4,
-		'flexibooking_page_bm_single_service_booking_planner': 5,
-		'admin_page_bm_add_customer': 6,
-		'admin_page_bm_customer_profile': 6,
 		'admin_page_bm_add_service': 7,
 		'admin_page_bm_add_category': 8,
 		'admin_page_bm_add_template': 9,
@@ -11347,7 +9000,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
 // Add event condition box in event notification page
 function bm_add_condition_box() {
 	var last = jQuery('#conditional_content td.condition_field:last').attr("id");
@@ -11375,8 +9027,6 @@ function bm_add_condition_box() {
 }
 
 
-
-
 // Remove condition box in event notification page
 function bm_remove_condition_box(a) {
 	var total = jQuery('#conditional_content td.condition_field').length;
@@ -11387,7 +9037,6 @@ function bm_remove_condition_box(a) {
 		jQuery(a).parents('td.condition_field').remove();
 	}
 }
-
 
 
 jQuery(document).ready(function ($) {
@@ -11407,7 +9056,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
 // Remove condition box in event notification page
 function bm_fetch_event_condition_value(a) {
 	var id = jQuery(a).attr('id');
@@ -11415,7 +9063,6 @@ function bm_fetch_event_condition_value(a) {
 	var y = Number(id.split("_")[2]);
 	bm_return_value_for_event_condition_type(x, y);
 }
-
 
 
 function bm_return_value_for_event_condition_type(a, b) {
@@ -11437,7 +9084,6 @@ function bm_return_value_for_event_condition_type(a, b) {
 		}
 	});
 }
-
 
 
 // Multiselect
@@ -11491,7 +9137,6 @@ function initializeMultiselect(a) {
 }
 
 
-
 // Change process visiblity
 function bm_change_process_visibility($this) {
 	var process_id = $this.id.split('_')[3];
@@ -11521,7 +9166,6 @@ function bm_change_process_visibility($this) {
 		inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
 	}
 }
-
 
 
 // Update order transaction data
@@ -11560,7 +9204,6 @@ function bm_update_transaction($this) {
 		}
 	});
 }
-
 
 
 // Update order transaction
@@ -11615,90 +9258,6 @@ function bm_save_order_transaction() {
 		});
 	}
 }
-
-
-// Approve book on request order
-function bm_approve_bor_order($this) {
-	var id = jQuery($this).val();
-
-	var post = {
-		'id': id,
-	}
-
-	if (confirm(bm_normal_object.approve_bor_order)) {
-		var data = { 'action': 'bm_approve_bor_order', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			if (status == true) {
-				showMessage(bm_success_object.order_approve_success, 'success');
-				location.reload();
-			} else if (status == false) {
-				showMessage(bm_error_object.server_error, 'error');
-			}
-		});
-	}
-}
-
-
-
-// Cancel book on request order
-function bm_cancel_bor_order($this) {
-	var id = jQuery($this).val();
-
-	var post = {
-		'id': id,
-	}
-
-	if (confirm(bm_normal_object.cancel_bor_order)) {
-		var data = { 'action': 'bm_cancel_bor_order', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			if (status == true) {
-				showMessage(bm_success_object.order_cancel_success, 'success');
-				location.reload();
-			} else if (status == false) {
-				showMessage(bm_error_object.server_error, 'error');
-			}
-		});
-	}
-}
-
-
-
-// Change template visiblity
-function bm_change_template_visibility($this) {
-	var template_id = $this.id.split('_')[3];
-	var inputStatus = jQuery($this).is(':checked') ? 1 : 0;
-	var type = jQuery($this).data('type');
-
-	var post = {
-		'id': template_id,
-		'status': inputStatus,
-		'type': type,
-	}
-
-	if (confirm(bm_normal_object.change_tmpl_visibility)) {
-		var data = { 'action': 'bm_change_template_visibility', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-			var jsondata = JSON.parse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			if (status == 'error') {
-				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
-				showMessage(bm_error_object.active_template_type, 'error');
-			} else if (status == false) {
-				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
-				showMessage(bm_error_object.server_error, 'error');
-			} else {
-				showMessage(bm_success_object.status_successfully_changed, 'success');
-			}
-		});
-	} else {
-		inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
-	}
-}
-
 
 
 // Process form Validation
@@ -12247,7 +9806,6 @@ function remove_email_attachmment($this) {
 }
 
 
-
 // Clear unuploaded temporary file attachment
 // function remove_unsent_temporary_email_attachment() {
 // 	var email_id = sessionStorage.getItem("current_resend_mail_id");
@@ -12281,7 +9839,6 @@ function remove_unsent_temporary_email_attachment() {
 }
 
 
-
 // Check unuploaded file attachment
 jQuery(document).ready(function ($) {
 	var current_screen = bm_normal_object.current_screen;
@@ -12292,7 +9849,6 @@ jQuery(document).ready(function ($) {
 		// }
 	}
 });
-
 
 
 // Copy text to clipboard
@@ -12309,7 +9865,6 @@ function bm_copy_text(element) {
 }
 
 
-
 // Copy text to clipboard message
 function bm_copy_message(element) {
     var tooltip = element.nextElementSibling;
@@ -12317,7 +9872,6 @@ function bm_copy_message(element) {
         tooltip.innerHTML = bm_normal_object.copy_to_clipboard;
     }
 }
-
 
 
 // Global payment settings validation
@@ -12346,7 +9900,6 @@ function bm_payment_settings_validation() {
 }
 
 
-
 // Show admin credentials prompt for stripe credentials
 function show_stripe_credentials($this) {
 	if (jQuery($this).is(':checked')) {
@@ -12355,7 +9908,6 @@ function show_stripe_credentials($this) {
 		jQuery('#stripe_credentials').hide();
 	}
 }
-
 
 
 // Dialog to prompt for the admin password
@@ -12463,7 +10015,6 @@ function promptForAdminPassword() {
 }
 
 
-
 // Pagination settings for category and service pages
 jQuery(document).ready(function ($) {
 	$(document).on('click', 'div#category_records_listing a.page-numbers', function (e) {
@@ -12496,36 +10047,6 @@ jQuery(document).ready(function ($) {
 		}
 	});
 
-	$(document).on('click', 'div#templates_records_listing a.page-numbers', function (e) {
-		e.preventDefault();
-		var id = $(this).parents('div.listing_table').attr('id');
-		var divClass = id.split('_pagination')[0];
-		var hrefString = $(this).attr('href');
-		var pagenum = getUrlVars(hrefString)["pagenum"];
-
-		sessionStorage.setItem("templatePagno", pagenum);
-
-		if (divClass == 'templates_records_listing') {
-			$('#template_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_template_listing(pagenum ? pagenum : '1');
-		}
-	});
-
-	$(document).on('click', 'div#price_module_records_listing a.page-numbers', function (e) {
-		e.preventDefault();
-		var id = $(this).parents('div.listing_table').attr('id');
-		var divClass = id.split('_pagination')[0];
-		var hrefString = $(this).attr('href');
-		var pagenum = getUrlVars(hrefString)["pagenum"];
-
-		sessionStorage.setItem("priceModulePagno", pagenum);
-
-		if (divClass == 'price_module_records_listing') {
-			$('#price_module_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_price_module_listing(pagenum ? pagenum : '1');
-		}
-	});
-
 	$(document).on('click', 'div#notification_process_records_listing a.page-numbers', function (e) {
 		e.preventDefault();
 		var id = $(this).parents('div.listing_table').attr('id');
@@ -12541,103 +10062,6 @@ jQuery(document).ready(function ($) {
 		}
 	});
 });
-
-
-
-// Fetch templates
-function bm_fetch_template_listing(pagenum = '') {
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#template_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-	}
-
-	var data = { 'action': 'bm_fetch_template_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".template_records").html('');
-			jQuery(".template_pagination").html('');
-			var templates = jsondata.templates ? jsondata.templates : [];
-			var type_names = jsondata.type_name ? jsondata.type_name : '';
-			var pagination = jsondata.pagination ? jsondata.pagination : '';
-			var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : 1;
-			var templateListing = '';
-			var j = 0;
-
-			if (templates.length != 0) {
-				for (var i = 0; i < templates.length; i++) {
-					templateListing += "<tr><form role='form' method='post'>" +
-						"<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-						"<td style='text-align: center;' title=" + (templates[i].tmpl_name_en ? templates[i].tmpl_name_en : templates[i].tmpl_name_it) + ">" + (templates[i].tmpl_name_en ? templates[i].tmpl_name_en.substring(0, 80) : templates[i].tmpl_name_it.substring(0, 80)) + '...' + " </td>" +
-						"<td style='text-align: center;' title=" + (type_names[i] ? type_names[i] : '') + ">" + (type_names[i] ? type_names[i].substring(0, 80) + '...' : '') + "</td>" +
-						"<td style='text-align: center;' class='bm-checkbox-td'>" +
-						"<input name='bm_template_status' type='checkbox' id='bm_template_status_" + templates[i].id + "' data-type='" + (templates[i].type ? templates[i].type : -1) + "' class='regular-text auto-checkbox bm_toggle' " + (templates[i].status == 1 ? 'checked' : '') + " onchange='bm_change_template_visibility(this)'>" +
-						"<label for='bm_template_status_" + templates[i].id + "'></label>" +
-						"</td>" +
-						"<td style='text-align: center;'>" +
-						"<button type='button' name='edittemplate' class='edit-button' id='edittemplate' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + templates[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-						"<button type='button' name='deltemplate' class='delete-button' id='deltemplate' title='" + bm_normal_object.remove + "' value='" + templates[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-						"</td>" +
-						"</form></tr>";
-					current_pagenumber++;
-					j++;
-				}
-			} else {
-				location.reload();
-			}
-
-			jQuery(".template_records").append(templateListing);
-			jQuery(".template_pagination").append(pagination);
-		}
-	});
-}
-
-
-
-// Fetch price modules
-function bm_fetch_price_module_listing(pagenum = '') {
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#price_module_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-	}
-
-	var data = { 'action': 'bm_fetch_price_module_listing', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status == true) {
-			jQuery(".price_module_records").html('');
-			jQuery(".price_module_pagination").html('');
-			var priceModules = jsondata.price_modules ? jsondata.price_modules : [];
-			var pagination = jsondata.pagination ? jsondata.pagination : '';
-			var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : 1;
-			var priceModuleListing = '';
-			var j = 0;
-
-			if (priceModules.length != 0) {
-				for (var i = 0; i < priceModules.length; i++) {
-					priceModuleListing += "<tr class='single_price_module_record'><form role='form' method='post'>" +
-						"<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-						"<td style='text-align: center;' title=" + (priceModules[i].module_name ? priceModules[i].module_name : '') + ">" + (priceModules[i].module_name ? priceModules[i].module_name.substring(0, 80) : '') + '...' + " </td>" +
-						"<td style='text-align: center;'>" +
-						"<button type='button' name='editmodule' class='edit-button' id='editmodule' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + priceModules[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-						"<button type='button' name='delmodule' class='delete-button' id='delmodule' title='" + bm_normal_object.remove + "' value='" + priceModules[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-						"</td>" +
-						"</form></tr>";
-					current_pagenumber++;
-					j++;
-				}
-			} else {
-				location.reload();
-			}
-
-			jQuery(".price_module_records").append(priceModuleListing);
-			jQuery(".price_module_pagination").append(pagination);
-		}
-	});
-}
-
 
 
 // Fetch notification processes
@@ -12690,8 +10114,6 @@ function bm_fetch_notification_processes_listing(pagenum = '') {
 }
 
 
-
-
 // Prevent right click on payment settings page
 jQuery(document).ready(function ($) {
 	var current_screen = bm_normal_object.current_screen;
@@ -12725,8 +10147,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
 // Swicth flexibooking language
 function change_flexi_language($this) {
 	var lang_code = jQuery($this).val();
@@ -12751,14 +10171,10 @@ function change_flexi_language($this) {
 }
 
 
-
-
 // Array sum
 function array_sum(arr) {
 	return arr.reduce((a, b) => a + b, 0);
 }
-
-
 
 
 function customer_form_validation() {
@@ -12856,8 +10272,6 @@ function customer_form_validation() {
 }
 
 
-
-
 jQuery(document).ready(function () {
 	jQuery('#customer_form').on('submit', function (e) {
 		e.preventDefault();
@@ -12872,8 +10286,6 @@ jQuery(document).ready(function () {
 		});
 	});
 });
-
-
 
 
 // Fill checkout page states wrt country
@@ -12903,8 +10315,6 @@ jQuery(document).ready(async function ($) {
 		}
 	});
 });
-
-
 
 
 // Get states wrt country
@@ -12937,8 +10347,6 @@ async function bm_get_state_of_country(country, stateField) {
 }
 
 
-
-
 // Voucher booking information dialogue
 function bm_show_vocuher_booking_info($this) {
 	const data = {
@@ -12968,8 +10376,6 @@ function bm_show_vocuher_booking_info($this) {
 			jQuery('.loader_modal').hide();
 		});
 }
-
-
 
 
 // Voucher gifter information dialogue
@@ -13023,8 +10429,6 @@ function bm_show_vocuher_gifter_info($this) {
 }
 
 
-
-
 // Voucher recipient information dialogue
 function bm_show_vocuher_recipient_info($this) {
 	const data = {
@@ -13076,8 +10480,6 @@ function bm_show_vocuher_recipient_info($this) {
 }
 
 
-
-
 function bm_change_voucher_status($this) {
 	let inputStatus = jQuery($this).is(':checked') ? 1 : 0;
 
@@ -13115,8 +10517,6 @@ function bm_change_voucher_status($this) {
 		inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
 	}
 }
-
-
 
 
 // Sticky header
@@ -13176,8 +10576,6 @@ jQuery(document).ready(function ($) {
 
   }
 });
-
-
 
 
 // --- Weekly Availability Checkbox Logic ---
@@ -13285,8 +10683,6 @@ jQuery(document).ready(function($) {
 });
 
 
-
-
 function bm_remove_global_unavailable_range(el) {
     if (confirm('Remove this date range?')) {
         jQuery(el).parent('span').remove();
@@ -13298,8 +10694,6 @@ function bm_remove_global_unavailable_range(el) {
         });
     }
 }
-
-
 
 
 jQuery(document).ready(function($) {
@@ -13366,15 +10760,11 @@ jQuery(document).ready(function($) {
 });
 
 
-
-
 function bm_remove_pdf_logo() {
 	jQuery('#pdf_logo_guid').val('');
 	jQuery('#pdf_logo_preview').attr('src', '');
 	jQuery('.pdf_logo_container').hide();
 }
-
-
 
 
 // View pdf sample

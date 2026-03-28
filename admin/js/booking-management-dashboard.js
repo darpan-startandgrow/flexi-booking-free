@@ -8,6 +8,37 @@
 
 /* global jQuery, bm_ajax_object, bm_normal_object, bm_error_object, Chart */
 
+// ---------- REST helper ----------
+/**
+ * Helper: make a REST API request.
+ *
+ * @param {string} endpoint  REST path relative to sg-booking/v1/ (e.g. 'dashboard/counts').
+ * @param {string} method    HTTP method (GET, POST, etc.).
+ * @param {object} data      Request body / query params.
+ * @return {jQuery.jqXHR}
+ */
+function bmDashRestRequest(endpoint, method, data) {
+	var url = bm_ajax_object.rest_url + endpoint;
+
+	var settings = {
+		url: url,
+		method: method,
+		dataType: 'json',
+		beforeSend: function (xhr) {
+			xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+		}
+	};
+
+	if (method === 'GET') {
+		settings.data = data;
+	} else {
+		settings.contentType = 'application/json';
+		settings.data = JSON.stringify(data);
+	}
+
+	return jQuery.ajax(settings);
+}
+
 // ---------- Tab switching ----------
 jQuery(document).ready(function ($) {
 	$('.bm-tab-btn').on('click', function () {
@@ -46,42 +77,38 @@ function bm_fetch_booking_counts($this) {
 		status = jQuery('#' + type + '_search_status').length ? jQuery('#' + type + '_search_status').val() : jQuery($this).data('status');
 	}
 
-	var post = {
+	var data = {
 		'year': year_value,
 		'month': month_value,
 		'type': type,
 		'status': status,
 	};
 
-	var data = { 'action': 'bm_fetch_booking_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status === true) {
-			if (typeof jsondata.booking_type !== 'undefined') {
-				if (jsondata.booking_type === '') {
-					jQuery('.total_bookings_count').text(jsondata.total_bookings_count ? jsondata.total_bookings_count : '0');
-					jQuery('.upcoming_bookings_count').text(jsondata.upcoming_bookings_count ? jsondata.upcoming_bookings_count : '0');
-					jQuery('.weekly_bookings_count').text(jsondata.weekly_bookings_count ? jsondata.weekly_bookings_count : '0');
-					var rev = jsondata.total_bookings_revenue ? changePriceFormat(jsondata.total_bookings_revenue) : '0';
-					if (currency_position === 'before') {
-						jQuery('.total_bookings_revenue').text(currency_symbol + rev);
-					} else {
-						jQuery('.total_bookings_revenue').text(rev + currency_symbol);
-					}
-				} else if (jsondata.booking_type === 'total') {
-					jQuery('.total_bookings_count').text(jsondata.total_bookings_count ? jsondata.total_bookings_count : '0');
-				} else if (jsondata.booking_type === 'upcoming') {
-					jQuery('.upcoming_bookings_count').text(jsondata.upcoming_bookings_count ? jsondata.upcoming_bookings_count : '0');
-				} else if (jsondata.booking_type === 'revenue') {
-					var revVal = jsondata.total_bookings_revenue ? changePriceFormat(jsondata.total_bookings_revenue) : '0';
-					if (currency_position === 'before') {
-						jQuery('.total_bookings_revenue').text(currency_symbol + revVal);
-					} else {
-						jQuery('.total_bookings_revenue').text(revVal + currency_symbol);
-					}
-				} else if (jsondata.booking_type === 'weekly') {
-					jQuery('.weekly_bookings_count').text(jsondata.weekly_bookings_count ? jsondata.weekly_bookings_count : '0');
+	bmDashRestRequest('dashboard/counts', 'GET', data).done(function (jsondata) {
+		if (typeof jsondata.booking_type !== 'undefined') {
+			if (jsondata.booking_type === '') {
+				jQuery('.total_bookings_count').text(jsondata.total_bookings_count ? jsondata.total_bookings_count : '0');
+				jQuery('.upcoming_bookings_count').text(jsondata.upcoming_bookings_count ? jsondata.upcoming_bookings_count : '0');
+				jQuery('.weekly_bookings_count').text(jsondata.weekly_bookings_count ? jsondata.weekly_bookings_count : '0');
+				var rev = jsondata.total_bookings_revenue ? changePriceFormat(jsondata.total_bookings_revenue) : '0';
+				if (currency_position === 'before') {
+					jQuery('.total_bookings_revenue').text(currency_symbol + rev);
+				} else {
+					jQuery('.total_bookings_revenue').text(rev + currency_symbol);
 				}
+			} else if (jsondata.booking_type === 'total') {
+				jQuery('.total_bookings_count').text(jsondata.total_bookings_count ? jsondata.total_bookings_count : '0');
+			} else if (jsondata.booking_type === 'upcoming') {
+				jQuery('.upcoming_bookings_count').text(jsondata.upcoming_bookings_count ? jsondata.upcoming_bookings_count : '0');
+			} else if (jsondata.booking_type === 'revenue') {
+				var revVal = jsondata.total_bookings_revenue ? changePriceFormat(jsondata.total_bookings_revenue) : '0';
+				if (currency_position === 'before') {
+					jQuery('.total_bookings_revenue').text(currency_symbol + revVal);
+				} else {
+					jQuery('.total_bookings_revenue').text(revVal + currency_symbol);
+				}
+			} else if (jsondata.booking_type === 'weekly') {
+				jQuery('.weekly_bookings_count').text(jsondata.weekly_bookings_count ? jsondata.weekly_bookings_count : '0');
 			}
 		}
 	});
@@ -105,21 +132,15 @@ function bm_load_status_chart() {
 	var from = jQuery('#bm_status_chart_from').val() || '';
 	var to = jQuery('#bm_status_chart_to').val() || '';
 
-	var post = {
-		'type': 'monthly',
-		'status': 'order_status',
+	var data = {
 		'from': from ? bm_format_date_dmy(from) : '',
 		'to': to ? bm_format_date_dmy(to) : '',
 	};
 
-	var data = { 'action': 'bm_fetch_booking_status_counts', 'post': post, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
-		var jsondata = JSON.parse(response);
-		if (jsondata.status === true) {
-			bm_render_status_chart(jsondata.labels || [], jsondata.data || []);
-		} else {
-			bm_render_status_chart([], []);
-		}
+	bmDashRestRequest('dashboard/status-chart', 'GET', data).done(function (jsondata) {
+		bm_render_status_chart(jsondata.labels || [], jsondata.data || []);
+	}).fail(function () {
+		bm_render_status_chart([], []);
 	});
 }
 

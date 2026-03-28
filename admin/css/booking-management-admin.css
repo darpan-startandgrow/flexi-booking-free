@@ -789,8 +789,7 @@ input[type=checkbox] {
     height: 70%;
 }
 
-#order_columns_modal .modalcontentbox2,
-#checkin_columns_modal .modalcontentbox2 {
+#order_columns_modal .modalcontentbox2 {
     margin: 5%;
 }
 
@@ -812,8 +811,7 @@ input[type=checkbox] {
     width: 78% !important;
 }
 
-#order_columns_modal .modal,
-#checkin_columns_modal .modal {
+#order_columns_modal .modal {
     height: auto;
     margin: 5% auto;
     min-height: 350px;
@@ -1752,28 +1750,24 @@ span.bm_stripe_failed::before {
 }
 
 /*------Add Order page modal-------*/
-#order_columns_modal #order_columns .checkbox_list,
-#checkin_columns_modal #checkin_columns .checkbox_list {
+#order_columns_modal #order_columns .checkbox_list {
     width: 100%;
     margin-bottom: 15px;
     position: relative;
 }
 
-#order_columns_modal #order_columns input[type=checkbox],
-#checkin_columns_modal #checkin_columns input[type=checkbox] {
+#order_columns_modal #order_columns input[type=checkbox] {
     opacity: 0;
 }
 
-#order_columns_modal #order_columns input[type=checkbox]+label,
-#checkin_columns_modal #checkin_columns input[type=checkbox]+label {
+#order_columns_modal #order_columns input[type=checkbox]+label {
     position: relative;
     cursor: pointer;
     font-size: 16px;
     color: #6d6d6d;
 }
 
-#order_columns_modal #order_columns input[type=checkbox]+label::before,
-#checkin_columns_modal #checkin_columns input[type=checkbox]+label::before {
+#order_columns_modal #order_columns input[type=checkbox]+label::before {
     content: '';
     position: absolute;
     left: -25px;
@@ -1786,8 +1780,7 @@ span.bm_stripe_failed::before {
     border-radius: 2px;
 }
 
-#order_columns_modal #order_columns input[type=checkbox]+label::after,
-#checkin_columns_modal #checkin_columns input[type=checkbox]+label::after {
+#order_columns_modal #order_columns input[type=checkbox]+label::after {
     content: ' ';
     position: absolute;
     left: -21px;
@@ -1807,8 +1800,7 @@ span.bm_stripe_failed::before {
     opacity: 0;
 }
 
-#order_columns_modal #order_columns input[type=checkbox]:checked+label::after,
-#checkin_columns_modal #checkin_columns input[type=checkbox]:checked+label::after {
+#order_columns_modal #order_columns input[type=checkbox]:checked+label::after {
     -ms-transform: scale(1);
     -webkit-transform: scale(1);
     transform: scale(1);
