@@ -58,6 +58,24 @@ class Booking_Management {
 	protected $version;
 
 	/**
+	 * The admin class instance.
+	 *
+	 * @since    1.2.0
+	 * @access   private
+	 * @var      Booking_Management_Admin    $plugin_admin
+	 */
+	private $plugin_admin;
+
+	/**
+	 * The public class instance.
+	 *
+	 * @since    1.2.0
+	 * @access   private
+	 * @var      Booking_Management_Public    $plugin_public
+	 */
+	private $plugin_public;
+
+	/**
 	 * Define the core functionality of the plugin.
 	 *
 	 * Set the plugin name and the plugin version that can be used throughout the plugin.
@@ -87,11 +105,7 @@ class Booking_Management {
 		// Initialize hybrid architecture components.
 		$this->init_event_system();
 
-		// ✅ Initialize the API
-        $this->init_api();
 
-		// Initialize the Shortcodes
-		$this->init_react_shortcodes();
 		ob_start();
 	}
 
@@ -156,7 +170,6 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-woocommerce.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-email.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-sanitized.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-payment-gateway.php';
 
 		/**
 		 * Freemium gatekeeper and feature control.
@@ -174,8 +187,6 @@ class Booking_Management {
 		 */
 		do_action( 'sg_booking_load_pro_libraries' );
 
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-api.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-react-shortcodes.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-validation.php';
 
 		/**
@@ -199,8 +210,7 @@ class Booking_Management {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-sg-async-queue.php';
 
 		/**
-		 * Core REST API for the Lite plugin's own frontend.
-		 * Separate from the React v2 API in class-booking-api.php.
+		 * Core REST API for the plugin's admin and public endpoints.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-booking-management-rest-api.php';
 
@@ -247,137 +257,87 @@ class Booking_Management {
 	 * @access   private
 	 */
 	private function define_admin_hooks() {
-         $plugin_admin = new Booking_Management_Admin( $this->get_plugin_name(), $this->get_version() );
+         $this->plugin_admin = new Booking_Management_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-		$this->loader->add_action( 'admin_menu', $plugin_admin, 'booking_admin_menu' );
-		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_disable_admin_notices_on_specific_pages', 1 );
-		$this->loader->add_filter( 'admin_title', $plugin_admin, 'bm_ensure_admin_title', 1 );
-		$this->loader->add_filter( 'parent_file', $plugin_admin, 'bm_fix_menu_highlight' );
-		$this->loader->add_filter( 'set-screen-option', $plugin_admin, 'bm_set_screen_option', 10, 3 );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_set_timezone' );
-		$this->loader->add_action( 'update_option_timezone_string', $plugin_admin, 'bm_update_plugin_timezone_on_wp_change', 10, 2 );
-		$this->loader->add_action( 'update_option_gmt_offset', $plugin_admin, 'bm_update_plugin_timezone_on_gmt_offset_change', 10, 2 );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_register_shortcodes' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_set_installed_languages' );
-		// $this->loader->add_action( 'init', $plugin_admin, 'bm_load_service_booking_locale' ); //->translation issues
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_multilingual_email' );
-		$this->loader->add_filter( 'cron_schedules', $plugin_admin, 'bm_custom_cron_schedule' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_check_booking_requests' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_check_falied_emails_and_resend_pdfs' );
-		$this->loader->add_action( 'bm_resend_missing_emails_hook', $plugin_admin, 'bm_resend_missing_emails_cron' );
-		$this->loader->add_action( 'flexibooking_check_expired_book_on_request_bookings', $plugin_admin, 'flexibooking_check_expired_book_on_request_bookings_callback' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_mark_flexi_paid_processing_bookings_as_completed' );
-		$this->loader->add_action( 'flexibooking_check_paid_expired_processing_bookings', $plugin_admin, 'flexibooking_check_paid_expired_processing_bookings_callback' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_mark_pending_bookings_as_cancelled' );
-		$this->loader->add_action( 'flexibooking_check_expired_pending_bookings', $plugin_admin, 'flexibooking_check_expired_pending_bookings_callback' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_mark_expired_free_bookings_as_completed' );
-		$this->loader->add_action( 'flexibooking_check_expired_free_bookings', $plugin_admin, 'flexibooking_check_expired_free_bookings_callback' );
-		$this->loader->add_action( 'init', $plugin_admin, 'bm_check_expired_vouchers' );
-		$this->loader->add_action( 'flexibooking_check_expired_vouchers', $plugin_admin, 'flexibooking_check_expired_vouchers_callback' );
-		$this->loader->add_action( 'admin_bar_menu', $plugin_admin, 'bm_add_flexibooking_language_switcher_in_admin_bar', 999 );
-		$this->loader->add_action( 'wp_footer', $plugin_admin, 'bm_add_flexibooking_language_switcher_in_footer' );
-		$this->loader->add_action( 'wp_ajax_bm_flexi_set_lang', $plugin_admin, 'bm_flexibooking_set_language' );
-		$this->loader->add_action( 'wp_ajax_bm_sort_service_listing', $plugin_admin, 'bm_sort_service_listing' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_service', $plugin_admin, 'bm_remove_service' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_category', $plugin_admin, 'bm_remove_category' );
-		$this->loader->add_action( 'wp_ajax_bm_sort_category_listing', $plugin_admin, 'bm_sort_category_listing' );
-		$this->loader->add_action( 'wp_ajax_bm_get_service_prices', $plugin_admin, 'bm_get_service_prices' );
-		$this->loader->add_action( 'wp_ajax_bm_set_serice_price', $plugin_admin, 'bm_set_serice_price' );
-		$this->loader->add_action( 'wp_ajax_bm_set_bulk_serice_price', $plugin_admin, 'bm_set_bulk_serice_price' );
+		$this->loader->add_action( 'admin_enqueue_scripts', $this->plugin_admin, 'enqueue_styles' );
+		$this->loader->add_action( 'admin_enqueue_scripts', $this->plugin_admin, 'enqueue_scripts' );
+		$this->loader->add_action( 'admin_menu', $this->plugin_admin, 'booking_admin_menu' );
+		$this->loader->add_action( 'admin_notices', $this->plugin_admin, 'bm_disable_admin_notices_on_specific_pages', 1 );
+		$this->loader->add_filter( 'admin_title', $this->plugin_admin, 'bm_ensure_admin_title', 1 );
+		$this->loader->add_filter( 'parent_file', $this->plugin_admin, 'bm_fix_menu_highlight' );
+		$this->loader->add_filter( 'set-screen-option', $this->plugin_admin, 'bm_set_screen_option', 10, 3 );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_set_timezone' );
+		$this->loader->add_action( 'update_option_timezone_string', $this->plugin_admin, 'bm_update_plugin_timezone_on_wp_change', 10, 2 );
+		$this->loader->add_action( 'update_option_gmt_offset', $this->plugin_admin, 'bm_update_plugin_timezone_on_gmt_offset_change', 10, 2 );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_register_shortcodes' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_set_installed_languages' );
+		// $this->loader->add_action( 'init', $this->plugin_admin, 'bm_load_service_booking_locale' ); //->translation issues
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_multilingual_email' );
+		$this->loader->add_filter( 'cron_schedules', $this->plugin_admin, 'bm_custom_cron_schedule' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_check_booking_requests' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_check_falied_emails_and_resend_pdfs' );
+		$this->loader->add_action( 'bm_resend_missing_emails_hook', $this->plugin_admin, 'bm_resend_missing_emails_cron' );
+		$this->loader->add_action( 'flexibooking_check_expired_book_on_request_bookings', $this->plugin_admin, 'flexibooking_check_expired_book_on_request_bookings_callback' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_mark_flexi_paid_processing_bookings_as_completed' );
+		$this->loader->add_action( 'flexibooking_check_paid_expired_processing_bookings', $this->plugin_admin, 'flexibooking_check_paid_expired_processing_bookings_callback' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_mark_pending_bookings_as_cancelled' );
+		$this->loader->add_action( 'flexibooking_check_expired_pending_bookings', $this->plugin_admin, 'flexibooking_check_expired_pending_bookings_callback' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_mark_expired_free_bookings_as_completed' );
+		$this->loader->add_action( 'flexibooking_check_expired_free_bookings', $this->plugin_admin, 'flexibooking_check_expired_free_bookings_callback' );
+		$this->loader->add_action( 'init', $this->plugin_admin, 'bm_check_expired_vouchers' );
+		$this->loader->add_action( 'flexibooking_check_expired_vouchers', $this->plugin_admin, 'flexibooking_check_expired_vouchers_callback' );
+		$this->loader->add_action( 'admin_bar_menu', $this->plugin_admin, 'bm_add_flexibooking_language_switcher_in_admin_bar', 999 );
+		$this->loader->add_action( 'wp_footer', $this->plugin_admin, 'bm_add_flexibooking_language_switcher_in_footer' );
 
-		$this->loader->add_action( 'wp_ajax_bm_save_field_and_setting', $plugin_admin, 'bm_save_field_and_setting' );
-		$this->loader->add_action( 'wp_ajax_bm_get_all_field_labels', $plugin_admin, 'bm_get_all_field_labels' );
-		$this->loader->add_action( 'wp_ajax_bm_get_field_settings', $plugin_admin, 'bm_get_field_settings' );
-		$this->loader->add_action( 'wp_ajax_bm_get_fieldkey_and_order', $plugin_admin, 'bm_get_fieldkey_and_order' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_field', $plugin_admin, 'bm_remove_field' );
-		$this->loader->add_action( 'wp_ajax_bm_save_form_field_order', $plugin_admin, 'bm_save_form_field_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_preview_form', $plugin_admin, 'bm_fetch_preview_form' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_timezone', $plugin_admin, 'bm_fetch_timezone' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_product_details', $plugin_admin, 'bm_fetch_ordered_product_details' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_ordered_service_details', $plugin_admin, 'bm_fetch_ordered_service_details' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_customer_data_for_order', $plugin_admin, 'bm_fetch_customer_data_for_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_attachments_for_order', $plugin_admin, 'bm_fetch_attachments_for_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_services_by_category_id', $plugin_admin, 'bm_fetch_services_by_category_id' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_new_order_service_time_slots', $plugin_admin, 'bm_fetch_new_order_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_extras_for_backend_order', $plugin_admin, 'bm_fetch_service_extras_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_mincap_and_cap_left', $plugin_admin, 'bm_fetch_mincap_and_cap_left' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_bookable_services_by_category_id_and_date', $plugin_admin, 'bm_fetch_bookable_services_by_category_id_and_date' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_price_for_backend_order', $plugin_admin, 'bm_fetch_service_price_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_bm_change_order_status_to_complete_or_cancelled', $plugin_admin, 'bm_change_order_status_to_complete_or_cancelled' );
-		$this->loader->add_action( 'wp_ajax_bm_change_order_status', $plugin_admin, 'bm_change_order_status' );
 
-		$this->loader->add_action( 'wp_ajax_bm_fetch_order_as_per_search', $plugin_admin, 'bm_fetch_order_as_per_search' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_all_orders', $plugin_admin, 'bm_fetch_all_orders' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_saved_order_search', $plugin_admin, 'bm_fetch_saved_order_search' );
-		$this->loader->add_action( 'wp_ajax_bm_get_primary_email_field_key', $plugin_admin, 'bm_get_primary_email_field_key' );
-		$this->loader->add_action( 'wp_ajax_bm_save_primary_email_field_key', $plugin_admin, 'bm_save_primary_email_field_key' );
-		$this->loader->add_action( 'wp_ajax_bm_save_non_primary_email_as_primary', $plugin_admin, 'bm_save_non_primary_email_as_primary' );
-		$this->loader->add_action( 'wp_ajax_bm_change_service_visibility', $plugin_admin, 'bm_change_service_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
-		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
 
-		$this->loader->add_filter( 'flexibooking_cancel_booking', $plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
-		$this->loader->add_filter( 'flexibooking_update_status_as_completed', $plugin_admin, 'bm_flexibooking_update_status_as_completed', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_update_status_as_processing', $plugin_admin, 'bm_flexibooking_update_status_as_processing', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_update_status_as_on_hold', $plugin_admin, 'bm_flexibooking_update_status_as_on_hold', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_mark_processing_orders_as_complete', $plugin_admin, 'bm_flexibooking_mark_processing_orders_as_complete', 10, 1 );
-		$this->loader->add_filter( 'bm_mark_free_orders_as_complete', $plugin_admin, 'bm_mark_free_orders_as_complete', 10, 1 );
-		$this->loader->add_action( 'wp_ajax_bm_check_if_existing_field_key', $plugin_admin, 'bm_check_if_existing_field_key' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_event_condition_value', $plugin_admin, 'bm_fetch_value_for_notification_event_type' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_notification_processes_listing', $plugin_admin, 'bm_fetch_notification_processes_listing' );
-		$this->loader->add_action( 'wp_ajax_bm_remove_process', $plugin_admin, 'bm_remove_notification_process' );
-		$this->loader->add_action( 'wp_ajax_bm_change_process_visibility', $plugin_admin, 'bm_change_notification_process_visibility' );
+		$this->loader->add_filter( 'flexibooking_cancel_booking', $this->plugin_admin, 'bm_flexibooking_cancel_booking', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_update_status_as_refunded', $this->plugin_admin, 'bm_flexibooking_update_status_as_refunded', 10, 2 );
+		$this->loader->add_filter( 'flexibooking_update_status_as_completed', $this->plugin_admin, 'bm_flexibooking_update_status_as_completed', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_update_status_as_processing', $this->plugin_admin, 'bm_flexibooking_update_status_as_processing', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_update_status_as_on_hold', $this->plugin_admin, 'bm_flexibooking_update_status_as_on_hold', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_mark_processing_orders_as_complete', $this->plugin_admin, 'bm_flexibooking_mark_processing_orders_as_complete', 10, 1 );
+		$this->loader->add_filter( 'bm_mark_free_orders_as_complete', $this->plugin_admin, 'bm_mark_free_orders_as_complete', 10, 1 );
 
-		$this->loader->add_action( 'wp_ajax_bm_update_transaction', $plugin_admin, 'bm_update_order_transaction' );
-		$this->loader->add_action( 'wp_ajax_bm_save_order_transaction', $plugin_admin, 'bm_save_order_transaction' );
-		$this->loader->add_action( 'flexibooking_set_process_approved_order', $plugin_admin, 'bm_flexibooking_set_process_approved_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_approved_order', $plugin_admin, 'bm_flexibooking_mail_on_approved_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_cancel_order', $plugin_admin, 'bm_flexibooking_set_process_cancel_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_cancel_order', $plugin_admin, 'bm_flexibooking_mail_on_cancel_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_failed_order', $plugin_admin, 'bm_flexibooking_set_process_failed_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_failed_order', $plugin_admin, 'bm_flexibooking_mail_on_failed_order_callback', 10, 3 );
-		$this->loader->add_filter( 'flexibooking_refund_cancelled_order', $plugin_admin, 'bm_flexibooking_refund_cancelled_order', 10, 1 );
-		$this->loader->add_action( 'flexibooking_set_process_order_refund', $plugin_admin, 'bm_flexibooking_set_process_order_refund_callback', 10, 2 );
-		$this->loader->add_action( 'flexibooking_mail_order_refund', $plugin_admin, 'bm_flexibooking_mail_on_order_refund_callback', 10, 3 );
-		// $this->loader->add_filter( 'flexibooking_google_analytics_data', $plugin_admin, 'bm_prepare_ga_purchase_data', 10, 1 );
-		$this->loader->add_action( 'wp_ajax_bm_get_order_personal_info', $plugin_admin, 'bm_get_order_personal_info' );
-		$this->loader->add_action( 'wp_ajax_bm_get_order_payment_details', $plugin_admin, 'bm_get_order_payment_details' );
-		$this->loader->add_action( 'wp_ajax_bm_get_order_email_info', $plugin_admin, 'bm_get_order_email_info' );
-		$this->loader->add_action( 'wp_ajax_bm_get_order_failed_transactions', $plugin_admin, 'bm_get_order_failed_transactions' );
-		$this->loader->add_action( 'wp_ajax_bm_get_order_products', $plugin_admin, 'bm_get_order_products' );
-		$this->loader->add_action( 'wp_ajax_bm_get_email_content', $plugin_admin, 'bm_get_email_content' );
+		$this->loader->add_action( 'flexibooking_set_process_approved_order', $this->plugin_admin, 'bm_flexibooking_set_process_approved_order_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_approved_order', $this->plugin_admin, 'bm_flexibooking_mail_on_approved_order_callback', 10, 3 );
+		$this->loader->add_action( 'flexibooking_set_process_cancel_order', $this->plugin_admin, 'bm_flexibooking_set_process_cancel_order_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_cancel_order', $this->plugin_admin, 'bm_flexibooking_mail_on_cancel_order_callback', 10, 3 );
+		$this->loader->add_action( 'flexibooking_set_process_failed_order', $this->plugin_admin, 'bm_flexibooking_set_process_failed_order_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_failed_order', $this->plugin_admin, 'bm_flexibooking_mail_on_failed_order_callback', 10, 3 );
+		$this->loader->add_filter( 'flexibooking_refund_cancelled_order', $this->plugin_admin, 'bm_flexibooking_refund_cancelled_order', 10, 1 );
+		$this->loader->add_action( 'flexibooking_set_process_order_refund', $this->plugin_admin, 'bm_flexibooking_set_process_order_refund_callback', 10, 2 );
+		$this->loader->add_action( 'flexibooking_mail_order_refund', $this->plugin_admin, 'bm_flexibooking_mail_on_order_refund_callback', 10, 3 );
+		// $this->loader->add_filter( 'flexibooking_google_analytics_data', $this->plugin_admin, 'bm_prepare_ga_purchase_data', 10, 1 );
 
-		$this->loader->add_filter( 'flexibooking_fetch_order_transaction_data', $plugin_admin, 'bm_flexibooking_fetch_order_transaction_data', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_fetch_html_with_transaction_data', $plugin_admin, 'bm_flexibooking_fetch_html_with_transaction_data', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_save_order_transaction_data', $plugin_admin, 'bm_flexibooking_save_order_transaction_data', 10, 5 );
-		$this->loader->add_action( 'flexibooking_save_existing_transaction_data_before_update', $plugin_admin, 'bm_flexibooking_save_existing_transaction_data_before_update', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_verify_if_valid_transaction_id', $plugin_admin, 'bm_flexibooking_verify_if_valid_transaction_id', 10, 3 );
-		$this->loader->add_filter( 'flexibooking_verify_if_paid_transaction_id', $plugin_admin, 'bm_flexibooking_verify_if_paid_transaction_id', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_paid_transaction_statuses', $plugin_admin, 'bm_flexibooking_paid_transaction_statuses', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_verify_if_pending_transaction_id', $plugin_admin, 'bm_flexibooking_verify_if_pending_transaction_id', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_pending_transaction_statuses', $plugin_admin, 'bm_flexibooking_pending_transaction_statuses', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_verify_if_cancelled_transaction_id', $plugin_admin, 'bm_flexibooking_verify_if_cancelled_transaction_id', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_verify_transaction_for_free_payment_status', $plugin_admin, 'bm_flexibooking_verify_transaction_for_free_payment_status', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_verify_if_refunded_transaction_id', $plugin_admin, 'bm_flexibooking_verify_if_refunded_transaction_id', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_update_transaction_data', $plugin_admin, 'bm_flexibooking_update_transaction_data', 10, 2 );
-		$this->loader->add_filter( 'flexibooking_update_booking_data_before_marking_transaction_failed', $plugin_admin, 'bm_flexibooking_update_booking_data_before_marking_transaction_failed', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_add_data_to_failed_transaction_table', $plugin_admin, 'bm_flexibooking_add_data_to_failed_transaction_table', 10, 2 );
-		$this->loader->add_filter( 'flexibooking_update_booking_data_after_transaction_update', $plugin_admin, 'bm_flexibooking_update_booking_data_after_transaction_update', 10, 2 );
-		$this->loader->add_filter( 'flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table', $plugin_admin, 'bm_flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table', 10, 1 );
-		$this->loader->add_filter( 'flexibooking_revert_transaction_update', $plugin_admin, 'bm_flexibooking_revert_transaction_update', 10, 1 );
-		$this->loader->add_action( 'wp_ajax_bm_check_if_exisiting_customer', $plugin_admin, 'bm_check_if_exisiting_customer' );
-		$this->loader->add_action( 'woocommerce_admin_order_data_after_order_details', $plugin_admin, 'bm_display_service_date_in_admin', 10, 1 );
-		$this->loader->add_action( 'before_delete_post', $plugin_admin, 'bm_remove_flexi_order_if_woocommerce_order_is_permanently_deleted' );
-		$this->loader->add_action( 'wp_trash_post', $plugin_admin, 'bm_modify_flexi_plugin_order_on_woocommerce_order_trash', 10, 1 );
-		$this->loader->add_action( 'untrash_post', $plugin_admin, 'bm_schedule_woocommerce_order_status_check_on_untrash', 10, 1 );
-		$this->loader->add_action( 'bm_update_flexi_order_as_woocommerce_order_is_restored', $plugin_admin, 'bm_modify_flexi_plugin_order_on_woocommerce_order_untrash' );
-		$this->loader->add_filter( 'woocommerce_hidden_order_itemmeta', $plugin_admin, 'bm_hide_flexi_order_itemmeta', 10, 1 );
-		$this->loader->add_action( 'pre_post_update', $plugin_admin, 'bm_prevent_expired_woocommerce_order_updates', 10, 2 );
-		$this->loader->add_action( 'admin_notices', $plugin_admin, 'bm_flexi_admin_notice' );
-		$this->loader->add_action( 'wp_ajax_get_states', $plugin_admin, 'bm_fetch_states_by_country' );
+		$this->loader->add_filter( 'flexibooking_fetch_order_transaction_data', $this->plugin_admin, 'bm_flexibooking_fetch_order_transaction_data', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_fetch_html_with_transaction_data', $this->plugin_admin, 'bm_flexibooking_fetch_html_with_transaction_data', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_save_order_transaction_data', $this->plugin_admin, 'bm_flexibooking_save_order_transaction_data', 10, 5 );
+		$this->loader->add_action( 'flexibooking_save_existing_transaction_data_before_update', $this->plugin_admin, 'bm_flexibooking_save_existing_transaction_data_before_update', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_verify_if_valid_transaction_id', $this->plugin_admin, 'bm_flexibooking_verify_if_valid_transaction_id', 10, 3 );
+		$this->loader->add_filter( 'flexibooking_verify_if_paid_transaction_id', $this->plugin_admin, 'bm_flexibooking_verify_if_paid_transaction_id', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_paid_transaction_statuses', $this->plugin_admin, 'bm_flexibooking_paid_transaction_statuses', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_verify_if_pending_transaction_id', $this->plugin_admin, 'bm_flexibooking_verify_if_pending_transaction_id', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_pending_transaction_statuses', $this->plugin_admin, 'bm_flexibooking_pending_transaction_statuses', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_verify_if_cancelled_transaction_id', $this->plugin_admin, 'bm_flexibooking_verify_if_cancelled_transaction_id', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_verify_transaction_for_free_payment_status', $this->plugin_admin, 'bm_flexibooking_verify_transaction_for_free_payment_status', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_verify_if_refunded_transaction_id', $this->plugin_admin, 'bm_flexibooking_verify_if_refunded_transaction_id', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_update_transaction_data', $this->plugin_admin, 'bm_flexibooking_update_transaction_data', 10, 2 );
+		$this->loader->add_filter( 'flexibooking_update_booking_data_before_marking_transaction_failed', $this->plugin_admin, 'bm_flexibooking_update_booking_data_before_marking_transaction_failed', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_add_data_to_failed_transaction_table', $this->plugin_admin, 'bm_flexibooking_add_data_to_failed_transaction_table', 10, 2 );
+		$this->loader->add_filter( 'flexibooking_update_booking_data_after_transaction_update', $this->plugin_admin, 'bm_flexibooking_update_booking_data_after_transaction_update', 10, 2 );
+		$this->loader->add_filter( 'flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table', $this->plugin_admin, 'bm_flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table', 10, 1 );
+		$this->loader->add_filter( 'flexibooking_revert_transaction_update', $this->plugin_admin, 'bm_flexibooking_revert_transaction_update', 10, 1 );
+		$this->loader->add_action( 'woocommerce_admin_order_data_after_order_details', $this->plugin_admin, 'bm_display_service_date_in_admin', 10, 1 );
+		$this->loader->add_action( 'before_delete_post', $this->plugin_admin, 'bm_remove_flexi_order_if_woocommerce_order_is_permanently_deleted' );
+		$this->loader->add_action( 'wp_trash_post', $this->plugin_admin, 'bm_modify_flexi_plugin_order_on_woocommerce_order_trash', 10, 1 );
+		$this->loader->add_action( 'untrash_post', $this->plugin_admin, 'bm_schedule_woocommerce_order_status_check_on_untrash', 10, 1 );
+		$this->loader->add_action( 'bm_update_flexi_order_as_woocommerce_order_is_restored', $this->plugin_admin, 'bm_modify_flexi_plugin_order_on_woocommerce_order_untrash' );
+		$this->loader->add_filter( 'woocommerce_hidden_order_itemmeta', $this->plugin_admin, 'bm_hide_flexi_order_itemmeta', 10, 1 );
+		$this->loader->add_action( 'pre_post_update', $this->plugin_admin, 'bm_prevent_expired_woocommerce_order_updates', 10, 2 );
+		$this->loader->add_action( 'admin_notices', $this->plugin_admin, 'bm_flexi_admin_notice' );
+
+		$this->loader->add_action( 'rest_api_init', $this, 'register_admin_action_routes' );
 
 		/**
 		 * Fires after the Lite admin hooks are registered.
@@ -390,7 +350,7 @@ class Booking_Management {
 		 * @param Booking_Management_Loader $loader       The hook loader instance.
 		 * @param Booking_Management_Admin  $plugin_admin The admin class instance.
 		 */
-		do_action( 'sg_booking_register_admin_hooks', $this->loader, $plugin_admin );
+		do_action( 'sg_booking_register_admin_hooks', $this->loader, $this->plugin_admin );
 
 	}
 
@@ -402,124 +362,52 @@ class Booking_Management {
 	 * @access   private
 	 */
 	private function define_public_hooks() {
-        $plugin_public = new Booking_Management_Public( $this->get_plugin_name(), $this->get_version() );
+        $this->plugin_public = new Booking_Management_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-		$this->loader->add_action( 'init', $plugin_public, 'bm_register_shortcodes' );
-		$this->loader->add_action( 'wp_ajax_bm_flexi_set_frontend_lang', $plugin_public, 'bm_flexibooking_set_language' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_flexi_set_frontend_lang', $plugin_public, 'bm_flexibooking_set_language' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_all_services', $plugin_public, 'bm_fetch_all_services' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_all_services', $plugin_public, 'bm_fetch_all_services' );
-		$this->loader->add_action( 'wp_ajax_bm_filter_services', $plugin_public, 'bm_filter_services' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_filter_services', $plugin_public, 'bm_filter_services' );
-		$this->loader->add_action( 'wp_ajax_bm_filter_categories', $plugin_public, 'bm_filter_categories' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_filter_categories', $plugin_public, 'bm_filter_categories' );
-		$this->loader->add_action( 'wp_ajax_bm_filter_service_by_category', $plugin_public, 'bm_filter_service_by_category' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_filter_service_by_category', $plugin_public, 'bm_filter_service_by_category' );
-		$this->loader->add_action( 'wp_ajax_bm_filter_services_by_id', $plugin_public, 'bm_filter_services_by_service_id' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_filter_services_by_id', $plugin_public, 'bm_filter_services_by_service_id' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_frontend_service_time_slots', $plugin_public, 'bm_fetch_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_frontend_service_time_slots', $plugin_public, 'bm_fetch_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_calendar_time_slots', $plugin_public, 'bm_fetch_service_by_id_calendar_time_slots' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_calendar_time_slots', $plugin_public, 'bm_fetch_service_by_id_calendar_time_slots' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_extra_service', $plugin_public, 'bm_fetch_extra_service' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_extra_service', $plugin_public, 'bm_fetch_extra_service' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_user_form', $plugin_public, 'bm_fetch_user_form' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_user_form', $plugin_public, 'bm_fetch_user_form' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_order_info_and_redirect_to_checkout', $plugin_public, 'bm_fetch_order_info_and_redirect_to_checkout' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_order_info_and_redirect_to_checkout', $plugin_public, 'bm_fetch_order_info_and_redirect_to_checkout' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_booking_data', $plugin_public, 'bm_fetch_booking_data' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_booking_data', $plugin_public, 'bm_fetch_booking_data' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_selection', $plugin_public, 'bm_fetch_service_selection' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_selection', $plugin_public, 'bm_fetch_service_selection' );
-		$this->loader->add_action( 'wp_ajax_bm_set_intl_input', $plugin_public, 'bm_set_intl_input' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_set_intl_input', $plugin_public, 'bm_set_intl_input' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_all_services_by_categories', $plugin_public, 'bm_fetch_all_services_by_categories' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_all_services_by_categories', $plugin_public, 'bm_fetch_all_services_by_categories' );
-		$this->loader->add_action( 'wp_ajax_bm_get_frontend_service_prices', $plugin_public, 'bm_get_service_prices' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_get_frontend_service_prices', $plugin_public, 'bm_get_service_prices' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_services_by_name', $plugin_public, 'bm_fetch_services_by_name' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_services_by_name', $plugin_public, 'bm_fetch_services_by_name' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_gallry_images', $plugin_public, 'bm_fetch_service_gallry_images' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_gallry_images', $plugin_public, 'bm_fetch_service_gallry_images' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_checkout_data', $plugin_public, 'bm_fetch_checkout_data_redirect_to_payment' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_checkout_data', $plugin_public, 'bm_fetch_checkout_data_redirect_to_payment' );
-		$this->loader->add_action( 'wp_ajax_bm_free_checkout', $plugin_public, 'bm_discounted_and_free_checkout_save' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_free_checkout', $plugin_public, 'bm_discounted_and_free_checkout_save' );
-		$this->loader->add_action( 'wp_ajax_bm_process_payment', $plugin_public, 'bm_process_final_payment' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_process_payment', $plugin_public, 'bm_process_final_payment' );
-		$this->loader->add_action( 'wp_ajax_bm_save_payment', $plugin_public, 'bm_save_final_payment' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_save_payment', $plugin_public, 'bm_save_final_payment' );
-		$this->loader->add_action( 'wp_ajax_bm_check_for_refund', $plugin_public, 'bm_check_for_refund_for_failed_payment' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_check_for_refund', $plugin_public, 'bm_check_for_refund_for_failed_payment' );
-		$this->loader->add_action( 'wp_ajax_bm_check_session', $plugin_public, 'bm_check_if_payment_session_has_expired' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_check_session', $plugin_public, 'bm_check_if_payment_session_has_expired' );
-		$this->loader->add_action( 'wp_ajax_bm_check_discount', $plugin_public, 'bm_fetch_age_data_and_check_discount' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_check_discount', $plugin_public, 'bm_fetch_age_data_and_check_discount' );
-		$this->loader->add_action( 'wp_ajax_bm_reset_discount', $plugin_public, 'bm_reset_discounted_value' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_reset_discount', $plugin_public, 'bm_reset_discounted_value' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_checkout_options', $plugin_public, 'bm_fetch_available_checkout_options' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_checkout_options', $plugin_public, 'bm_fetch_available_checkout_options' );
-		$this->loader->add_action( 'wp_ajax_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
-		$this->loader->add_action( 'wp_ajax_nopriv_fetch_woocommerce_states', $plugin_public, 'bm_get_woocommerce_states_by_country' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $this->plugin_public, 'enqueue_styles' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $this->plugin_public, 'enqueue_scripts' );
+		$this->loader->add_action( 'init', $this->plugin_public, 'bm_register_shortcodes' );
 
-		$this->loader->add_action( 'wp_ajax_get_states', $plugin_public, 'bm_fetch_states_by_country' );
-		$this->loader->add_action( 'wp_ajax_nopriv_get_states', $plugin_public, 'bm_fetch_states_by_country' );
-		$this->loader->add_action( 'wp_ajax_bm_filter_fullcalendar_events', $plugin_public, 'bm_filter_fullcalendar_events_callback' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_filter_fullcalendar_events', $plugin_public, 'bm_filter_fullcalendar_events_callback' );
-		$this->loader->add_action( 'wp_ajax_bm_filter_timeslot_fullcalendar_events', $plugin_public, 'bm_filter_timeslot_fullcalendar_events_callback' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_filter_timeslot_fullcalendar_events', $plugin_public, 'bm_filter_timeslot_fullcalendar_events_callback' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_timeslot_dialog_content', $plugin_public, 'bm_fetch_timeslot_dialog_content' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_timeslot_dialog_content', $plugin_public, 'bm_fetch_timeslot_dialog_content' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_bookable_services_by_category_id_and_date', $plugin_public, 'bm_fetch_bookable_services_by_category_id_and_date' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_bookable_services_by_category_id_and_date', $plugin_public, 'bm_fetch_bookable_services_by_category_id_and_date' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_new_order_service_time_slots', $plugin_public, 'bm_fetch_new_order_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_new_order_service_time_slots', $plugin_public, 'bm_fetch_new_order_service_time_slots' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_mincap_and_cap_left', $plugin_public, 'bm_fetch_mincap_and_cap_left' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_mincap_and_cap_left', $plugin_public, 'bm_fetch_mincap_and_cap_left' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_price_for_backend_order', $plugin_public, 'bm_fetch_service_price_for_add_order' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_price_for_backend_order', $plugin_public, 'bm_fetch_service_price_for_add_order' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_extras_for_backend_order', $plugin_public, 'bm_fetch_service_extras_for_backend_order' );
-		$this->loader->add_action( 'wp_ajax_nopriv_bm_fetch_service_extras_for_backend_order', $plugin_public, 'bm_fetch_service_extras_for_backend_order' );
-		$this->loader->add_action( 'flexibooking_set_process_new_order', $plugin_public, 'bm_flexibooking_set_process_new_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_new_order', $plugin_public, 'bm_flexibooking_mail_on_new_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_voucher_redeem', $plugin_public, 'bm_flexibooking_set_process_voucher_redeem_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_voucher_redeem', $plugin_public, 'bm_flexibooking_mail_on_voucher_redeem_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_new_request', $plugin_public, 'bm_flexibooking_set_process_new_request_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_new_request', $plugin_public, 'bm_flexibooking_mail_new_request_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_new_order_voucher', $plugin_public, 'bm_flexibooking_set_process_new_order_voucher_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_voucher_mail_new_order', $plugin_public, 'bm_flexibooking_voucher_mail_new_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_failed_order_refund', $plugin_public, 'bm_flexibooking_set_process_failed_order_refund_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_failed_order_refund', $plugin_public, 'bm_flexibooking_mail_on_failed_order_refund_callback', 10, 3 );
-		$this->loader->add_filter( 'flexibooking_google_analytics_data', $plugin_public, 'bm_prepare_ga_purchase_data', 10, 1 );
-		$this->loader->add_filter( 'woocommerce_checkout_get_value', $plugin_public, 'bm_set_checkout_form_value', 10, 2 );
-		$this->loader->add_filter( 'woocommerce_cart_item_quantity', $plugin_public, 'bm_disable_quantity_change_for_plugin_products', 10, 3 );
-		$this->loader->add_filter( 'woocommerce_cart_item_remove_link', $plugin_public, 'bm_disable_remove_link_for_plugin_products', 10, 2 );
-		$this->loader->add_filter( 'woocommerce_email_attachments', $plugin_public, 'bm_add_custom_attachments_to_woocommerce_email', 99, 3 );
-		$this->loader->add_action( 'woocommerce_checkout_create_order_line_item', $plugin_public, 'bm_save_flexibooking_order_keys_to_order_items', 10, 4 );
-		$this->loader->add_action( 'woocommerce_order_status_processing', $plugin_public, 'bm_save_woocommerce_booking_data', 10, 1 );
-		$this->loader->add_action( 'woocommerce_order_status_cancelled', $plugin_public, 'bm_update_flexi_booking_data_on_order_cancellation', 10, 1 );
-		$this->loader->add_action( 'woocommerce_order_refunded', $plugin_public, 'bm_update_flexi_booking_data_on_order_refund', 10, 1 );
-		$this->loader->add_action( 'woocommerce_order_status_on-hold', $plugin_public, 'bm_update_flexi_booking_data_on_order_on_hold', 10, 1 );
-		$this->loader->add_filter( 'woocommerce_add_to_cart_validation', $plugin_public, 'bm_restrict_adding_products_if_added_through_flexi_plugin', 10, 3 );
-		$this->loader->add_action( 'woocommerce_order_status_completed', $plugin_public, 'bm_set_flexibooking_order_as_completed', 10, 1 );
-		$this->loader->add_action( 'woocommerce_email_before_order_table', $plugin_public, 'bm_add_service_date_to_email', 20, 4 );
-		$this->loader->add_filter( 'woocommerce_thankyou_order_received_text', $plugin_public, 'bm_display_service_date_in_thank_you_page', 20, 2 );
-		$this->loader->add_action( 'woocommerce_order_details_before_order_table', $plugin_public, 'bm_display_service_date_in_view_order', 20 );
-		$this->loader->add_action( 'woocommerce_before_calculate_totals', $plugin_public, 'bm_adjust_cart_item_prices', 10, 1 );
-		$this->loader->add_action( 'woocommerce_cart_emptied', $plugin_public, 'bm_clear_flexi_custom_order_keys' );
-		$this->loader->add_action( 'woocommerce_before_checkout_billing_form', $plugin_public, 'bm_add_gift_fields_to_woocommerce_checkout' );
-		$this->loader->add_action( 'woocommerce_checkout_process', $plugin_public, 'bm_validate_woocommerce_gift_fields' );
-		$this->loader->add_action( 'woocommerce_checkout_update_order_meta', $plugin_public, 'bm_save_gift_fields_to_woocommerce_order_meta' );
-		$this->loader->add_filter( 'woocommerce_available_payment_gateways', $plugin_public, 'bm_restrict_cod_for_woocommerce_gift_orders' );
-		$this->loader->add_filter( 'img_caption_shortcode', $plugin_public, 'bm_custom_img_caption_shortcode', 10, 3 );
-		$this->loader->add_filter( 'the_title', $plugin_public, 'bm_hide_specific_page_title', 10, 2 );
-		$this->loader->add_filter( 'body_class', $plugin_public, 'flexibooking_add_checkout_body_class_to_woocommerce_checkout' );
-		/**$this->loader->add_action( 'woocommerce_payment_complete', $plugin_public, 'bm_mark_flexi_orders_paid', 10, 1 );
-		$this->loader->add_filter( 'woocommerce_is_sold_individually', $plugin_public, 'bm_disable_quantity_for_plugin_added_products', 10, 2 )
-		$this->loader->add_action('woocommerce_thankyou', $plugin_public, 'bm_redirect_after_order', 10, 1);*/
-		$this->loader->add_action( 'bm_after_booking_saved', $plugin_public, 'bm_after_booking_saved_callback', 10, 2 );
+		$this->loader->add_action( 'flexibooking_set_process_new_order', $this->plugin_public, 'bm_flexibooking_set_process_new_order_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_new_order', $this->plugin_public, 'bm_flexibooking_mail_on_new_order_callback', 10, 3 );
+		$this->loader->add_action( 'flexibooking_set_process_voucher_redeem', $this->plugin_public, 'bm_flexibooking_set_process_voucher_redeem_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_voucher_redeem', $this->plugin_public, 'bm_flexibooking_mail_on_voucher_redeem_callback', 10, 3 );
+		$this->loader->add_action( 'flexibooking_set_process_new_request', $this->plugin_public, 'bm_flexibooking_set_process_new_request_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_new_request', $this->plugin_public, 'bm_flexibooking_mail_new_request_callback', 10, 3 );
+		$this->loader->add_action( 'flexibooking_set_process_new_order_voucher', $this->plugin_public, 'bm_flexibooking_set_process_new_order_voucher_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_voucher_mail_new_order', $this->plugin_public, 'bm_flexibooking_voucher_mail_new_order_callback', 10, 3 );
+		$this->loader->add_action( 'flexibooking_set_process_failed_order_refund', $this->plugin_public, 'bm_flexibooking_set_process_failed_order_refund_callback', 10, 1 );
+		$this->loader->add_action( 'flexibooking_mail_failed_order_refund', $this->plugin_public, 'bm_flexibooking_mail_on_failed_order_refund_callback', 10, 3 );
+		$this->loader->add_filter( 'flexibooking_google_analytics_data', $this->plugin_public, 'bm_prepare_ga_purchase_data', 10, 1 );
+		$this->loader->add_filter( 'woocommerce_checkout_get_value', $this->plugin_public, 'bm_set_checkout_form_value', 10, 2 );
+		$this->loader->add_filter( 'woocommerce_cart_item_quantity', $this->plugin_public, 'bm_disable_quantity_change_for_plugin_products', 10, 3 );
+		$this->loader->add_filter( 'woocommerce_cart_item_remove_link', $this->plugin_public, 'bm_disable_remove_link_for_plugin_products', 10, 2 );
+		$this->loader->add_filter( 'woocommerce_email_attachments', $this->plugin_public, 'bm_add_custom_attachments_to_woocommerce_email', 99, 3 );
+		$this->loader->add_action( 'woocommerce_checkout_create_order_line_item', $this->plugin_public, 'bm_save_flexibooking_order_keys_to_order_items', 10, 4 );
+		$this->loader->add_action( 'woocommerce_order_status_processing', $this->plugin_public, 'bm_save_woocommerce_booking_data', 10, 1 );
+		$this->loader->add_action( 'woocommerce_order_status_cancelled', $this->plugin_public, 'bm_update_flexi_booking_data_on_order_cancellation', 10, 1 );
+		$this->loader->add_action( 'woocommerce_order_refunded', $this->plugin_public, 'bm_update_flexi_booking_data_on_order_refund', 10, 1 );
+		$this->loader->add_action( 'woocommerce_order_status_on-hold', $this->plugin_public, 'bm_update_flexi_booking_data_on_order_on_hold', 10, 1 );
+		$this->loader->add_filter( 'woocommerce_add_to_cart_validation', $this->plugin_public, 'bm_restrict_adding_products_if_added_through_flexi_plugin', 10, 3 );
+		$this->loader->add_action( 'woocommerce_order_status_completed', $this->plugin_public, 'bm_set_flexibooking_order_as_completed', 10, 1 );
+		$this->loader->add_action( 'woocommerce_email_before_order_table', $this->plugin_public, 'bm_add_service_date_to_email', 20, 4 );
+		$this->loader->add_filter( 'woocommerce_thankyou_order_received_text', $this->plugin_public, 'bm_display_service_date_in_thank_you_page', 20, 2 );
+		$this->loader->add_action( 'woocommerce_order_details_before_order_table', $this->plugin_public, 'bm_display_service_date_in_view_order', 20 );
+		$this->loader->add_action( 'woocommerce_before_calculate_totals', $this->plugin_public, 'bm_adjust_cart_item_prices', 10, 1 );
+		$this->loader->add_action( 'woocommerce_cart_emptied', $this->plugin_public, 'bm_clear_flexi_custom_order_keys' );
+		$this->loader->add_action( 'woocommerce_before_checkout_billing_form', $this->plugin_public, 'bm_add_gift_fields_to_woocommerce_checkout' );
+		$this->loader->add_action( 'woocommerce_checkout_process', $this->plugin_public, 'bm_validate_woocommerce_gift_fields' );
+		$this->loader->add_action( 'woocommerce_checkout_update_order_meta', $this->plugin_public, 'bm_save_gift_fields_to_woocommerce_order_meta' );
+		$this->loader->add_filter( 'woocommerce_available_payment_gateways', $this->plugin_public, 'bm_restrict_cod_for_woocommerce_gift_orders' );
+		$this->loader->add_filter( 'img_caption_shortcode', $this->plugin_public, 'bm_custom_img_caption_shortcode', 10, 3 );
+		$this->loader->add_filter( 'the_title', $this->plugin_public, 'bm_hide_specific_page_title', 10, 2 );
+		$this->loader->add_filter( 'body_class', $this->plugin_public, 'flexibooking_add_checkout_body_class_to_woocommerce_checkout' );
+		/**$this->loader->add_action( 'woocommerce_payment_complete', $this->plugin_public, 'bm_mark_flexi_orders_paid', 10, 1 );
+		$this->loader->add_filter( 'woocommerce_is_sold_individually', $this->plugin_public, 'bm_disable_quantity_for_plugin_added_products', 10, 2 )
+		$this->loader->add_action('woocommerce_thankyou', $this->plugin_public, 'bm_redirect_after_order', 10, 1);*/
+		$this->loader->add_action( 'bm_after_booking_saved', $this->plugin_public, 'bm_after_booking_saved_callback', 10, 2 );
+
+		$this->loader->add_action( 'rest_api_init', $this, 'register_public_action_routes' );
 
 		/**
 		 * Fires after the Lite public hooks are registered.
@@ -528,23 +416,10 @@ class Booking_Management {
 		 *
 		 * @since 1.1.0
 		 */
-		do_action( 'sg_booking_register_pro_public_hooks', $this->loader, $plugin_public );
-	}
-
-	/**
-	 * Initializes the Booking API by creating a new instance of the Booking_API class.
-	 * This method is intended to set up API-related functionality for booking management.
-	 *
-	 * @access private
-	 */
-	private function init_api() {
-		new Booking_API( $this->get_plugin_name(), $this->get_version() );
+		do_action( 'sg_booking_register_pro_public_hooks', $this->loader, $this->plugin_public );
 	}
 
 
-	private function init_react_shortcodes() {
-		new React_Shortcodes_Plugin();
-	}
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
@@ -611,5 +486,190 @@ class Booking_Management {
 		 * @since 1.2.0
 		 */
 		do_action( 'sg_booking_event_system_init' );
+	}
+
+	/**
+	 * Register admin REST routes that replace the old wp_ajax handlers.
+	 *
+	 * @since 1.2.0
+	 */
+	public function register_admin_action_routes() {
+		$map = array(
+			'bm_flexi_set_lang' => 'bm_flexibooking_set_language',
+			'bm_sort_service_listing' => 'bm_sort_service_listing',
+			'bm_remove_service' => 'bm_remove_service',
+			'bm_remove_category' => 'bm_remove_category',
+			'bm_sort_category_listing' => 'bm_sort_category_listing',
+			'bm_get_service_prices' => 'bm_get_service_prices',
+			'bm_set_serice_price' => 'bm_set_serice_price',
+			'bm_set_bulk_serice_price' => 'bm_set_bulk_serice_price',
+			'bm_save_field_and_setting' => 'bm_save_field_and_setting',
+			'bm_get_all_field_labels' => 'bm_get_all_field_labels',
+			'bm_get_field_settings' => 'bm_get_field_settings',
+			'bm_get_fieldkey_and_order' => 'bm_get_fieldkey_and_order',
+			'bm_remove_field' => 'bm_remove_field',
+			'bm_save_form_field_order' => 'bm_save_form_field_order',
+			'bm_fetch_preview_form' => 'bm_fetch_preview_form',
+			'bm_fetch_timezone' => 'bm_fetch_timezone',
+			'bm_fetch_ordered_product_details' => 'bm_fetch_ordered_product_details',
+			'bm_fetch_ordered_service_details' => 'bm_fetch_ordered_service_details',
+			'bm_fetch_customer_data_for_order' => 'bm_fetch_customer_data_for_order',
+			'bm_fetch_attachments_for_order' => 'bm_fetch_attachments_for_order',
+			'bm_fetch_services_by_category_id' => 'bm_fetch_services_by_category_id',
+			'bm_fetch_new_order_service_time_slots' => 'bm_fetch_new_order_service_time_slots',
+			'bm_fetch_service_extras_for_backend_order' => 'bm_fetch_service_extras_for_backend_order',
+			'bm_fetch_mincap_and_cap_left' => 'bm_fetch_mincap_and_cap_left',
+			'bm_fetch_bookable_services_by_category_id_and_date' => 'bm_fetch_bookable_services_by_category_id_and_date',
+			'bm_fetch_service_price_for_backend_order' => 'bm_fetch_service_price_for_backend_order',
+			'bm_change_order_status_to_complete_or_cancelled' => 'bm_change_order_status_to_complete_or_cancelled',
+			'bm_change_order_status' => 'bm_change_order_status',
+			'bm_fetch_order_as_per_search' => 'bm_fetch_order_as_per_search',
+			'bm_fetch_all_orders' => 'bm_fetch_all_orders',
+			'bm_fetch_saved_order_search' => 'bm_fetch_saved_order_search',
+			'bm_get_primary_email_field_key' => 'bm_get_primary_email_field_key',
+			'bm_save_primary_email_field_key' => 'bm_save_primary_email_field_key',
+			'bm_save_non_primary_email_as_primary' => 'bm_save_non_primary_email_as_primary',
+			'bm_change_service_visibility' => 'bm_change_service_visibility',
+			'bm_change_extra_service_visibility' => 'bm_change_extra_service_visibility',
+			'bm_change_category_visibility' => 'bm_change_category_visibility',
+			'bm_check_if_existing_field_key' => 'bm_check_if_existing_field_key',
+			'bm_fetch_event_condition_value' => 'bm_fetch_value_for_notification_event_type',
+			'bm_fetch_notification_processes_listing' => 'bm_fetch_notification_processes_listing',
+			'bm_remove_process' => 'bm_remove_notification_process',
+			'bm_change_process_visibility' => 'bm_change_notification_process_visibility',
+			'bm_update_transaction' => 'bm_update_order_transaction',
+			'bm_save_order_transaction' => 'bm_save_order_transaction',
+			'bm_get_order_personal_info' => 'bm_get_order_personal_info',
+			'bm_get_order_payment_details' => 'bm_get_order_payment_details',
+			'bm_get_order_email_info' => 'bm_get_order_email_info',
+			'bm_get_order_failed_transactions' => 'bm_get_order_failed_transactions',
+			'bm_get_order_products' => 'bm_get_order_products',
+			'bm_get_email_content' => 'bm_get_email_content',
+			'bm_check_if_exisiting_customer' => 'bm_check_if_exisiting_customer',
+			'get_states' => 'bm_fetch_states_by_country',
+		);
+
+		foreach ( $map as $action => $method ) {
+			register_rest_route(
+				'sg-booking/v1',
+				"/admin-action/{$action}",
+				array(
+					'methods'             => 'POST',
+					'callback'            => function ( $request ) use ( $method ) {
+						return $this->bridge_ajax_handler( $this->plugin_admin, $method, $request );
+					},
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+				)
+			);
+		}
+	}
+
+	/**
+	 * Register public REST routes that replace the old wp_ajax/nopriv handlers.
+	 *
+	 * @since 1.2.0
+	 */
+	public function register_public_action_routes() {
+		$map = array(
+			'bm_flexi_set_frontend_lang' => 'bm_flexibooking_set_language',
+			'bm_fetch_all_services' => 'bm_fetch_all_services',
+			'bm_filter_services' => 'bm_filter_services',
+			'bm_filter_categories' => 'bm_filter_categories',
+			'bm_filter_service_by_category' => 'bm_filter_service_by_category',
+			'bm_filter_services_by_id' => 'bm_filter_services_by_service_id',
+			'bm_fetch_frontend_service_time_slots' => 'bm_fetch_service_time_slots',
+			'bm_fetch_service_calendar_time_slots' => 'bm_fetch_service_by_id_calendar_time_slots',
+			'bm_fetch_extra_service' => 'bm_fetch_extra_service',
+			'bm_fetch_user_form' => 'bm_fetch_user_form',
+			'bm_fetch_order_info_and_redirect_to_checkout' => 'bm_fetch_order_info_and_redirect_to_checkout',
+			'bm_fetch_booking_data' => 'bm_fetch_booking_data',
+			'bm_fetch_service_selection' => 'bm_fetch_service_selection',
+			'bm_set_intl_input' => 'bm_set_intl_input',
+			'bm_fetch_all_services_by_categories' => 'bm_fetch_all_services_by_categories',
+			'bm_get_frontend_service_prices' => 'bm_get_service_prices',
+			'bm_fetch_services_by_name' => 'bm_fetch_services_by_name',
+			'bm_fetch_service_gallry_images' => 'bm_fetch_service_gallry_images',
+			'bm_fetch_checkout_data' => 'bm_fetch_checkout_data_redirect_to_payment',
+			'bm_free_checkout' => 'bm_discounted_and_free_checkout_save',
+			'bm_process_payment' => 'bm_process_final_payment',
+			'bm_save_payment' => 'bm_save_final_payment',
+			'bm_check_for_refund' => 'bm_check_for_refund_for_failed_payment',
+			'bm_check_session' => 'bm_check_if_payment_session_has_expired',
+			'bm_check_discount' => 'bm_fetch_age_data_and_check_discount',
+			'bm_reset_discount' => 'bm_reset_discounted_value',
+			'bm_fetch_checkout_options' => 'bm_fetch_available_checkout_options',
+			'fetch_woocommerce_states' => 'bm_get_woocommerce_states_by_country',
+			'get_states' => 'bm_fetch_states_by_country',
+			'bm_filter_fullcalendar_events' => 'bm_filter_fullcalendar_events_callback',
+			'bm_filter_timeslot_fullcalendar_events' => 'bm_filter_timeslot_fullcalendar_events_callback',
+			'bm_fetch_timeslot_dialog_content' => 'bm_fetch_timeslot_dialog_content',
+			'bm_fetch_bookable_services_by_category_id_and_date' => 'bm_fetch_bookable_services_by_category_id_and_date',
+			'bm_fetch_new_order_service_time_slots' => 'bm_fetch_new_order_service_time_slots',
+			'bm_fetch_mincap_and_cap_left' => 'bm_fetch_mincap_and_cap_left',
+			'bm_fetch_service_price_for_backend_order' => 'bm_fetch_service_price_for_add_order',
+			'bm_fetch_service_extras_for_backend_order' => 'bm_fetch_service_extras_for_backend_order',
+		);
+
+		foreach ( $map as $action => $method ) {
+			register_rest_route(
+				'sg-booking/v1',
+				"/public-action/{$action}",
+				array(
+					'methods'             => 'POST',
+					'callback'            => function ( $request ) use ( $method ) {
+						return $this->bridge_ajax_handler( $this->plugin_public, $method, $request );
+					},
+					'permission_callback' => '__return_true',
+				)
+			);
+		}
+	}
+
+	/**
+	 * Bridge an existing AJAX handler so it can be called from a REST route.
+	 *
+	 * Uses output buffering to capture the handler's JSON output and
+	 * overrides wp_die to throw instead of terminating the process.
+	 *
+	 * @since  1.2.0
+	 * @access private
+	 *
+	 * @param  object          $instance The admin or public class instance.
+	 * @param  string          $method   The method name to invoke.
+	 * @param  WP_REST_Request $request  The incoming REST request.
+	 * @return WP_REST_Response
+	 */
+	private function bridge_ajax_handler( $instance, $method, WP_REST_Request $request ) {
+		if ( ! defined( 'DOING_AJAX' ) ) {
+			define( 'DOING_AJAX', true );
+		}
+
+		ob_start();
+
+		$throw_on_die = function () {
+			return function ( $message = '', $title = '', $args = array() ) {
+				throw new RuntimeException( 'wp_die_intercepted' );
+			};
+		};
+		add_filter( 'wp_die_ajax_handler', $throw_on_die, 9999 );
+
+		try {
+			call_user_func( array( $instance, $method ) );
+		} catch ( RuntimeException $e ) {
+			// Expected: handler called wp_send_json -> wp_die -> our throw handler.
+		}
+
+		$output = ob_get_clean();
+		remove_filter( 'wp_die_ajax_handler', $throw_on_die, 9999 );
+
+		$data = json_decode( $output, true );
+		if ( is_array( $data ) ) {
+			$status = ! empty( $data['success'] ) ? 200 : 400;
+			return new WP_REST_Response( $data, $status );
+		}
+
+		return new WP_REST_Response( array( 'success' => false, 'data' => 'Unknown error' ), 500 );
 	}
 }

@@ -34,7 +34,10 @@ $categories = ! empty( $services ) ? array_values( array_unique( array_column( $
 unset( $order_statuses['failed'], $payment_statuses['failed'] );
 
 // WP_List_Table for server-side order rendering.
-$orders_table = new BM_Orders_List_Table();
+$orders_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_all_orders' ) : null;
+if ( ! $orders_table ) {
+	$orders_table = new BM_Orders_List_Table();
+}
 $orders_table->prepare_items();
 
 ?>

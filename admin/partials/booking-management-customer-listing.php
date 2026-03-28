@@ -1,5 +1,8 @@
 <?php
-$customers_table = new BM_Customers_List_Table();
+$customers_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_all_customers' ) : null;
+if ( ! $customers_table ) {
+	$customers_table = new BM_Customers_List_Table();
+}
 $customers_table->prepare_items();
 ?>
 

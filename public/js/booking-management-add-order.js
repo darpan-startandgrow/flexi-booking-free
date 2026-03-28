@@ -1,4 +1,16 @@
 jQuery(document).on('click', '#check_checkout_discount', function (e) {
+
+function bmAdminRestRequest(action, data, successCallback) {
+    return jQuery.ajax({
+        url: bm_ajax_object.rest_url + 'admin-action/' + action,
+        method: 'POST',
+        data: data,
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+        },
+        success: successCallback
+    });
+}
 	e.preventDefault();
 	jQuery(document).find('div.age_errortext').html('');
 	jQuery(document).find('span.service_discount_text').addClass('hidden');
@@ -75,8 +87,8 @@ jQuery(document).on('click', '#check_checkout_discount', function (e) {
 		formData['subtotal'] = total_cost;
 		formData['extra_svc_cost'] = extra_svc_cost;
 
-		var data = { 'action': 'bm_check_backend_discount', 'post': formData, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		var data = { 'post': formData, 'nonce': bm_ajax_object.nonce };
+		bmAdminRestRequest('bm_check_backend_discount', data, function (response) {
 			jQuery('.loader_modal').hide();
 			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
@@ -118,8 +130,8 @@ jQuery(document).on('click', '#reset_checkout_discount', function (e) {
 	var booking_key = backend_order_keys.booking_key ? backend_order_keys.booking_key : '';
 	var service_old_cost = sessionStorage.getItem("service_old_cost_" + booking_key);
 
-	var data = { 'action': 'bm_reset_backend_discount', 'booking_key': booking_key, 'nonce': bm_ajax_object.nonce };
-	jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+	var data = { 'booking_key': booking_key, 'nonce': bm_ajax_object.nonce };
+	bmAdminRestRequest('bm_reset_backend_discount', data, function (response) {
 		jQuery('.loader_modal').hide();
 		var jsondata = JSON.parse(response);
 		var status = jsondata.status ? jsondata.status : '';
@@ -244,8 +256,8 @@ function bm_fetch_bookable_services(category_id) {
 	}
 
 	if (category_id !== '') {
-		var data = { 'action': 'bm_fetch_bookable_services_by_category_id_and_date', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
+		bmAdminRestRequest('bm_fetch_bookable_services_by_category_id_and_date', data, function (response) {
 			var jsondata = JSON.parse(response);
 			jQuery('#service_id').html('');
 
@@ -291,9 +303,9 @@ function bm_fetch_service_time_slots_by_service_id(service_id) {
 			'date': jQuery('#booking_date').val(),
 		}
 
-		var data = { 'action': 'bm_fetch_new_order_service_time_slots', 'post': post, 'nonce': bm_ajax_object.nonce };
+		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		bmAdminRestRequest('bm_fetch_new_order_service_time_slots', data, function (response) {
 			jQuery('#booking_slots').html('');
 			var slots = JSON.parse(response);
 
@@ -385,9 +397,9 @@ function bm_fetch_bookable_no_of_slots_by_slot($this) {
 			'slots': slot,
 		}
 
-		var data = { 'action': 'bm_fetch_mincap_and_cap_left', 'post': post, 'nonce': bm_ajax_object.nonce };
+		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		bmAdminRestRequest('bm_fetch_mincap_and_cap_left', data, function (response) {
 			var jsondata = JSON.parse(response);
 
 			if (jsondata.status == true) {
@@ -433,9 +445,9 @@ function bm_fetch_svc_total_price() {
 			'date': jQuery('#booking_date').val(),
 		}
 
-		var data = { 'action': 'bm_fetch_service_price_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
+		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
 
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		bmAdminRestRequest('bm_fetch_service_price_for_backend_order', data, function (response) {
 			var jsondata = JSON.parse(response);
 			if (jsondata.status == true) {
 				if (typeof (jsondata.price) != "undefined" && jsondata.price != null) {
@@ -484,8 +496,8 @@ function bm_fetch_service_extra() {
 			'id': jQuery('#service_id').val(),
 		}
 
-		var data = { 'action': 'bm_fetch_service_extras_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
+		bmAdminRestRequest('bm_fetch_service_extras_for_backend_order', data, function (response) {
 			if (response) {
 				var extras = JSON.parse(response);
 				console.log(extras);
@@ -522,8 +534,8 @@ function bm_fetch_service_price_discount_module() {
 			'id': jQuery('#service_id').val(),
 		}
 
-		var data = { 'action': 'bm_fetch_discount_module_for_backend_order', 'post': post, 'nonce': bm_ajax_object.nonce };
-		jQuery.post(bm_ajax_object.ajax_url, data, function (response) {
+		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
+		bmAdminRestRequest('bm_fetch_discount_module_for_backend_order', data, function (response) {
 			var jsondata = JSON.parse(response);
 			var status = jsondata.status ? jsondata.status : '';
 			var html = jsondata.html ? jsondata.html : '';

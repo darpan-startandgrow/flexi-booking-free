@@ -1,5 +1,8 @@
 <?php
-$vouchers_table = new BM_Vouchers_List_Table();
+$vouchers_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_voucher_records' ) : null;
+if ( ! $vouchers_table ) {
+	$vouchers_table = new BM_Vouchers_List_Table();
+}
 $vouchers_table->prepare_items();
 ?>
 

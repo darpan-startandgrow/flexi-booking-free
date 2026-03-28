@@ -14,7 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $dbhandler   = new BM_DBhandler();
-$forms_table = new BM_Forms_List_Table();
+$forms_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'sg-booking-forms' ) : null;
+if ( ! $forms_table ) {
+	$forms_table = new BM_Forms_List_Table();
+}
 
 // Handle single-row delete action.
 if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['form_id'] ) ) {
