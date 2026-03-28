@@ -13038,16 +13038,6 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Failed order hook callbak
-	 *
-	 * @author Darpan
-	 */
-	public function bm_flexibooking_mail_on_failed_order_callback( $order_key, $template_id, $process_id ) {
-		$this->bm_flexibooking_mail_on_failed_order( $order_key, $template_id, $process_id );
-	}//end bm_flexibooking_mail_on_failed_order_callback()
-
-
-	/**
 	 * Send mail to shop admin and customer
 	 *
 	 * @author Darpan
