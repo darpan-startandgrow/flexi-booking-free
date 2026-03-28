@@ -14945,6 +14945,12 @@ class Booking_Management_Admin {
 			}
 		}
 
+		// Duplicate service category mappings.
+		$original_cat_ids = $bmrequests->bm_get_service_category_ids( $service_id );
+		if ( ! empty( $original_cat_ids ) ) {
+			$bmrequests->bm_save_service_categories( $new_service_id, $original_cat_ids );
+		}
+
 		$data['status']         = true;
 		$data['new_service_id'] = $new_service_id;
 

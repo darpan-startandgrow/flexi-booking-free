@@ -302,6 +302,10 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
             // Save availability periods for newly created service.
             bm_save_availability_periods( $service_id, $availability_periods_new, $availability_periods_existing );
 
+            // Save service categories mapping.
+            $category_ids = isset( $_POST['service_category'] ) ? array_map( 'absint', (array) $_POST['service_category'] ) : array();
+            $bmrequests->bm_save_service_categories( $service_id, $category_ids );
+
             wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_all_services' ) );
             exit;
 		} else {
@@ -385,6 +389,10 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
                 // Save availability periods for updated service.
                 bm_save_availability_periods( $id, $availability_periods_new, $availability_periods_existing );
+
+                // Save service categories mapping.
+                $category_ids = isset( $_POST['service_category'] ) ? array_map( 'absint', (array) $_POST['service_category'] ) : array();
+                $bmrequests->bm_save_service_categories( $id, $category_ids );
 
 				wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_add_service&id=' . esc_attr( $id ) ) );
 				exit;
@@ -584,14 +592,29 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                     <tr>
                         <th scope="row"><label for="service_category"><?php esc_html_e( 'Category', 'service-booking' ); ?></label></th>
                         <td>
-                            <select name="service_category" id="service_category" class="regular-text">
-                                <option value="0"><?php echo esc_html( 'uncategorized' ); ?></option>
-                                <?php if ( isset( $categories ) && !empty( $categories ) ) { ?>
-                                    <?php foreach ( $categories as $category ) { ?>
-                                        <option value="<?php echo esc_attr( $category->id ) ?? ''; ?>" <?php isset( $svc_row ) && isset( $svc_row->service_category ) ? selected( esc_attr( $svc_row->service_category ), esc_attr( $category->id ) ) : ''; ?>><?php echo esc_html( $category->cat_name ) ?? ''; ?></option>
-                                    <?php } ?>
-                                <?php } ?>
+                            <?php
+                            $selected_category_ids = array();
+                            if ( isset( $svc_row ) && ! empty( $svc_row->id ) ) {
+                                $selected_category_ids = $bmrequests->bm_get_service_category_ids( $svc_row->id );
+                            }
+                            $allow_multiple = apply_filters( 'bm_allow_multiple_categories', true );
+                            ?>
+                            <select name="service_category[]" id="service_category" class="regular-text" <?php echo $allow_multiple ? 'multiple="multiple"' : ''; ?>>
+                                <?php if ( ! $allow_multiple ) : ?>
+                                    <option value="0"><?php echo esc_html( 'uncategorized' ); ?></option>
+                                <?php endif; ?>
+                                <?php if ( isset( $categories ) && ! empty( $categories ) ) : ?>
+                                    <?php foreach ( $categories as $category ) : ?>
+                                        <option value="<?php echo esc_attr( $category->id ); ?>"
+                                            <?php echo in_array( (int) $category->id, $selected_category_ids, true ) ? 'selected="selected"' : ''; ?>>
+                                            <?php echo esc_html( $category->cat_name ); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </select>
+                            <?php if ( ! $allow_multiple ) : ?>
+                                <p class="description"><?php esc_html_e( 'Upgrade to Pro for multiple categories per service.', 'service-booking' ); ?></p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <input type="hidden" name="old_default_max_cap" id="old_default_max_cap">

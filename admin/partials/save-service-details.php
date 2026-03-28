@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $service_details_data = array(
     'service_name'           => isset( $_POST['service_name'] ) ? ucfirst( filter_input( INPUT_POST, 'service_name' ) ) : '',
     'service_calendar_title' => isset( $_POST['service_calendar_title'] ) ? ucfirst( filter_input( INPUT_POST, 'service_calendar_title' ) ) : '',
-    'service_category'       => isset( $_POST['service_category'] ) ? filter_input( INPUT_POST, 'service_category', FILTER_VALIDATE_INT ) : null,
+    'service_category'       => isset( $_POST['service_category'] ) ? absint( is_array( $_POST['service_category'] ) ? reset( $_POST['service_category'] ) : $_POST['service_category'] ) : null,
     'service_duration'       => isset( $_POST['service_duration'] ) ? filter_input( INPUT_POST, 'service_duration' ) : null,
     'service_operation'      => isset( $_POST['service_operation'] ) ? filter_input( INPUT_POST, 'service_operation' ) : null,
     'default_max_cap'        => ! empty( $_POST['default_max_cap'] ) ? filter_input( INPUT_POST, 'default_max_cap' ) : 1,
