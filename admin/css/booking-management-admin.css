@@ -3903,3 +3903,15 @@ pre {
     background: #ffebee;
     color: #c62828;
 }
+
+.bm-duplicate-service {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #2271b1;
+    padding: 4px 6px;
+    font-size: 14px;
+}
+.bm-duplicate-service:hover {
+    color: #135e96;
+}

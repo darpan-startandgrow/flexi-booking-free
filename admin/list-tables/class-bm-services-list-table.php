@@ -308,11 +308,17 @@ class BM_Services_List_Table extends WP_List_Table {
 				);
 
 			case 'actions':
-				return sprintf(
+				$edit_btn = sprintf(
 					'<button type="button" name="editsvc" class="edit-button" id="editsvc" title="%1$s" value="%2$s"><i class="fa fa-edit" aria-hidden="true"></i></button>',
 					esc_attr__( 'Edit', 'service-booking' ),
 					esc_attr( $item['id'] )
 				);
+				$duplicate_btn = sprintf(
+					'<button type="button" class="button bm-duplicate-service" title="%1$s" data-service-id="%2$s"><i class="fa fa-copy" aria-hidden="true"></i></button>',
+					esc_attr__( 'Duplicate', 'service-booking' ),
+					esc_attr( $item['id'] )
+				);
+				return $edit_btn . ' ' . $duplicate_btn;
 
 			default:
 				return '';
