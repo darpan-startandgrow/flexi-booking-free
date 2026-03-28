@@ -20,12 +20,21 @@ class Booking_Management_Feature_Control {
 	/**
 	 * Check if the Pro add-on is active.
 	 *
-	 * Uses the central gatekeeper filter. The Pro plugin hooks into this
-	 * filter and returns true. Without Pro, this always returns false.
+	 * Checks Freemius first (if available), then falls back to the
+	 * central gatekeeper filter. The Pro plugin hooks into that filter
+	 * and returns true. Without Pro (or Freemius), this always returns false.
 	 *
 	 * @return bool
 	 */
 	public static function is_pro() {
+		// Check Freemius first if available.
+		if ( function_exists( 'sg_booking_fs' ) ) {
+			$fs = sg_booking_fs();
+			if ( is_object( $fs ) && $fs->is_paying() ) {
+				return true;
+			}
+		}
+
 		return (bool) apply_filters( 'sg_booking_is_pro_active', false );
 	}
 

@@ -71,6 +71,11 @@ register_deactivation_hook( __FILE__, 'deactivate_booking_management' );
  */
 require plugin_dir_path( __FILE__ ) . 'includes/class-booking-management.php';
 
+// Freemius SDK integration (when provider is 'freemius').
+if ( file_exists( plugin_dir_path( __FILE__ ) . 'includes/class-sg-freemius.php' ) ) {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-sg-freemius.php';
+}
+
 
 /**
  * Begins execution of the plugin.

@@ -326,16 +326,17 @@ class SG_License_Manager {
 	/**
 	 * Validate a license key against the Freemius SDK.
 	 *
-	 * Requires the Freemius SDK to be loaded (typically by the Pro add-on).
-	 * If Freemius is not available, returns false.
+	 * Checks both paying status and the 'pro' plan so that only genuine
+	 * Pro subscribers pass validation.  Falls back gracefully when the
+	 * Freemius SDK is not loaded.
 	 *
-	 * @param string $license_key The license key.
+	 * @param string $license_key The license key (unused by Freemius but
+	 *                            kept for API consistency).
 	 * @return bool
 	 */
 	private function freemius_check_license( $license_key ) {
-		// The Freemius SDK global instance is typically set up by the
-		// Pro plugin via `fs_dynamic_init()`. If it's not available,
-		// the license cannot be validated.
+		// The Freemius SDK global instance is typically set up by
+		// `class-sg-freemius.php` via `fs_dynamic_init()`.
 		if ( ! function_exists( 'sg_booking_fs' ) ) {
 			return false;
 		}
@@ -346,7 +347,79 @@ class SG_License_Manager {
 			return false;
 		}
 
-		return $fs->is_paying();
+		// Verify the user is on a paying plan.
+		if ( ! $fs->is_paying() ) {
+			return false;
+		}
+
+		// Optionally restrict to the 'pro' plan when the method exists.
+		if ( method_exists( $fs, 'is_plan' ) && ! $fs->is_plan( 'pro' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Trigger the Freemius opt-in / upgrade flow.
+	 *
+	 * Called during license activation when the provider is 'freemius'.
+	 * Returns the result of `freemius_check_license()` after the flow is
+	 * triggered so the stored status reflects reality.
+	 *
+	 * @since  1.1.0
+	 * @param  string $license_key The license key.
+	 * @return bool True when the user is on a paying Pro plan.
+	 */
+	private function freemius_activate( $license_key ) {
+		if ( ! function_exists( 'sg_booking_fs' ) ) {
+			return false;
+		}
+
+		$fs = sg_booking_fs();
+
+		if ( ! is_object( $fs ) ) {
+			return false;
+		}
+
+		// If the Freemius checkout / opt-in URL helper exists, fire an
+		// action so theme or add-on code can redirect the admin to the
+		// Freemius upgrade flow.
+		if ( method_exists( $fs, 'get_upgrade_url' ) && is_admin() ) {
+			/**
+			 * Fires when the Freemius opt-in flow is about to start.
+			 *
+			 * @since 1.1.0
+			 * @param \Freemius $fs The Freemius SDK instance.
+			 */
+			do_action( 'sg_booking_freemius_before_optin', $fs );
+		}
+
+		return $this->freemius_check_license( $license_key );
+	}
+
+	/**
+	 * Deactivate / downgrade via the Freemius SDK.
+	 *
+	 * @since  1.1.0
+	 * @return void
+	 */
+	private function freemius_deactivate() {
+		if ( ! function_exists( 'sg_booking_fs' ) ) {
+			return;
+		}
+
+		$fs = sg_booking_fs();
+
+		if ( ! is_object( $fs ) ) {
+			return;
+		}
+
+		// Ask the SDK to clear its local activation data so the site
+		// is no longer treated as a paying installation.
+		if ( method_exists( $fs, 'delete_account_event' ) ) {
+			$fs->delete_account_event();
+		}
 	}
 
 	// ------------------------------------------------------------------
@@ -382,7 +455,7 @@ class SG_License_Manager {
 		if ( 'edd' === $provider ) {
 			$valid = $this->edd_activate( $license_key );
 		} elseif ( 'freemius' === $provider ) {
-			$valid = $this->freemius_check_license( $license_key );
+			$valid = $this->freemius_activate( $license_key );
 		} else {
 			$valid = $this->validate_license( $license_key, $item_id );
 		}
@@ -430,6 +503,8 @@ class SG_License_Manager {
 		// Tell the remote server to release this site.
 		if ( ! empty( $license_key ) && 'edd' === $provider ) {
 			$this->edd_deactivate( $license_key );
+		} elseif ( 'freemius' === $provider ) {
+			$this->freemius_deactivate();
 		}
 
 		delete_option( self::OPTION_LICENSE_KEY );
@@ -633,6 +708,75 @@ class SG_License_Manager {
 			<p class="description">
 				<?php esc_html_e( 'Your license key was provided with your SG Flexi Booking Pro purchase. Enter it above to unlock all Pro features.', 'service-booking' ); ?>
 			</p>
+		</div>
+		<?php
+
+		// Show Freemius account info when the provider is 'freemius'.
+		if ( 'freemius' === $provider && function_exists( 'sg_booking_fs' ) ) {
+			$fs = sg_booking_fs();
+			if ( is_object( $fs ) ) {
+				$this->render_freemius_account_info( $fs );
+			}
+		}
+	}
+
+	/**
+	 * Render Freemius account information on the license page.
+	 *
+	 * Displays plan details, account actions, and an upgrade link
+	 * when the Freemius SDK is the active provider.
+	 *
+	 * @since 1.1.0
+	 * @param \Freemius $fs The Freemius SDK instance.
+	 */
+	private function render_freemius_account_info( $fs ) {
+		$plan_title = method_exists( $fs, 'get_plan_title' ) ? $fs->get_plan_title() : '';
+		$is_paying  = method_exists( $fs, 'is_paying' ) && $fs->is_paying();
+		$user       = method_exists( $fs, 'get_user' ) ? $fs->get_user() : null;
+		?>
+		<div class="sg-freemius-account" style="margin-top:20px;padding:15px;background:#fff;border:1px solid #ccd0d4;border-left:4px solid #0073aa;">
+			<h2 style="margin-top:0;"><?php esc_html_e( 'Freemius Account', 'service-booking' ); ?></h2>
+
+			<table class="form-table" role="presentation">
+				<?php if ( ! empty( $plan_title ) ) : ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Plan', 'service-booking' ); ?></th>
+					<td><strong><?php echo esc_html( $plan_title ); ?></strong></td>
+				</tr>
+				<?php endif; ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Paying', 'service-booking' ); ?></th>
+					<td>
+						<?php
+						echo $is_paying
+							? '<span style="color:#46b450;font-weight:600;">' . esc_html__( 'Yes', 'service-booking' ) . '</span>'
+							: '<span style="color:#999;">' . esc_html__( 'No', 'service-booking' ) . '</span>';
+						?>
+					</td>
+				</tr>
+				<?php if ( is_object( $user ) && ! empty( $user->email ) ) : ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Account Email', 'service-booking' ); ?></th>
+					<td><?php echo esc_html( $user->email ); ?></td>
+				</tr>
+				<?php endif; ?>
+			</table>
+
+			<?php if ( ! $is_paying && method_exists( $fs, 'get_upgrade_url' ) ) : ?>
+				<p>
+					<a href="<?php echo esc_url( $fs->get_upgrade_url() ); ?>" class="button button-primary">
+						<?php esc_html_e( 'Upgrade to Pro', 'service-booking' ); ?>
+					</a>
+				</p>
+			<?php endif; ?>
+
+			<?php if ( method_exists( $fs, 'get_account_url' ) ) : ?>
+				<p>
+					<a href="<?php echo esc_url( $fs->get_account_url() ); ?>">
+						<?php esc_html_e( 'Manage Freemius Account', 'service-booking' ); ?>
+					</a>
+				</p>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
