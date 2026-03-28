@@ -1038,9 +1038,17 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Synchronise the plugin timezone with the WordPress site timezone.
+	 *
+	 * Runs on `init`. Skips the DB write when the stored value already
+	 * matches, avoiding redundant queries on every page load.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function bm_set_timezone() {
 		$dbhandler   = new BM_DBhandler();
-		$bmrequests  = new BM_Request();
 		$wp_timezone = get_option( 'timezone_string' );
 
 		if ( empty( $wp_timezone ) ) {
@@ -1048,6 +1056,17 @@ class Booking_Management_Admin {
 			$wp_timezone = timezone_name_from_abbr( '', $gmt_offset * 3600, 0 );
 		}
 
+		if ( empty( $wp_timezone ) ) {
+			return;
+		}
+
+		$stored_timezone = $dbhandler->get_global_option_value( 'bm_booking_time_zone', '' );
+
+		if ( $stored_timezone === $wp_timezone ) {
+			return;
+		}
+
+		$bmrequests   = new BM_Request();
 		$country_code = $bmrequests->bm_fetch_country_code_by_timezone( $wp_timezone );
 
 		if ( ! empty( $country_code ) && ! empty( $bmrequests->bm_get_countries( $country_code ) ) ) {
@@ -1059,9 +1078,14 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Set Timezone
+	 * Update the plugin timezone when the WordPress timezone_string option changes.
 	 *
-	 * @author Darpan
+	 * Hooked to `update_option_timezone_string`.
+	 *
+	 * @since 1.0.0
+	 * @param string $old_value Previous timezone string.
+	 * @param string $new_value New timezone string.
+	 * @return void
 	 */
 	public function bm_update_plugin_timezone_on_wp_change( $old_value, $new_value ) {
 		$dbhandler    = new BM_DBhandler();
@@ -1077,27 +1101,36 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Set Timezone
+	 * Update the plugin timezone when the WordPress gmt_offset option changes.
 	 *
-	 * @author Darpan
+	 * Only fires when timezone_string is empty (manual UTC offset mode).
+	 * Hooked to `update_option_gmt_offset`.
+	 *
+	 * @since 1.0.0
+	 * @param mixed $old_value Previous GMT offset.
+	 * @param mixed $new_value New GMT offset.
+	 * @return void
 	 */
 	public function bm_update_plugin_timezone_on_gmt_offset_change( $old_value, $new_value ) {
-		$dbhandler  = new BM_DBhandler();
-		$bmrequests = new BM_Request();
-
-		if ( empty( get_option( 'timezone_string' ) ) ) {
-			$gmt_timezone = timezone_name_from_abbr( '', $new_value * 3600, 0 );
-
-			if ( $gmt_timezone ) {
-				$country_code = $bmrequests->bm_fetch_country_code_by_timezone( $gmt_timezone );
-
-				if ( ! empty( $country_code ) && ! empty( $bmrequests->bm_get_countries( $country_code ) ) ) {
-					$dbhandler->update_global_option_value( 'bm_booking_country', $country_code );
-				}
-
-				$dbhandler->update_global_option_value( 'bm_booking_time_zone', $gmt_timezone );
-			}
+		if ( ! empty( get_option( 'timezone_string' ) ) ) {
+			return;
 		}
+
+		$gmt_timezone = timezone_name_from_abbr( '', $new_value * 3600, 0 );
+
+		if ( ! $gmt_timezone ) {
+			return;
+		}
+
+		$dbhandler    = new BM_DBhandler();
+		$bmrequests   = new BM_Request();
+		$country_code = $bmrequests->bm_fetch_country_code_by_timezone( $gmt_timezone );
+
+		if ( ! empty( $country_code ) && ! empty( $bmrequests->bm_get_countries( $country_code ) ) ) {
+			$dbhandler->update_global_option_value( 'bm_booking_country', $country_code );
+		}
+
+		$dbhandler->update_global_option_value( 'bm_booking_time_zone', $gmt_timezone );
 	}//end bm_update_plugin_timezone_on_gmt_offset_change()
 
 
@@ -1221,14 +1254,27 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Ensure Italian (it_IT) translation is installed.
+	 *
+	 * Runs on `init`. Skips the filesystem and download steps when the
+	 * Italian language pack is already present to avoid unnecessary I/O
+	 * on every page load.
+	 *
+	 * @since 1.0.0
+	 * @return false|void False when filesystem credentials are unavailable.
+	 */
 	public function bm_set_installed_languages() {
 		$languages = get_option( 'available_languages', array() );
 		$languages = apply_filters( 'bm_flexibooking_modify_installed_languages', $languages );
 
-		if ( ! in_array( 'it_IT', $languages ) ) {
-			$languages[] = 'it_IT';
-			update_option( 'available_languages', $languages );
+		if ( in_array( 'it_IT', $languages, true ) ) {
+			do_action( 'bm_flexibooking_languages_installed', $languages );
+			return;
 		}
+
+		$languages[] = 'it_IT';
+		update_option( 'available_languages', $languages );
 
 		if ( ! function_exists( 'request_filesystem_credentials' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1242,7 +1288,7 @@ class Booking_Management_Admin {
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/translation-install.php';
-		$it_translation = wp_download_language_pack( 'it_IT' );
+		wp_download_language_pack( 'it_IT' );
 
 		do_action( 'bm_flexibooking_languages_installed', $languages );
 	}
@@ -1274,49 +1320,57 @@ class Booking_Management_Admin {
 	/**
 	 * Add Language Switcher In Admin Bar
 	 *
-	 * @author Darpan
+	 * @since 1.0.0
+	 * @param WP_Admin_Bar $wp_admin_bar Admin bar instance.
+	 * @return void
 	 */
 	public function bm_add_flexibooking_language_switcher_in_admin_bar( $wp_admin_bar ) {
 		$dbhandler                      = new BM_DBhandler();
 		$language_switcher_in_admin_bar = $dbhandler->get_global_option_value( 'bm_show_lng_swtchr_in_admin_bar', '0' );
 		$show_admin_bar                 = apply_filters( 'flexibooking_show_lang_switchr_in_admin_bar', $language_switcher_in_admin_bar );
 
-		if ( $show_admin_bar == 1 ) {
-			$wp_admin_bar->add_menu(
-				array(
-					'parent' => false,
-					'id'     => 'bm_flexibooking_current_language',
-					'title'  => $this->flexibooking_language_switcher(),
-					'href'   => false,
-				)
-			);
-
-			do_action( 'bm_flexibooking_admin_bar_language_switcher_added', $wp_admin_bar );
+		if ( absint( $show_admin_bar ) !== 1 ) {
+			return;
 		}
+
+		$wp_admin_bar->add_menu(
+			array(
+				'parent' => false,
+				'id'     => 'bm_flexibooking_current_language',
+				'title'  => $this->flexibooking_language_switcher(),
+				'href'   => false,
+			)
+		);
+
+		do_action( 'bm_flexibooking_admin_bar_language_switcher_added', $wp_admin_bar );
 	}//end bm_add_flexibooking_language_switcher_in_admin_bar()
 
 
 	/**
 	 * Add Language Switcher In footer
 	 *
-	 * @author Darpan
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function bm_add_flexibooking_language_switcher_in_footer() {
 		$dbhandler                   = new BM_DBhandler();
 		$bmrequests                  = new BM_Request();
 		$language_switcher_in_footer = $dbhandler->get_global_option_value( 'bm_show_lng_swtchr_in_footer', '0' );
-		$show_admin_bar              = apply_filters( 'flexibooking_show_lang_switchr_in_footer', $language_switcher_in_footer );
+		$show_in_footer              = apply_filters( 'flexibooking_show_lang_switchr_in_footer', $language_switcher_in_footer );
 
-		if ( $show_admin_bar == 1 ) {
-			$html  = '<div class="flexi-lang-select-box" id="bm_flexibooking_current_language">';
-			$html .= $this->flexibooking_language_switcher();
-			$html .= '</div>';
+		if ( absint( $show_in_footer ) !== 1 ) {
+			return;
+		}
 
-			$html = apply_filters( 'bm_flexibooking_language_switcher_footer_html', $html );
+		$html  = '<div class="flexi-lang-select-box" id="bm_flexibooking_current_language">';
+		$html .= $this->flexibooking_language_switcher();
+		$html .= '</div>';
 
-			echo wp_kses( $html, $bmrequests->bm_fetch_expanded_allowed_tags() );
+		$html = apply_filters( 'bm_flexibooking_language_switcher_footer_html', $html );
 
-			do_action( 'bm_flexibooking_footer_language_switcher_added', $html );
+		echo wp_kses( $html, $bmrequests->bm_fetch_expanded_allowed_tags() );
+
+		do_action( 'bm_flexibooking_footer_language_switcher_added', $html );
 		}
 	}//end bm_add_flexibooking_language_switcher_in_footer()
 
@@ -10052,57 +10106,52 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Callback of check book on request bookings
+	 * Check expired book-on-request bookings and cancel them if the expiry window has passed.
 	 *
-	 * @author Darpan
+	 * Cron callback for `flexibooking_check_expired_book_on_request_bookings`.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function flexibooking_check_expired_book_on_request_bookings_callback() {
 		$bmrequests     = new BM_Request();
 		$dbhandler      = new BM_DBhandler();
 		$transactions   = $bmrequests->bm_fetch_book_on_request_transactions();
-		$booking_expiry = $dbhandler->get_global_option_value( 'bm_book_on_request_expiry' );
+		$booking_expiry = (int) $dbhandler->get_global_option_value( 'bm_book_on_request_expiry' );
 
 		if ( $booking_expiry <= 0 ) {
 			$booking_expiry = 7;
 		}
 
-		if ( ! empty( $transactions ) && is_array( $transactions ) ) {
-			foreach ( $transactions as $transaction ) {
-				$booking_id        = isset( $transaction->booking_id ) ? $transaction->booking_id : 0;
-				$creation_datetime = isset( $transaction->transaction_created_at ) ? $transaction->transaction_created_at : '';
+		if ( empty( $transactions ) || ! is_array( $transactions ) ) {
+			return;
+		}
 
-				if ( ! empty( $booking_id ) && ! empty( $creation_datetime ) ) {
-					$timezone          = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
-					$creation_datetime = new DateTime( $creation_datetime, new DateTimeZone( $timezone ) );
-					$current_datetime  = new DateTime( 'now', new DateTimeZone( $timezone ) );
+		$timezone         = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
+		$timezone_object  = new DateTimeZone( $timezone );
+		$current_datetime = new DateTime( 'now', $timezone_object );
 
-					$time_to_compare = clone $creation_datetime;
-					$time_to_compare->modify( '+' . $booking_expiry . ' hours' );
+		foreach ( $transactions as $transaction ) {
+			$booking_id        = isset( $transaction->booking_id ) ? $transaction->booking_id : 0;
+			$creation_datetime = isset( $transaction->transaction_created_at ) ? $transaction->transaction_created_at : '';
 
-					if ( $current_datetime > $time_to_compare ) {
-						$bmrequests->bm_cancel_and_refund_order( $booking_id );
-						$is_cancelled = $dbhandler->get_global_option_value( 'bm_is_booking_cancelled-' . $booking_id, 0 );
+			if ( empty( $booking_id ) || empty( $creation_datetime ) ) {
+				continue;
+			}
 
-						if ( $is_cancelled == 1 ) {
-							$wc_order_id = $dbhandler->get_value( 'BOOKING', 'wc_order_id', $booking_id, 'id' );
-							if ( $wc_order_id > 0 && ( new WooCommerceService() )->is_enabled() ) {
-								$wc_order = wc_get_order( $wc_order_id );
+			$creation_datetime = new DateTime( $creation_datetime, $timezone_object );
+			$time_to_compare   = clone $creation_datetime;
+			$time_to_compare->modify( '+' . $booking_expiry . ' hours' );
 
-								if ( $wc_order ) {
-									$wc_order->update_status( 'cancelled', 'marked from flexi booking plugin' );
-									update_post_meta( $wc_order_id, '_is_flexi_order_expired', true );
+			if ( $current_datetime <= $time_to_compare ) {
+				continue;
+			}
 
-									$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
+			$bmrequests->bm_cancel_and_refund_order( $booking_id );
+			$is_cancelled = $dbhandler->get_global_option_value( 'bm_is_booking_cancelled-' . $booking_id, 0 );
 
-									if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
-										$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
-										$redeemVoucher->markVoucherExpired();
-									}
-								}
-							}
-						}
-					}
-				}
+			if ( absint( $is_cancelled ) === 1 ) {
+				$this->bm_expire_woocommerce_order_for_booking( $dbhandler, $booking_id, 'cancelled' );
 			}
 		}
 	}//end flexibooking_check_expired_book_on_request_bookings_callback()
@@ -10226,26 +10275,32 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Mark expired free bookings as completed.
+	 *
+	 * Updates the booking order status to 'succeeded'. The WooCommerce
+	 * order status is updated separately by the cron callback.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return bool True on successful update, false otherwise.
+	 */
 	public function bm_mark_free_orders_as_complete( $booking_id = 0 ) {
-		$dbhandler  = new BM_DBhandler();
-		$bmrequests = new BM_Request();
-		$status     = false;
-
-		if ( ! empty( $booking_id ) ) {
-			$booking_data = array(
-				'order_status'       => 'succeeded',
-				'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$booking_update = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-			$wc_order_id    = $dbhandler->get_value( 'BOOKING', 'wc_order_id', $booking_id, 'id' );
-
-			if ( $booking_update ) {
-				$status = true;
-			}
+		if ( empty( $booking_id ) ) {
+			return false;
 		}
 
-		return $status;
+		$dbhandler  = new BM_DBhandler();
+		$bmrequests = new BM_Request();
+
+		$booking_data = array(
+			'order_status'       => 'succeeded',
+			'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
+		);
+
+		$booking_update = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
+
+		return (bool) $booking_update;
 	} // end bm_mark_free_orders_as_complete()
 
 
@@ -10254,280 +10309,176 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
-	public function bm_flexibooking_cancel_booking( $booking_id = 0 ) {
+	/**
+	 * Update all booking-related tables (transaction, booking, slotcount, extra-slotcount, customer)
+	 * when a booking status changes.
+	 *
+	 * This private helper eliminates code duplication across the five public
+	 * status-update filter callbacks.
+	 *
+	 * @since 1.3.0
+	 * @param int    $booking_id       Booking ID.
+	 * @param string $payment_status   Transaction payment status (e.g. 'cancelled', 'refunded', 'succeeded', 'pending').
+	 * @param string $order_status     Booking order status (e.g. 'cancelled', 'refunded', 'succeeded', 'processing', 'on_hold').
+	 * @param int    $is_active        Active flag (0 = inactive, 1 = active).
+	 * @param array  $extra_txn_fields Additional fields merged into the transaction data array.
+	 * @param bool   $deactivate_sole  Whether to deactivate the customer when they have only one transaction.
+	 * @return bool True if the primary updates succeeded, false otherwise.
+	 */
+	private function bm_update_all_booking_tables( $booking_id, $payment_status, $order_status, $is_active, $extra_txn_fields = array(), $deactivate_sole = false ) {
 		$dbhandler  = new BM_DBhandler();
 		$bmrequests = new BM_Request();
-		$cancelled  = false;
+		$timestamp  = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
 
-		if ( $booking_id > 0 ) {
-			$customer_id    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
+		$transaction_data = array_merge(
+			array(
+				'payment_status'         => $payment_status,
+				'is_active'              => $is_active,
+				'transaction_updated_at' => $timestamp,
+			),
+			$extra_txn_fields
+		);
+
+		$booking_data = array(
+			'order_status'       => $order_status,
+			'is_active'          => $is_active,
+			'booking_updated_at' => $timestamp,
+		);
+
+		$slotcount_data = array(
+			'is_active'       => $is_active,
+			'slot_updated_at' => $timestamp,
+		);
+
+		$extra_slotcount_data = array(
+			'is_active'       => $is_active,
+			'slot_updated_at' => $timestamp,
+		);
+
+		$txn_result       = $dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
+		$booking_result   = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
+		$slotcount_result = $dbhandler->update_row( 'SLOTCOUNT', 'booking_id', $booking_id, $slotcount_data, '', '%d' );
+		$dbhandler->update_row( 'EXTRASLOTCOUNT', 'booking_id', $booking_id, $extra_slotcount_data, '', '%d' );
+
+		$customer_id = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
+
+		if ( $deactivate_sole ) {
 			$customer_count = $dbhandler->bm_count( 'TRANSACTIONS', array( 'customer_id' => $customer_id ) );
 
-			$transaction_data = array(
-				'payment_status'         => 'cancelled',
-				'is_active'              => 0,
-				'transaction_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$booking_data = array(
-				'order_status'       => 'cancelled',
-				'is_active'          => 0,
-				'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$slotcount_data = array(
-				'is_active'       => 0,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$extra_slotcount_data = array(
-				'is_active'       => 0,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$one   = $dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
-			$two   = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-			$three = $dbhandler->update_row( 'SLOTCOUNT', 'booking_id', $booking_id, $slotcount_data, '', '%d' );
-			$four  = $dbhandler->update_row( 'EXTRASLOTCOUNT', 'booking_id', $booking_id, $extra_slotcount_data, '', '%d' );
-
-			if ( ( $customer_count == 1 ) ) {
+			if ( (int) $customer_count === 1 ) {
 				$customer_data = array(
-					'is_active'           => 0,
-					'customer_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
+					'is_active'           => $is_active,
+					'customer_updated_at' => $timestamp,
 				);
 				$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_data, '', '%d' );
 			}
-
-			if ( $one != false && $two != false && $three != false ) {
-				$cancelled = true;
-			}
+		} else {
+			$customer_data = array(
+				'is_active'           => $is_active,
+				'customer_updated_at' => $timestamp,
+			);
+			$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_data, '', '%d' );
 		}
 
-		return $cancelled;
+		return ( false !== $txn_result && false !== $booking_result && false !== $slotcount_result );
+	}//end bm_update_all_booking_tables()
+
+
+	/**
+	 * Cancel a booking and deactivate all related records.
+	 *
+	 * Filter callback for `flexibooking_cancel_booking`.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return bool True if cancellation succeeded, false otherwise.
+	 */
+	public function bm_flexibooking_cancel_booking( $booking_id = 0 ) {
+		if ( $booking_id <= 0 ) {
+			return false;
+		}
+
+		return $this->bm_update_all_booking_tables( $booking_id, 'cancelled', 'cancelled', 0, array(), true );
 	} // end bm_flexibooking_cancel_booking()
 
 
 	/**
-	 * Mark an order as refunded
+	 * Mark a booking as refunded.
 	 *
-	 * @author Darpan
+	 * Filter callback for `flexibooking_update_status_as_refunded`.
+	 *
+	 * @since 1.0.0
+	 * @param int    $booking_id Booking ID.
+	 * @param string $refund_id  Stripe refund ID.
+	 * @return bool True on success, false otherwise.
 	 */
 	public function bm_flexibooking_update_status_as_refunded( $booking_id = 0, $refund_id = '' ) {
-		$dbhandler  = new BM_DBhandler();
-		$bmrequests = new BM_Request();
-		$updated    = false;
-
-		if ( $booking_id > 0 ) {
-			$customer_id    = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-			$customer_count = $dbhandler->bm_count( 'TRANSACTIONS', array( 'customer_id' => $customer_id ) );
-
-			$transaction_data = array(
-				'payment_status'         => 'refunded',
-				'refund_id'              => $refund_id,
-				'is_active'              => 0,
-				'transaction_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$booking_data = array(
-				'order_status'       => 'refunded',
-				'is_active'          => 0,
-				'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$slotcount_data = array(
-				'is_active'       => 0,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$extra_slotcount_data = array(
-				'is_active'       => 0,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$one   = $dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
-			$two   = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-			$three = $dbhandler->update_row( 'SLOTCOUNT', 'booking_id', $booking_id, $slotcount_data, '', '%d' );
-			$four  = $dbhandler->update_row( 'EXTRASLOTCOUNT', 'booking_id', $booking_id, $extra_slotcount_data, '', '%d' );
-
-			if ( ( $customer_count == 1 ) ) {
-				$customer_data = array(
-					'is_active'           => 0,
-					'customer_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-				);
-				$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_data, '', '%d' );
-			}
-
-			if ( $one != false && $two != false && $three != false ) {
-				$updated = true;
-			}
+		if ( $booking_id <= 0 ) {
+			return false;
 		}
 
-		return $updated;
+		return $this->bm_update_all_booking_tables(
+			$booking_id,
+			'refunded',
+			'refunded',
+			0,
+			array( 'refund_id' => $refund_id ),
+			true
+		);
 	} // end bm_flexibooking_update_status_as_refunded()
 
 
 	/**
-	 * Mark an order as completed
+	 * Mark a booking as completed (succeeded).
 	 *
-	 * @author Darpan
+	 * Filter callback for `flexibooking_update_status_as_completed`.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return bool True on success, false otherwise.
 	 */
 	public function bm_flexibooking_update_status_as_completed( $booking_id = 0 ) {
-		$updated = false;
-
-		if ( $booking_id > 0 ) {
-			$bmrequests       = new BM_Request();
-			$transaction_data = array(
-				'payment_status'         => 'succeeded',
-				'is_active'              => 1,
-				'transaction_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$booking_data = array(
-				'order_status'       => 'succeeded',
-				'is_active'          => 1,
-				'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$slotcount_data = array(
-				'is_active'       => 1,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$extra_slotcount_data = array(
-				'is_active'       => 1,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$dbhandler = new BM_DBhandler();
-
-			$one   = $dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
-			$two   = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-			$three = $dbhandler->update_row( 'SLOTCOUNT', 'booking_id', $booking_id, $slotcount_data, '', '%d' );
-			$four  = $dbhandler->update_row( 'EXTRASLOTCOUNT', 'booking_id', $booking_id, $extra_slotcount_data, '', '%d' );
-
-			$customer_id   = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-			$customer_data = array(
-				'is_active'           => 1,
-				'customer_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-			$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_data, '', '%d' );
-
-			if ( $one != false && $two != false && $three != false ) {
-				$updated = true;
-			}
+		if ( $booking_id <= 0 ) {
+			return false;
 		}
 
-		return $updated;
+		return $this->bm_update_all_booking_tables( $booking_id, 'succeeded', 'succeeded', 1 );
 	} // end bm_flexibooking_update_status_as_completed()
 
 
 	/**
-	 * Mark an order as processing
+	 * Mark a booking as processing (pending payment).
 	 *
-	 * @author Darpan
+	 * Filter callback for `flexibooking_update_status_as_processing`.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return bool True on success, false otherwise.
 	 */
 	public function bm_flexibooking_update_status_as_processing( $booking_id = 0 ) {
-		$updated = false;
-
-		if ( $booking_id > 0 ) {
-			$bmrequests       = new BM_Request();
-			$transaction_data = array(
-				'payment_status'         => 'pending',
-				'is_active'              => 1,
-				'transaction_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$booking_data = array(
-				'order_status'       => 'processing',
-				'is_active'          => 1,
-				'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$slotcount_data = array(
-				'is_active'       => 1,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$extra_slotcount_data = array(
-				'is_active'       => 1,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$dbhandler = new BM_DBhandler();
-
-			$one   = $dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
-			$two   = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-			$three = $dbhandler->update_row( 'SLOTCOUNT', 'booking_id', $booking_id, $slotcount_data, '', '%d' );
-			$four  = $dbhandler->update_row( 'EXTRASLOTCOUNT', 'booking_id', $booking_id, $extra_slotcount_data, '', '%d' );
-
-			$customer_id   = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-			$customer_data = array(
-				'is_active'           => 1,
-				'customer_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-			$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_data, '', '%d' );
-
-			if ( $one != false && $two != false && $three != false ) {
-				$updated = true;
-			}
+		if ( $booking_id <= 0 ) {
+			return false;
 		}
 
-		return $updated;
+		return $this->bm_update_all_booking_tables( $booking_id, 'pending', 'processing', 1 );
 	} // end bm_flexibooking_update_status_as_processing()
 
 
 	/**
-	 * Mark an order as on hold
+	 * Mark a booking as on-hold (pending payment).
 	 *
-	 * @author Darpan
+	 * Filter callback for `flexibooking_update_status_as_on_hold`.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return bool True on success, false otherwise.
 	 */
 	public function bm_flexibooking_update_status_as_on_hold( $booking_id = 0 ) {
-		$updated = false;
-
-		if ( $booking_id > 0 ) {
-			$bmrequests       = new BM_Request();
-			$transaction_data = array(
-				'payment_status'         => 'pending',
-				'is_active'              => 1,
-				'transaction_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$booking_data = array(
-				'order_status'       => 'on_hold',
-				'is_active'          => 1,
-				'booking_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$slotcount_data = array(
-				'is_active'       => 1,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$extra_slotcount_data = array(
-				'is_active'       => 1,
-				'slot_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-
-			$dbhandler = new BM_DBhandler();
-
-			$one   = $dbhandler->update_row( 'TRANSACTIONS', 'booking_id', $booking_id, $transaction_data, '', '%d' );
-			$two   = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-			$three = $dbhandler->update_row( 'SLOTCOUNT', 'booking_id', $booking_id, $slotcount_data, '', '%d' );
-			$four  = $dbhandler->update_row( 'EXTRASLOTCOUNT', 'booking_id', $booking_id, $extra_slotcount_data, '', '%d' );
-
-			$customer_id   = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-			$customer_data = array(
-				'is_active'           => 1,
-				'customer_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-			);
-			$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_data, '', '%d' );
-
-			if ( $one != false && $two != false && $three != false ) {
-				$updated = true;
-			}
+		if ( $booking_id <= 0 ) {
+			return false;
 		}
 
-		return $updated;
+		return $this->bm_update_all_booking_tables( $booking_id, 'pending', 'on_hold', 1 );
 	} // end bm_flexibooking_update_status_as_on_hold()
 
 
@@ -10588,176 +10539,178 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Callback to check expired processing bookings and mark them as completed
+	 * Expire the associated WooCommerce order for a FlexiBooking booking.
 	 *
-	 * @author Darpan
+	 * Marks the WC order with the given status, flags it as expired, and
+	 * redeems any attached voucher.
+	 *
+	 * @since 1.3.0
+	 * @param BM_DBhandler $dbhandler   Database handler instance.
+	 * @param int          $booking_id  FlexiBooking booking ID.
+	 * @param string       $wc_status   WooCommerce order status to set (e.g., 'completed', 'cancelled').
+	 * @return void
+	 */
+	private function bm_expire_woocommerce_order_for_booking( $dbhandler, $booking_id, $wc_status ) {
+		$wc_order_id = $dbhandler->get_value( 'BOOKING', 'wc_order_id', $booking_id, 'id' );
+
+		if ( $wc_order_id <= 0 || ! ( new WooCommerceService() )->is_enabled() ) {
+			return;
+		}
+
+		$wc_order = wc_get_order( $wc_order_id );
+
+		if ( ! $wc_order ) {
+			return;
+		}
+
+		$wc_order->update_status( $wc_status, 'marked from flexi booking plugin' );
+		update_post_meta( $wc_order_id, '_is_flexi_order_expired', true );
+
+		$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
+
+		if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
+			$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
+			$redeemVoucher->markVoucherExpired();
+		}
+	}//end bm_expire_woocommerce_order_for_booking()
+
+
+	/**
+	 * Build the current date-time string in the plugin's configured timezone.
+	 *
+	 * @since 1.3.0
+	 * @param BM_DBhandler $dbhandler Database handler instance.
+	 * @return string Current date-time as 'Y-m-d H:i'.
+	 */
+	private function bm_get_current_plugin_datetime( $dbhandler ) {
+		$timezone = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
+		$now      = new DateTime( 'now', new DateTimeZone( $timezone ) );
+
+		return $now->format( 'Y-m-d H:i' );
+	}//end bm_get_current_plugin_datetime()
+
+
+	/**
+	 * Determine whether a booking's service end time has already passed.
+	 *
+	 * @since 1.3.0
+	 * @param object $booking          Booking row object with booking_date and booking_slots.
+	 * @param string $current_datetime Current date-time string for comparison.
+	 * @return bool True if the booking is expired (service end time is in the past).
+	 */
+	private function bm_is_booking_service_expired( $booking, $current_datetime ) {
+		$service_date  = isset( $booking->booking_date ) ? $booking->booking_date : '';
+		$booking_slots = isset( $booking->booking_slots ) ? maybe_unserialize( $booking->booking_slots ) : array();
+
+		if ( empty( $service_date ) || empty( $booking_slots ) || ! is_array( $booking_slots ) ) {
+			return false;
+		}
+
+		$to_slot = isset( $booking_slots['to'] ) ? $booking_slots['to'] : '';
+
+		if ( empty( $to_slot ) ) {
+			return false;
+		}
+
+		$service_end_datetime = $service_date . ' ' . $to_slot;
+
+		return strtotime( $service_end_datetime ) < strtotime( $current_datetime );
+	}//end bm_is_booking_service_expired()
+
+
+	/**
+	 * Callback to check expired processing bookings and mark them as completed.
+	 *
+	 * Cron callback for `flexibooking_check_paid_expired_processing_bookings`.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function flexibooking_check_paid_expired_processing_bookings_callback() {
-		$dbhandler    = new BM_DBhandler();
-		$bmrequests   = new BM_Request();
-		$bookings     = $bmrequests->bm_fetch_paid_bookings_with_processing_status();
-		$timezone     = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
-		$today        = new DateTime( 'now', new DateTimeZone( $timezone ) );
-		$current_date = $today->format( 'Y-m-d' );
-		$current_time = $today->format( 'H:i' );
-		$to_slot      = '';
+		$dbhandler        = new BM_DBhandler();
+		$bmrequests       = new BM_Request();
+		$bookings         = $bmrequests->bm_fetch_paid_bookings_with_processing_status();
+		$current_datetime = $this->bm_get_current_plugin_datetime( $dbhandler );
 
-		$currentDateTime = $current_date . ' ' . $current_time;
+		if ( empty( $bookings ) || ! is_array( $bookings ) ) {
+			return;
+		}
 
-		if ( ! empty( $bookings ) && is_array( $bookings ) ) {
-			foreach ( $bookings as $booking ) {
-				$booking_id    = isset( $booking->id ) ? $booking->id : 0;
-				$service_date  = isset( $booking->booking_date ) ? $booking->booking_date : '';
-				$booking_slots = isset( $booking->booking_slots ) ? maybe_unserialize( $booking->booking_slots ) : array();
+		foreach ( $bookings as $booking ) {
+			$booking_id = isset( $booking->id ) ? $booking->id : 0;
 
-				if ( ! empty( $booking_id ) && ! empty( $service_date ) && ! empty( $booking_slots ) && is_array( $booking_slots ) ) {
-					$to_slot = isset( $booking_slots['to'] ) ? $booking_slots['to'] : '';
-
-					if ( ! empty( $to_slot ) ) {
-						$service_date = $service_date . ' ' . $to_slot;
-
-						if ( strtotime( $service_date ) < strtotime( $currentDateTime ) ) {
-							$bmrequests->bm_mark_processing_orders_as_complete( $booking_id );
-							$wc_order_id = $dbhandler->get_value( 'BOOKING', 'wc_order_id', $booking_id, 'id' );
-
-							if ( $wc_order_id > 0 && ( new WooCommerceService() )->is_enabled() ) {
-								$wc_order = wc_get_order( $wc_order_id );
-
-								if ( $wc_order ) {
-									$wc_order->update_status( 'completed', 'marked from flexi booking plugin' );
-									update_post_meta( $wc_order_id, '_is_flexi_order_expired', true );
-
-									$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
-
-									if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
-										$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
-										$redeemVoucher->markVoucherExpired();
-									}
-								}
-							}
-						}
-					}
-				}
+			if ( empty( $booking_id ) || ! $this->bm_is_booking_service_expired( $booking, $current_datetime ) ) {
+				continue;
 			}
+
+			$bmrequests->bm_mark_processing_orders_as_complete( $booking_id );
+			$this->bm_expire_woocommerce_order_for_booking( $dbhandler, $booking_id, 'completed' );
 		}
 	}//end flexibooking_check_paid_expired_processing_bookings_callback()
 
 
 	/**
-	 * Callback to check expired pending bookings and mark them as cancelled
+	 * Callback to check expired pending bookings and cancel them.
 	 *
-	 * @author Darpan
+	 * Cron callback for `flexibooking_check_expired_pending_bookings`.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function flexibooking_check_expired_pending_bookings_callback() {
-		$dbhandler    = new BM_DBhandler();
-		$bmrequests   = new BM_Request();
-		$bookings     = $bmrequests->bm_fetch_unpaid_bookings_with_processing_status();
-		$timezone     = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
-		$today        = new DateTime( 'now', new DateTimeZone( $timezone ) );
-		$current_date = $today->format( 'Y-m-d' );
-		$current_time = $today->format( 'H:i' );
-		$to_slot      = '';
+		$dbhandler        = new BM_DBhandler();
+		$bmrequests       = new BM_Request();
+		$bookings         = $bmrequests->bm_fetch_unpaid_bookings_with_processing_status();
+		$current_datetime = $this->bm_get_current_plugin_datetime( $dbhandler );
 
-		$currentDateTime = $current_date . ' ' . $current_time;
+		if ( empty( $bookings ) || ! is_array( $bookings ) ) {
+			return;
+		}
 
-		if ( ! empty( $bookings ) && is_array( $bookings ) ) {
-			foreach ( $bookings as $booking ) {
-				$booking_id    = isset( $booking->id ) ? $booking->id : 0;
-				$service_date  = isset( $booking->booking_date ) ? $booking->booking_date : '';
-				$booking_slots = isset( $booking->booking_slots ) ? maybe_unserialize( $booking->booking_slots ) : array();
+		foreach ( $bookings as $booking ) {
+			$booking_id = isset( $booking->id ) ? $booking->id : 0;
 
-				if ( ! empty( $booking_id ) && ! empty( $service_date ) && ! empty( $booking_slots ) && is_array( $booking_slots ) ) {
-					$to_slot = isset( $booking_slots['to'] ) ? $booking_slots['to'] : '';
+			if ( empty( $booking_id ) || ! $this->bm_is_booking_service_expired( $booking, $current_datetime ) ) {
+				continue;
+			}
 
-					if ( ! empty( $to_slot ) ) {
-						$service_date = $service_date . ' ' . $to_slot;
+			$bmrequests->bm_cancel_and_refund_order( $booking_id );
+			$is_cancelled = $dbhandler->get_global_option_value( 'bm_is_booking_cancelled-' . $booking_id, 0 );
 
-						if ( strtotime( $service_date ) < strtotime( $currentDateTime ) ) {
-							$bmrequests->bm_cancel_and_refund_order( $booking_id );
-							$is_cancelled = $dbhandler->get_global_option_value( 'bm_is_booking_cancelled-' . $booking_id, 0 );
-
-							if ( $is_cancelled == 1 ) {
-								$wc_order_id = $dbhandler->get_value( 'BOOKING', 'wc_order_id', $booking_id, 'id' );
-
-								if ( $wc_order_id > 0 && ( new WooCommerceService() )->is_enabled() ) {
-									$wc_order = wc_get_order( $wc_order_id );
-
-									if ( $wc_order ) {
-										$wc_order->update_status( 'cancelled', 'marked from flexi booking plugin' );
-										update_post_meta( $wc_order_id, '_is_flexi_order_expired', true );
-
-										$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
-
-										if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
-											$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
-											$redeemVoucher->markVoucherExpired();
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+			if ( absint( $is_cancelled ) === 1 ) {
+				$this->bm_expire_woocommerce_order_for_booking( $dbhandler, $booking_id, 'cancelled' );
 			}
 		}
 	}//end flexibooking_check_expired_pending_bookings_callback()
 
 
 	/**
-	 * Callback to check expired free bookings and mark them as completed
+	 * Callback to check expired free bookings and mark them as completed.
 	 *
-	 * @author Darpan
+	 * Cron callback for `flexibooking_check_expired_free_bookings`.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	public function flexibooking_check_expired_free_bookings_callback() {
-		$dbhandler    = new BM_DBhandler();
-		$bmrequests   = new BM_Request();
-		$bookings     = $bmrequests->bm_fetch_free_bookings();
-		$timezone     = $dbhandler->get_global_option_value( 'bm_booking_time_zone', 'Asia/Kolkata' );
-		$today        = new DateTime( 'now', new DateTimeZone( $timezone ) );
-		$current_date = $today->format( 'Y-m-d' );
-		$current_time = $today->format( 'H:i' );
-		$to_slot      = '';
+		$dbhandler        = new BM_DBhandler();
+		$bmrequests       = new BM_Request();
+		$bookings         = $bmrequests->bm_fetch_free_bookings();
+		$current_datetime = $this->bm_get_current_plugin_datetime( $dbhandler );
 
-		$currentDateTime = $current_date . ' ' . $current_time;
+		if ( empty( $bookings ) || ! is_array( $bookings ) ) {
+			return;
+		}
 
-		if ( ! empty( $bookings ) && is_array( $bookings ) ) {
-			foreach ( $bookings as $booking ) {
-				$booking_id = isset( $booking->id ) ? $booking->id : 0;
+		foreach ( $bookings as $booking ) {
+			$booking_id = isset( $booking->id ) ? $booking->id : 0;
 
-				if ( ! empty( $booking_id ) ) {
-					$service_date  = isset( $booking->booking_date ) ? $booking->booking_date : '';
-					$booking_slots = isset( $booking->booking_slots ) ? maybe_unserialize( $booking->booking_slots ) : array();
-
-					if ( ! empty( $service_date ) && ! empty( $booking_slots ) && is_array( $booking_slots ) ) {
-						$to_slot = isset( $booking_slots['to'] ) ? $booking_slots['to'] : '';
-
-						if ( ! empty( $to_slot ) ) {
-							$service_date = $service_date . ' ' . $to_slot;
-
-							if ( strtotime( $service_date ) < strtotime( $currentDateTime ) ) {
-								$bmrequests->bm_mark_free_orders_as_complete( $booking_id );
-
-								$wc_order_id = $dbhandler->get_value( 'BOOKING', 'wc_order_id', $booking_id, 'id' );
-								if ( $wc_order_id > 0 && ( new WooCommerceService() )->is_enabled() ) {
-									$wc_order = wc_get_order( $wc_order_id );
-
-									if ( $wc_order ) {
-										$wc_order->update_status( 'completed', 'marked from flexi booking plugin' );
-										update_post_meta( $wc_order_id, '_is_flexi_order_expired', true );
-
-										$voucher_code = get_post_meta( $wc_order_id, '_flexi_voucher_id', true );
-
-										if ( $voucher_code && class_exists( 'FlexiVoucherRedeem' ) ) {
-											$redeemVoucher = new FlexiVoucherRedeem( $voucher_code );
-											$redeemVoucher->markVoucherExpired();
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+			if ( empty( $booking_id ) || ! $this->bm_is_booking_service_expired( $booking, $current_datetime ) ) {
+				continue;
 			}
+
+			$bmrequests->bm_mark_free_orders_as_complete( $booking_id );
+			$this->bm_expire_woocommerce_order_for_booking( $dbhandler, $booking_id, 'completed' );
 		}
 	}//end flexibooking_check_expired_free_bookings_callback()
 
@@ -10936,9 +10889,21 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Fetch the transaction data for a given booking.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return array Transaction data as an associative array, or empty array on failure.
+	 */
 	public function bm_flexibooking_fetch_order_transaction_data( $booking_id ) {
 		$dbhandler        = new BM_DBhandler();
 		$transaction_data = $dbhandler->get_all_result( 'TRANSACTIONS', '*', array( 'booking_id' => $booking_id ), 'results', 0, false, null, false, '', 'ARRAY_A' );
+
+		if ( empty( $transaction_data ) || ! is_array( $transaction_data ) ) {
+			return array();
+		}
+
 		return $transaction_data[0];
 	}//end bm_flexibooking_fetch_order_transaction_data()
 
@@ -11238,12 +11203,12 @@ class Booking_Management_Admin {
 		}
 
 		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-			$payment_processor        = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-			$get_transaction_id       = $payment_processor->getPaymentIntent( $transaction_id );
-			$get_payment_status       = isset( $get_transaction_id['status'] ) ? $get_transaction_id['status'] : '';
-			$pending_payment_Statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
+			$payment_processor       = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+			$get_transaction_result  = $payment_processor->getPaymentIntent( $transaction_id );
+			$get_payment_status      = isset( $get_transaction_result['status'] ) ? $get_transaction_result['status'] : '';
+			$pending_payment_statuses = apply_filters( 'flexibooking_pending_transaction_statuses', $bmrequests->bm_fetch_pending_transaction_statuses() );
 
-			if ( ! in_array( $get_payment_status, $pending_payment_Statuses ) ) {
+			if ( ! in_array( $get_payment_status, $pending_payment_statuses, true ) ) {
 				$status = 2;
 			}
 		}
@@ -11434,7 +11399,7 @@ class Booking_Management_Admin {
 		$failed_booking_data   = array();
 
 		if ( empty( $booking_id ) ) {
-			return;
+			return $status;
 		}
 
 		$customer_id        = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
@@ -11445,6 +11410,7 @@ class Booking_Management_Admin {
 		$refund_id          = $dbhandler->bm_fetch_data_from_transient( 'refund_id_before_update_' . $booking_id );
 		$gift_key           = base64_encode( $booking_key );
 		$gift_data          = $dbhandler->bm_fetch_data_from_transient( $gift_key );
+		$failed_customer_data = array();
 
 		if ( $dbhandler->get_global_option_value( 'discount_' . $booking_key ) == 1 ) {
 			$failed_booking_data = $dbhandler->bm_fetch_data_from_transient( 'discounted_' . $booking_key );
@@ -12460,117 +12426,172 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Order refund hook callbak
+	 * Evaluate notification process conditions and schedule an email event.
 	 *
-	 * @author Darpan
+	 * This private helper is used by the approved/cancel/refund/failed order
+	 * callbacks to avoid repeating the same condition-evaluation and
+	 * schedule logic four times.
+	 *
+	 * @since 1.3.0
+	 * @param int    $event_type     Notification type (2 = refund, 3 = cancel, 4 = approved, 5 = failed).
+	 * @param string $hook_name      The WP cron hook to schedule (e.g. 'flexibooking_mail_order_refund').
+	 * @param string $order_id       Order/booking ID (or booking_key for failed orders).
+	 * @param string $service_id     Service ID for condition matching.
+	 * @param string $category_id    Category ID for condition matching.
+	 * @param string $order_status   Booking order status for condition matching.
+	 * @param string $payment_status Transaction payment status for condition matching.
+	 * @return void
 	 */
-	public function bm_flexibooking_set_process_order_refund_callback( $order_id = 0, $refund_id = '' ) {
-		$dbhandler   = new BM_DBhandler();
-		$bmrequests  = new BM_Request();
-		$process_id  = 0;
-		$template_id = 0;
+	private function bm_schedule_notification_for_event( $event_type, $hook_name, $order_id, $service_id, $category_id, $order_status, $payment_status ) {
+		$dbhandler = new BM_DBhandler();
+		$processes = $dbhandler->get_all_result(
+			'EVENTNOTIFICATION',
+			'*',
+			array(
+				'status' => 1,
+				'type'   => $event_type,
+			),
+			'results'
+		);
 
-		if ( ! empty( $order_id ) && ! empty( $refund_id ) ) {
-			$processes = $dbhandler->get_all_result(
-				'EVENTNOTIFICATION',
-				'*',
-				array(
-					'status' => 1,
-					'type'   => 2,
-				),
-				'results'
+		if ( empty( $processes ) || ! is_array( $processes ) ) {
+			wp_schedule_single_event( time(), $hook_name, array( $order_id, 0, 0 ), true );
+			return;
+		}
+
+		$non_existing = true;
+
+		foreach ( $processes as $process ) {
+			$process_id  = isset( $process->id ) ? $process->id : 0;
+			$template_id = isset( $process->template_id ) ? maybe_unserialize( $process->template_id ) : 0;
+			$condition   = isset( $process->trigger_conditions ) ? maybe_unserialize( $process->trigger_conditions ) : array();
+			$time_offset = isset( $process->time_offset ) ? maybe_unserialize( $process->time_offset ) : array();
+
+			$scheduleable = $this->bm_evaluate_notification_conditions(
+				$condition,
+				$service_id,
+				$category_id,
+				$order_status,
+				$payment_status,
+				$non_existing
 			);
 
-			if ( ! empty( $processes ) && is_array( $processes ) ) {
-				$scheduleable   = false;
-				$non_existing   = true;
-				$service_id     = $dbhandler->get_value( 'SLOTCOUNT', 'service_id', $order_id, 'booking_id' );
-				$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
-				$order_status   = $dbhandler->get_value( 'BOOKING', 'order_status', $order_id, 'id' );
-				$payment_status = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $order_id, 'booking_id' );
-				$delay          = 0;
-				$seconds        = 1;
-				$module         = '';
+			$delay = $this->bm_calculate_notification_delay( $time_offset );
 
-				foreach ( $processes as $process ) {
-					$process_id  = isset( $process->id ) ? $process->id : 0;
-					$template_id = isset( $process->template_id ) ? maybe_unserialize( $process->template_id ) : 0;
-					$condition   = isset( $process->trigger_conditions ) ? maybe_unserialize( $process->trigger_conditions ) : array();
-					$time_offset = isset( $process->time_offset ) ? maybe_unserialize( $process->time_offset ) : array();
+			if ( $scheduleable ) {
+				wp_schedule_single_event( time() + $delay, $hook_name, array( $order_id, $template_id, $process_id ), true );
+			}
 
-					if ( ! empty( $condition ) && is_array( $condition ) ) {
-						$types     = isset( $condition['type'] ) ? $condition['type'] : array();
-						$operators = isset( $condition['operator'] ) ? $condition['operator'] : array();
-						$values    = isset( $condition['values'] ) ? $condition['values'] : array();
-
-						if ( ! empty( $types ) && is_array( $types ) ) {
-							foreach ( $types as $key => $type ) {
-								$operator = isset( $operators[ $key ] ) ? $operators[ $key ] : -1;
-								$value    = isset( $values[ $key ] ) ? $values[ $key ] : array();
-
-								if ( $type == 0 ) {
-									$module = $service_id;
-								} elseif ( $type == 1 ) {
-									$module = $category_id;
-								} elseif ( $type == 2 ) {
-									$module = $order_status;
-								} elseif ( $type == 3 ) {
-									$module = $payment_status;
-								}
-
-								if ( $operator == 1 ) {
-									if ( in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								} elseif ( $operator == 0 ) {
-									if ( ! in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								}
-
-								if ( ! $scheduleable ) {
-									if ( $non_existing && in_array( $module, $value ) ) {
-										$non_existing = false;
-									}
-								}
-							}
-						}
-					} else {
-						$scheduleable = true;
-					}
-
-					if ( ! empty( $time_offset ) && is_array( $time_offset ) ) {
-						$offset   = isset( $time_offset['value'] ) ? $time_offset['value'] : 0;
-						$unit     = isset( $time_offset['unit'] ) ? $time_offset['unit'] : -1;
-						$position = isset( $time_offset['position'] ) ? $time_offset['position'] : -1;
-
-						if ( $unit == 0 ) {
-							$seconds = 60;
-						} elseif ( $unit == 1 ) {
-							$seconds = 60 * 60;
-						} elseif ( $unit == 2 ) {
-							$seconds = 24 * 60 * 60;
-						}
-
-						$delay = $offset * $seconds;
-					}
-
-					if ( $scheduleable ) {
-						$schedule_mail = wp_schedule_single_event( time() + $delay, 'flexibooking_mail_order_refund', array( $order_id, $template_id, $process_id ), true );
-					}
-
-					if ( ! $scheduleable && $non_existing ) {
-						$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_order_refund', array( $order_id, 0, 0 ), true );
-					}
-				}
-			} else {
-				$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_order_refund', array( $order_id, 0, 0 ), true );
+			if ( ! $scheduleable && $non_existing ) {
+				wp_schedule_single_event( time(), $hook_name, array( $order_id, 0, 0 ), true );
 			}
 		}
+	}//end bm_schedule_notification_for_event()
+
+
+	/**
+	 * Evaluate trigger conditions for a notification process.
+	 *
+	 * @since 1.3.0
+	 * @param array       $condition      Serialized trigger conditions.
+	 * @param string|int  $service_id     Service ID.
+	 * @param string|int  $category_id    Category ID.
+	 * @param string      $order_status   Order status.
+	 * @param string      $payment_status Payment status.
+	 * @param bool        &$non_existing  Reference flag updated when a module matches a value.
+	 * @return bool Whether the notification should be scheduled.
+	 */
+	private function bm_evaluate_notification_conditions( $condition, $service_id, $category_id, $order_status, $payment_status, &$non_existing ) {
+		if ( empty( $condition ) || ! is_array( $condition ) ) {
+			return true;
+		}
+
+		$types     = isset( $condition['type'] ) ? $condition['type'] : array();
+		$operators = isset( $condition['operator'] ) ? $condition['operator'] : array();
+		$values    = isset( $condition['values'] ) ? $condition['values'] : array();
+
+		if ( empty( $types ) || ! is_array( $types ) ) {
+			return true;
+		}
+
+		$scheduleable   = false;
+		$module_map     = array(
+			0 => $service_id,
+			1 => $category_id,
+			2 => $order_status,
+			3 => $payment_status,
+		);
+
+		foreach ( $types as $key => $type ) {
+			$operator = isset( $operators[ $key ] ) ? $operators[ $key ] : -1;
+			$value    = isset( $values[ $key ] ) ? $values[ $key ] : array();
+			$module   = isset( $module_map[ $type ] ) ? $module_map[ $type ] : '';
+
+			if ( 1 === (int) $operator ) {
+				$scheduleable = in_array( $module, $value );
+			} elseif ( 0 === (int) $operator ) {
+				$scheduleable = ! in_array( $module, $value );
+			}
+
+			if ( ! $scheduleable && $non_existing && in_array( $module, $value ) ) {
+				$non_existing = false;
+			}
+		}
+
+		return $scheduleable;
+	}//end bm_evaluate_notification_conditions()
+
+
+	/**
+	 * Calculate the delay in seconds from a time_offset array.
+	 *
+	 * @since 1.3.0
+	 * @param array $time_offset Time offset settings with 'value', 'unit', 'position' keys.
+	 * @return int Delay in seconds.
+	 */
+	private function bm_calculate_notification_delay( $time_offset ) {
+		if ( empty( $time_offset ) || ! is_array( $time_offset ) ) {
+			return 0;
+		}
+
+		$offset = isset( $time_offset['value'] ) ? (int) $time_offset['value'] : 0;
+		$unit   = isset( $time_offset['unit'] ) ? (int) $time_offset['unit'] : -1;
+
+		$unit_seconds = array(
+			0 => 60,           // minutes
+			1 => 3600,         // hours
+			2 => 86400,        // days
+		);
+
+		$seconds = isset( $unit_seconds[ $unit ] ) ? $unit_seconds[ $unit ] : 1;
+
+		return $offset * $seconds;
+	}//end bm_calculate_notification_delay()
+
+
+	/**
+	 * Schedule notification process for a refunded order.
+	 *
+	 * Action callback for `flexibooking_set_process_order_refund`.
+	 *
+	 * @since 1.0.0
+	 * @param int    $order_id  Booking ID.
+	 * @param string $refund_id Stripe refund ID.
+	 * @return void
+	 */
+	public function bm_flexibooking_set_process_order_refund_callback( $order_id = 0, $refund_id = '' ) {
+		if ( empty( $order_id ) || empty( $refund_id ) ) {
+			return;
+		}
+
+		$dbhandler      = new BM_DBhandler();
+		$bmrequests     = new BM_Request();
+		$service_id     = $dbhandler->get_value( 'SLOTCOUNT', 'service_id', $order_id, 'booking_id' );
+		$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
+		$order_status   = $dbhandler->get_value( 'BOOKING', 'order_status', $order_id, 'id' );
+		$payment_status = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $order_id, 'booking_id' );
+
+		$this->bm_schedule_notification_for_event( 2, 'flexibooking_mail_order_refund', $order_id, $service_id, $category_id, $order_status, $payment_status );
 	}//end bm_flexibooking_set_process_order_refund_callback()
 
 
@@ -12738,117 +12759,27 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Cancel order hook callbak
+	 * Schedule notification process for a cancelled order.
 	 *
-	 * @author Darpan
+	 * Action callback for `flexibooking_set_process_cancel_order`.
+	 *
+	 * @since 1.0.0
+	 * @param int $order_id Booking ID.
+	 * @return void
 	 */
 	public function bm_flexibooking_set_process_cancel_order_callback( $order_id = 0 ) {
-		$dbhandler   = new BM_DBhandler();
-		$bmrequests  = new BM_Request();
-		$process_id  = 0;
-		$template_id = 0;
-
-		if ( ! empty( $order_id ) ) {
-			$processes = $dbhandler->get_all_result(
-				'EVENTNOTIFICATION',
-				'*',
-				array(
-					'status' => 1,
-					'type'   => 3,
-				),
-				'results'
-			);
-
-			if ( ! empty( $processes ) && is_array( $processes ) ) {
-				$scheduleable   = false;
-				$non_existing   = true;
-				$service_id     = $dbhandler->get_value( 'SLOTCOUNT', 'service_id', $order_id, 'booking_id' );
-				$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
-				$order_status   = $dbhandler->get_value( 'BOOKING', 'order_status', $order_id, 'id' );
-				$payment_status = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $order_id, 'booking_id' );
-				$delay          = 0;
-				$seconds        = 1;
-				$module         = '';
-
-				foreach ( $processes as $process ) {
-					$process_id  = isset( $process->id ) ? $process->id : 0;
-					$template_id = isset( $process->template_id ) ? maybe_unserialize( $process->template_id ) : 0;
-					$condition   = isset( $process->trigger_conditions ) ? maybe_unserialize( $process->trigger_conditions ) : array();
-					$time_offset = isset( $process->time_offset ) ? maybe_unserialize( $process->time_offset ) : array();
-
-					if ( ! empty( $condition ) && is_array( $condition ) ) {
-						$types     = isset( $condition['type'] ) ? $condition['type'] : array();
-						$operators = isset( $condition['operator'] ) ? $condition['operator'] : array();
-						$values    = isset( $condition['values'] ) ? $condition['values'] : array();
-
-						if ( ! empty( $types ) && is_array( $types ) ) {
-							foreach ( $types as $key => $type ) {
-								$operator = isset( $operators[ $key ] ) ? $operators[ $key ] : -1;
-								$value    = isset( $values[ $key ] ) ? $values[ $key ] : array();
-
-								if ( $type == 0 ) {
-									$module = $service_id;
-								} elseif ( $type == 1 ) {
-									$module = $category_id;
-								} elseif ( $type == 2 ) {
-									$module = $order_status;
-								} elseif ( $type == 3 ) {
-									$module = $payment_status;
-								}
-
-								if ( $operator == 1 ) {
-									if ( in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								} elseif ( $operator == 0 ) {
-									if ( ! in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								}
-
-								if ( ! $scheduleable ) {
-									if ( $non_existing && in_array( $module, $value ) ) {
-										$non_existing = false;
-									}
-								}
-							}
-						}
-					} else {
-						$scheduleable = true;
-					}
-
-					if ( ! empty( $time_offset ) && is_array( $time_offset ) ) {
-						$offset   = isset( $time_offset['value'] ) ? $time_offset['value'] : 0;
-						$unit     = isset( $time_offset['unit'] ) ? $time_offset['unit'] : -1;
-						$position = isset( $time_offset['position'] ) ? $time_offset['position'] : -1;
-
-						if ( $unit == 0 ) {
-							$seconds = 60;
-						} elseif ( $unit == 1 ) {
-							$seconds = 60 * 60;
-						} elseif ( $unit == 2 ) {
-							$seconds = 24 * 60 * 60;
-						}
-
-						$delay = $offset * $seconds;
-					}
-
-					if ( $scheduleable ) {
-						$schedule_mail = wp_schedule_single_event( time() + $delay, 'flexibooking_mail_cancel_order', array( $order_id, $template_id, $process_id ), true );
-					}
-
-					if ( ! $scheduleable && $non_existing ) {
-						$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_cancel_order', array( $order_id, 0, 0 ), true );
-					}
-				}
-			} else {
-				$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_cancel_order', array( $order_id, 0, 0 ), true );
-			}
+		if ( empty( $order_id ) ) {
+			return;
 		}
+
+		$dbhandler      = new BM_DBhandler();
+		$bmrequests     = new BM_Request();
+		$service_id     = $dbhandler->get_value( 'SLOTCOUNT', 'service_id', $order_id, 'booking_id' );
+		$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
+		$order_status   = $dbhandler->get_value( 'BOOKING', 'order_status', $order_id, 'id' );
+		$payment_status = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $order_id, 'booking_id' );
+
+		$this->bm_schedule_notification_for_event( 3, 'flexibooking_mail_cancel_order', $order_id, $service_id, $category_id, $order_status, $payment_status );
 	}//end bm_flexibooking_set_process_cancel_order_callback()
 
 
@@ -13016,117 +12947,27 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Approve order hook callbak
+	 * Schedule notification process for an approved order.
 	 *
-	 * @author Darpan
+	 * Action callback for `flexibooking_set_process_approved_order`.
+	 *
+	 * @since 1.0.0
+	 * @param int $order_id Booking ID.
+	 * @return void
 	 */
 	public function bm_flexibooking_set_process_approved_order_callback( $order_id = 0 ) {
-		$dbhandler   = new BM_DBhandler();
-		$bmrequests  = new BM_Request();
-		$process_id  = 0;
-		$template_id = 0;
-
-		if ( ! empty( $order_id ) ) {
-			$processes = $dbhandler->get_all_result(
-				'EVENTNOTIFICATION',
-				'*',
-				array(
-					'status' => 1,
-					'type'   => 4,
-				),
-				'results'
-			);
-
-			if ( ! empty( $processes ) && is_array( $processes ) ) {
-				$scheduleable   = false;
-				$non_existing   = true;
-				$service_id     = $dbhandler->get_value( 'SLOTCOUNT', 'service_id', $order_id, 'booking_id' );
-				$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
-				$order_status   = $dbhandler->get_value( 'BOOKING', 'order_status', $order_id, 'id' );
-				$payment_status = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $order_id, 'booking_id' );
-				$delay          = 0;
-				$seconds        = 1;
-				$module         = '';
-
-				foreach ( $processes as $process ) {
-					$process_id  = isset( $process->id ) ? $process->id : 0;
-					$template_id = isset( $process->template_id ) ? maybe_unserialize( $process->template_id ) : 0;
-					$condition   = isset( $process->trigger_conditions ) ? maybe_unserialize( $process->trigger_conditions ) : array();
-					$time_offset = isset( $process->time_offset ) ? maybe_unserialize( $process->time_offset ) : array();
-
-					if ( ! empty( $condition ) && is_array( $condition ) ) {
-						$types     = isset( $condition['type'] ) ? $condition['type'] : array();
-						$operators = isset( $condition['operator'] ) ? $condition['operator'] : array();
-						$values    = isset( $condition['values'] ) ? $condition['values'] : array();
-
-						if ( ! empty( $types ) && is_array( $types ) ) {
-							foreach ( $types as $key => $type ) {
-								$operator = isset( $operators[ $key ] ) ? $operators[ $key ] : -1;
-								$value    = isset( $values[ $key ] ) ? $values[ $key ] : array();
-
-								if ( $type == 0 ) {
-									$module = $service_id;
-								} elseif ( $type == 1 ) {
-									$module = $category_id;
-								} elseif ( $type == 2 ) {
-									$module = $order_status;
-								} elseif ( $type == 3 ) {
-									$module = $payment_status;
-								}
-
-								if ( $operator == 1 ) {
-									if ( in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								} elseif ( $operator == 0 ) {
-									if ( ! in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								}
-
-								if ( ! $scheduleable ) {
-									if ( $non_existing && in_array( $module, $value ) ) {
-										$non_existing = false;
-									}
-								}
-							}
-						}
-					} else {
-						$scheduleable = true;
-					}
-
-					if ( ! empty( $time_offset ) && is_array( $time_offset ) ) {
-						$offset   = isset( $time_offset['value'] ) ? $time_offset['value'] : 0;
-						$unit     = isset( $time_offset['unit'] ) ? $time_offset['unit'] : -1;
-						$position = isset( $time_offset['position'] ) ? $time_offset['position'] : -1;
-
-						if ( $unit == 0 ) {
-							$seconds = 60;
-						} elseif ( $unit == 1 ) {
-							$seconds = 60 * 60;
-						} elseif ( $unit == 2 ) {
-							$seconds = 24 * 60 * 60;
-						}
-
-						$delay = $offset * $seconds;
-					}
-
-					if ( $scheduleable ) {
-						$schedule_mail = wp_schedule_single_event( time() + $delay, 'flexibooking_mail_approved_order', array( $order_id, $template_id, $process_id ), true );
-					}
-
-					if ( ! $scheduleable && $non_existing ) {
-						$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_approved_order', array( $order_id, 0, 0 ), true );
-					}
-				}
-			} else {
-				$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_approved_order', array( $order_id, 0, 0 ), true );
-			}
+		if ( empty( $order_id ) ) {
+			return;
 		}
+
+		$dbhandler      = new BM_DBhandler();
+		$bmrequests     = new BM_Request();
+		$service_id     = $dbhandler->get_value( 'SLOTCOUNT', 'service_id', $order_id, 'booking_id' );
+		$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
+		$order_status   = $dbhandler->get_value( 'BOOKING', 'order_status', $order_id, 'id' );
+		$payment_status = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $order_id, 'booking_id' );
+
+		$this->bm_schedule_notification_for_event( 4, 'flexibooking_mail_approved_order', $order_id, $service_id, $category_id, $order_status, $payment_status );
 	}//end bm_flexibooking_set_process_approved_order_callback()
 
 
@@ -13294,119 +13135,31 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Failed order hook callbak
+	 * Schedule notification process for a failed order.
 	 *
-	 * @author Darpan
+	 * Action callback for `flexibooking_set_process_failed_order`.
+	 * Unlike other notification callbacks, this uses the booking_key instead of booking_id,
+	 * and resolves service/status from the FAILED_TRANSACTIONS table.
+	 *
+	 * @since 1.0.0
+	 * @param string $order_key Booking key identifying the failed transaction.
+	 * @return void
 	 */
 	public function bm_flexibooking_set_process_failed_order_callback( $order_key = '' ) {
-		$dbhandler   = new BM_DBhandler();
-		$bmrequests  = new BM_Request();
-		$process_id  = 0;
-		$template_id = 0;
-
-		if ( ! empty( $order_key ) ) {
-			$processes = $dbhandler->get_all_result(
-				'EVENTNOTIFICATION',
-				'*',
-				array(
-					'status' => 1,
-					'type'   => 5,
-				),
-				'results'
-			);
-
-			if ( ! empty( $processes ) && is_array( $processes ) ) {
-				$scheduleable   = false;
-				$non_existing   = false;
-				$transaction    = $dbhandler->get_row( 'FAILED_TRANSACTIONS', $order_key, 'booking_key' );
-				$booking_data   = isset( $transaction->booking_data ) ? maybe_serialize( $transaction->booking_data ) : array();
-				$service_id     = isset( $booking_data['service_id'] ) ? $booking_data['service_id'] : 0;
-				$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
-				$order_status   = isset( $transaction->is_refunded ) && $transaction->is_refunded == 1 ? 'refunded' : '';
-				$payment_status = 'failed';
-				$delay          = 0;
-				$seconds        = 1;
-				$module         = '';
-
-				foreach ( $processes as $process ) {
-					$process_id  = isset( $process->id ) ? $process->id : 0;
-					$template_id = isset( $process->template_id ) ? maybe_unserialize( $process->template_id ) : 0;
-					$condition   = isset( $process->trigger_conditions ) ? maybe_unserialize( $process->trigger_conditions ) : array();
-					$time_offset = isset( $process->time_offset ) ? maybe_unserialize( $process->time_offset ) : array();
-
-					if ( ! empty( $condition ) && is_array( $condition ) ) {
-						$types     = isset( $condition['type'] ) ? $condition['type'] : array();
-						$operators = isset( $condition['operator'] ) ? $condition['operator'] : array();
-						$values    = isset( $condition['values'] ) ? $condition['values'] : array();
-
-						if ( ! empty( $types ) && is_array( $types ) ) {
-							foreach ( $types as $key => $type ) {
-								$operator = isset( $operators[ $key ] ) ? $operators[ $key ] : -1;
-								$value    = isset( $values[ $key ] ) ? $values[ $key ] : array();
-
-								if ( $type == 0 ) {
-									$module = $service_id;
-								} elseif ( $type == 1 ) {
-									$module = $category_id;
-								} elseif ( $type == 2 ) {
-									$module = $order_status;
-								} elseif ( $type == 3 ) {
-									$module = $payment_status;
-								}
-
-								if ( $operator == 1 ) {
-									if ( in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								} elseif ( $operator == 0 ) {
-									if ( ! in_array( $module, $value ) ) {
-										$scheduleable = true;
-									} else {
-										$scheduleable = false;
-									}
-								}
-
-								if ( ! $scheduleable ) {
-									if ( $non_existing && in_array( $module, $value ) ) {
-										$non_existing = false;
-									}
-								}
-							}
-						}
-					} else {
-						$scheduleable = true;
-					}
-
-					if ( ! empty( $time_offset ) && is_array( $time_offset ) ) {
-						$offset   = isset( $time_offset['value'] ) ? $time_offset['value'] : 0;
-						$unit     = isset( $time_offset['unit'] ) ? $time_offset['unit'] : -1;
-						$position = isset( $time_offset['position'] ) ? $time_offset['position'] : -1;
-
-						if ( $unit == 0 ) {
-							$seconds = 60;
-						} elseif ( $unit == 1 ) {
-							$seconds = 60 * 60;
-						} elseif ( $unit == 2 ) {
-							$seconds = 24 * 60 * 60;
-						}
-
-						$delay = $offset * $seconds;
-					}
-
-					if ( $scheduleable ) {
-						$schedule_mail = wp_schedule_single_event( time() + $delay, 'flexibooking_mail_failed_order', array( $order_key, $template_id, $process_id ), true );
-					}
-
-					if ( ! $scheduleable && $non_existing ) {
-						$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_failed_order', array( $order_key, 0, 0 ), true );
-					}
-				}
-			} else {
-				$schedule_mail = wp_schedule_single_event( time(), 'flexibooking_mail_failed_order', array( $order_key, 0, 0 ), true );
-			}
+		if ( empty( $order_key ) ) {
+			return;
 		}
+
+		$dbhandler      = new BM_DBhandler();
+		$bmrequests     = new BM_Request();
+		$transaction    = $dbhandler->get_row( 'FAILED_TRANSACTIONS', $order_key, 'booking_key' );
+		$booking_data   = isset( $transaction->booking_data ) ? maybe_unserialize( $transaction->booking_data ) : array();
+		$service_id     = isset( $booking_data['service_id'] ) ? $booking_data['service_id'] : 0;
+		$category_id    = $bmrequests->bm_fetch_category_id_by_service_id( $service_id );
+		$order_status   = isset( $transaction->is_refunded ) && (int) $transaction->is_refunded === 1 ? 'refunded' : '';
+		$payment_status = 'failed';
+
+		$this->bm_schedule_notification_for_event( 5, 'flexibooking_mail_failed_order', $order_key, $service_id, $category_id, $order_status, $payment_status );
 	}//end bm_flexibooking_set_process_failed_order_callback()
 
 
@@ -14257,20 +14010,30 @@ class Booking_Management_Admin {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Display the service date and slot timing on the WooCommerce order details screen.
+	 *
+	 * Hooked to `woocommerce_admin_order_data_after_order_details`.
+	 *
+	 * @since 1.0.0
+	 * @param WC_Order $order WooCommerce order object.
+	 * @return void
+	 */
 	public function bm_display_service_date_in_admin( $order ) {
-		$service_date = get_post_meta( $order->get_id(), '_flexi_service_date', true );
-		$booked_slots = get_post_meta( $order->get_id(), '_flexi_booked_slots', true );
+		$order_id     = $order->get_id();
+		$service_date = get_post_meta( $order_id, '_flexi_service_date', true );
+		$booked_slots = get_post_meta( $order_id, '_flexi_booked_slots', true );
 
 		if ( $service_date ) {
 			echo '<div class="order_data_column flexi-service-date">';
-			echo '<h3>' . __( 'Service Date', 'servuice-booking' ) . '</h3>';
+			echo '<h3>' . esc_html__( 'Service Date', 'service-booking' ) . '</h3>';
 			echo '<p>' . esc_html( $service_date ) . '</p>';
 			echo '</div>';
 		}
 
 		if ( $booked_slots ) {
 			echo '<div class="order_data_column flexi-booked-slots">';
-			echo '<h3>' . __( 'Slot Timing:', 'servuice-booking' ) . '</h3>';
+			echo '<h3>' . esc_html__( 'Slot Timing:', 'service-booking' ) . '</h3>';
 			echo '<p>' . esc_html( $booked_slots ) . '</p>';
 			echo '</div>';
 		}
@@ -14365,27 +14128,35 @@ class Booking_Management_Admin {
 	/**
 	 * Modify flexi order data as per woocommerce order untrash
 	 *
-	 * @author Darpan
+	 * @since 1.0.0
+	 * @param int $post_id The post ID being untrashed.
+	 * @return void
 	 */
 	public function bm_modify_flexi_plugin_order_on_woocommerce_order_untrash( $post_id ) {
-		if ( get_post_type( $post_id ) === 'shop_order' ) {
-			$bmrequests = new BM_Request();
+		if ( get_post_type( $post_id ) !== 'shop_order' ) {
+			return;
+		}
 
-			$flexi_booking_id = get_post_meta( $post_id, '_flexi_booking_id', true );
-			$order            = wc_get_order( $post_id );
-			$restored_status  = $order->get_status();
+		$bmrequests       = new BM_Request();
+		$flexi_booking_id = get_post_meta( $post_id, '_flexi_booking_id', true );
+		$order            = wc_get_order( $post_id );
 
-			if ( in_array( $restored_status, array( 'pending', 'processing' ) ) ) {
-				$bmrequests->bm_update_flexi_order_status_as_processing( $flexi_booking_id );
-			} elseif ( $restored_status === 'completed' ) {
-				$bmrequests->bm_update_flexi_order_status_as_completed( $flexi_booking_id );
-			} elseif ( $restored_status === 'canceled' ) {
-				$bmrequests->bm_cancel_flexi_order( $flexi_booking_id );
-			} elseif ( $restored_status === 'refunded' ) {
-				$bmrequests->bm_update_flexi_order_status_as_refunded( $flexi_booking_id );
-			} elseif ( $restored_status === 'on-hold' ) {
-				$bmrequests->bm_update_flexi_order_status_as_on_hold( $flexi_booking_id );
-			}
+		if ( ! $order || empty( $flexi_booking_id ) ) {
+			return;
+		}
+
+		$restored_status = $order->get_status();
+
+		if ( in_array( $restored_status, array( 'pending', 'processing' ), true ) ) {
+			$bmrequests->bm_update_flexi_order_status_as_processing( $flexi_booking_id );
+		} elseif ( $restored_status === 'completed' ) {
+			$bmrequests->bm_update_flexi_order_status_as_completed( $flexi_booking_id );
+		} elseif ( $restored_status === 'canceled' ) {
+			$bmrequests->bm_cancel_flexi_order( $flexi_booking_id );
+		} elseif ( $restored_status === 'refunded' ) {
+			$bmrequests->bm_update_flexi_order_status_as_refunded( $flexi_booking_id );
+		} elseif ( $restored_status === 'on-hold' ) {
+			$bmrequests->bm_update_flexi_order_status_as_on_hold( $flexi_booking_id );
 		}
 	}//end bm_modify_flexi_plugin_order_on_woocommerce_order_untrash()
 
