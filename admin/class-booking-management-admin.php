@@ -1127,22 +1127,7 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_sgbm_customer_profile( $att ) {
-		$default_attribute = array( 'id' => '' );
-		$attribute         = shortcode_atts( $default_attribute, $att, 'sgbm_customer_profile' );
-		$customer_id       = intval( $attribute['id'] );
-		$html              = '';
-
-		if ( $customer_id > 0 ) {
-			$customer = ( new BM_Request() )->bm_fetch_all_customer_related_information( $customer_id );
-
-			if ( ! empty( $customer ) ) {
-				ob_start();
-				require_once plugin_dir_path( __DIR__ ) . 'admin/partials/booking-management-customer-profile-shortcode.php';
-				$content = ob_get_contents();
-				ob_end_clean();
-				return $content;
-			}
-		}
+		return '<p>' . esc_html__( 'Customer Profile is a Pro feature.', 'service-booking' ) . '</p>';
 	}//end bm_sgbm_customer_profile()
 
 
@@ -1152,25 +1137,7 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_service_booking_planner_shortcode( $atts = array() ) {
-		$atts = shortcode_atts(
-			array(
-				'show_filters'         => 'true',
-				'show_service_filter'  => 'true',
-				'show_category_filter' => 'true',
-				'cat_ids'              => '',
-			),
-			$atts,
-			'sgbm_service_booking_planner'
-		);
-
-		$show_filters         = filter_var( $atts['show_filters'], FILTER_VALIDATE_BOOLEAN );
-		$show_service_filter  = filter_var( $atts['show_service_filter'], FILTER_VALIDATE_BOOLEAN );
-		$show_category_filter = filter_var( $atts['show_category_filter'], FILTER_VALIDATE_BOOLEAN );
-		$cat_ids              = $atts['cat_ids'];
-
-		ob_start();
-		include_once 'partials/booking-management-service-booking-planner.php';
-		return ob_get_clean();
+		return '<p>' . esc_html__( 'Service Booking Planner is a Pro feature.', 'service-booking' ) . '</p>';
 	}//end bm_service_booking_planner_shortcode()
 
 
@@ -1180,25 +1147,7 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_single_service_booking_planner_shortcode( $atts = array() ) {
-		$atts = shortcode_atts(
-			array(
-				'show_filters'         => 'true',
-				'show_service_filter'  => 'true',
-				'show_category_filter' => 'true',
-				'cat_ids'              => '',
-			),
-			$atts,
-			'sgbm_single_service_booking_planner'
-		);
-
-		$show_filters         = filter_var( $atts['show_filters'], FILTER_VALIDATE_BOOLEAN );
-		$show_service_filter  = filter_var( $atts['show_service_filter'], FILTER_VALIDATE_BOOLEAN );
-		$show_category_filter = filter_var( $atts['show_category_filter'], FILTER_VALIDATE_BOOLEAN );
-		$cat_ids              = $atts['cat_ids'];
-
-		ob_start();
-		include_once 'partials/booking-management-single-service-booking-planner.php';
-		return ob_get_clean();
+		return '<p>' . esc_html__( 'Single Service Booking Planner is a Pro feature.', 'service-booking' ) . '</p>';
 	}//end bm_single_service_booking_planner_shortcode()
 
 
