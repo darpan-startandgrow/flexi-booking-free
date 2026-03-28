@@ -1034,11 +1034,6 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Set Timezone
-	 *
-	 * @author Darpan
-	 */
-	/**
 	 * Synchronise the plugin timezone with the WordPress site timezone.
 	 *
 	 * Runs on `init`. Skips the DB write when the stored value already
@@ -1249,11 +1244,6 @@ class Booking_Management_Admin {
 	} //end bm_set_installed_languages()
 
 
-	/**
-	 * Set installed languages
-	 *
-	 * @author Darpan
-	 */
 	/**
 	 * Ensure Italian (it_IT) translation is installed.
 	 *
@@ -10270,11 +10260,6 @@ class Booking_Management_Admin {
 
 
 	/**
-	 * Mark expired free bookings as completed
-	 *
-	 * @author Darpan
-	 */
-	/**
 	 * Mark expired free bookings as completed.
 	 *
 	 * Updates the booking order status to 'succeeded'. The WooCommerce
@@ -10303,11 +10288,6 @@ class Booking_Management_Admin {
 	} // end bm_mark_free_orders_as_complete()
 
 
-	/**
-	 * Mark book on request transactions as cancelled
-	 *
-	 * @author Darpan
-	 */
 	/**
 	 * Update all booking-related tables (transaction, booking, slotcount, extra-slotcount, customer)
 	 * when a booking status changes.
@@ -10883,11 +10863,6 @@ class Booking_Management_Admin {
 	}//end bm_save_order_transaction()
 
 
-	/**
-	 * Fetch order transaction data
-	 *
-	 * @author Darpan
-	 */
 	/**
 	 * Fetch the transaction data for a given booking.
 	 *
@@ -14004,11 +13979,6 @@ class Booking_Management_Admin {
 	}//end bm_fetch_export_checkin_records_as_per_type()
 
 
-	/**
-	 * Display service date in admin order details
-	 *
-	 * @author Darpan
-	 */
 	/**
 	 * Display the service date and slot timing on the WooCommerce order details screen.
 	 *
