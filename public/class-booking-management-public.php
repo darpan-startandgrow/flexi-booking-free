@@ -326,8 +326,6 @@ class Booking_Management_Public {
 		wp_localize_script( $this->plugin_name, 'bm_error_object', $error );
 		wp_localize_script( $this->plugin_name, 'bm_success_object', $success );
 		wp_localize_script( $this->plugin_name, 'bm_normal_object', $normal );
-		wp_localize_script( 'stripes_checkout', 'bm_error_object', $error );
-		wp_localize_script( 'stripes_checkout', 'bm_normal_object', $normal );
 		wp_localize_script( 'frontend-add-order-js', 'bm_error_object', $error );
 		wp_localize_script( 'frontend-add-order-js', 'bm_normal_object', $normal );
 		wp_localize_script( 'jquery-fullcalendar-custom', 'bm_error_object', $error );
@@ -343,17 +341,6 @@ class Booking_Management_Public {
 
 		wp_localize_script(
 			$this->plugin_name,
-			'bm_ajax_object',
-			array(
-				'ajax_url'   => admin_url( 'admin-ajax.php' ),
-				'nonce'      => wp_create_nonce( 'ajax-nonce' ),
-				'rest_url'   => esc_url_raw( rest_url( 'sg-booking/v1/' ) ),
-				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
-			)
-		);
-
-		wp_localize_script(
-			'stripes_checkout',
 			'bm_ajax_object',
 			array(
 				'ajax_url'   => admin_url( 'admin-ajax.php' ),
@@ -2676,33 +2663,6 @@ class Booking_Management_Public {
 								} else {
 									$data['data'] = '<div class="textcenter">' . esc_html__( 'WooCommerce plugin not activated !!', 'service-booking' ) . '</div>';
 								}
-							} elseif ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-									$stripe_payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-
-								if ( $stripe_payment_processor->isConnected() ) {
-									$checkout_page_url = $dbhandler->bm_fetch_page_by_title( 'Flexibooking Checkout', OBJECT, 'page', 'url' );
-
-									if ( ! empty( $checkout_page_url ) ) {
-										/**$terms_and_conditions_message = $bmrequests->bm_fetch_payment_message_for_checkout_page( $booking_string );
-										$dbhandler->update_global_option_value( 'bm_flexibooking_checkout_payment_conditions_message', $terms_and_conditions_message );*/
-
-										$separator = ( strpos( $checkout_page_url, '?' ) !== false ) ? '&' : '?';
-
-										$data['data']   = $checkout_page_url . $separator . 'flexi_booking=' . $booking_string;
-										$data['status'] = 'success';
-									} else {
-										if ( isset( $time_slot ) && $time_slot == '-1' ) {
-											$resp = '<div class="textcenter">' . esc_html__( 'No slots available, try booking another slot or service !!', 'service-booking' ) . '</div>';
-										} elseif ( isset( $time_slot ) && $time_slot == '0' ) {
-											$resp = '<div class="textcenter">' . esc_html__( 'All slots booked, try booking another slot or service !!', 'service-booking' ) . '</div>';
-										} else {
-											$resp = '<div class="textcenter">' . esc_html__( 'Error fetching booking info !!', 'service-booking' ) . '</div>';
-										}
-										$data['data'] = $resp;
-									}
-								} else {
-									$data['data'] = '<div class="textcenter">' . esc_html__( 'Payment Gateway Server Error !!', 'service-booking' ) . '</div>';
-								}
 							} else {
 								$data['data'] = '<div class="textcenter">' . esc_html__( 'Payment Gateway Not Enabled !!', 'service-booking' ) . '</div>';
 							}
@@ -2843,30 +2803,10 @@ class Booking_Management_Public {
 							$gift_key = base64_encode( $post['booking_data'] );
 							$dbhandler->bm_save_data_to_transient( $gift_key, $gift_data, 72 );
 
-							if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-								$stripe_payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+							$resp = '<div class="textcenter">' . esc_html__( 'Payment Gateway Not Enabled !!', 'service-booking' ) . '</div>';
 
-								if ( $stripe_payment_processor->isConnected() ) {
-									$data = $bmrequests->bm_check_payment_type_and_return_data( $post['booking_data'], $checkout_string );
-
-									if ( empty( $data ) ) {
-										$resp = '<div class="textcenter">' . esc_html__( 'Error Fetching Payment Info !!', 'service-booking' ) . '</div>';
-
-										$data['status'] = 'error';
-										$data['data']   = $resp;
-									}
-								} else {
-									$resp = '<div class="textcenter">' . esc_html__( 'Payment Gateway Server Error !!', 'service-booking' ) . '</div>';
-
-									$data['status'] = 'error';
-									$data['data']   = $resp;
-								}
-							} else {
-								$resp = '<div class="textcenter">' . esc_html__( 'Payment Gateway Not Enabled !!', 'service-booking' ) . '</div>';
-
-								$data['status'] = 'error';
-								$data['data']   = $resp;
-							}
+							$data['status'] = 'error';
+							$data['data']   = $resp;
 						} else {
 							$resp = '<div class="textcenter">' . esc_html__( 'Service is Not Bookable !!', 'service-booking' ) . '</div>';
 
@@ -3148,25 +3088,9 @@ class Booking_Management_Public {
 			$method_id    = isset( $post['paymentMethod'] ) ? $post['paymentMethod'] : '';
 
 			if ( ! empty( $booking_key ) && ! empty( $checkout_key ) && ! empty( $method_id ) ) {
-				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-					$stripe_payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
+				$resp = __( 'Payment Gateway Not Enabled !!', 'service-booking' );
 
-					if ( $stripe_payment_processor->isConnected() ) {
-						$data['status'] = $bmrequests->bm_process_payment_data( $booking_key, $checkout_key, $method_id );
-
-						if ( in_array( $data['status'], array( 'success', 'requires_capture', 'succeeded' ), true ) ) {
-							$data['data'] = wp_kses_post( base64_decode( $dbhandler->get_global_option_value( 'bm_client_secret' . $booking_key ) ) );
-						}
-					} else {
-						$resp = __( 'Payment Gateway Server Error !!', 'service-booking' );
-
-						$data['data'] = wp_kses_post( $resp );
-					}
-				} else {
-					$resp = __( 'Payment Gateway Not Enabled !!', 'service-booking' );
-
-					$data['data'] = wp_kses_post( $resp );
-				}
+				$data['data'] = wp_kses_post( $resp );
 			} else {
 				$resp = __( 'Could Not Capture Booking Info !!', 'service-booking' );
 
@@ -3204,13 +3128,8 @@ class Booking_Management_Public {
 			$checkout_key = isset( $post['checkout'] ) ? $post['checkout'] : '';
 
 			if ( ! empty( $booking_key ) && ! empty( $checkout_key ) ) {
-				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) ) {
-					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-
-					if ( $payment_processor->isConnected() ) {
-						$process_status = $bmrequests->bm_save_payment_data( $booking_key, $checkout_key );
-					}
-				}
+				// Stripe payment gateway not available in free version.
+				$process_status = 'error';
 			}
 		}
 
@@ -4313,11 +4232,9 @@ class Booking_Management_Public {
 		}
 
 		$refund_id = null;
-		if ( $order->get_payment_method() === 'stripe' ) {
-			$refunds = $order->get_refunds();
-			if ( ! empty( $refunds ) ) {
-				$refund_id = $refunds[0]->get_id();
-			}
+		$refunds   = $order->get_refunds();
+		if ( ! empty( $refunds ) ) {
+			$refund_id = $refunds[0]->get_id();
 		}
 
 		$flexi_booking_id   = get_post_meta( $order_id, '_flexi_booking_id', true );

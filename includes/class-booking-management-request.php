@@ -12650,61 +12650,7 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_add_customer_data_to_payment( $checkout_key, $method_id = null ) {
-		$dbhandler        = new BM_DBhandler();
-		$customer_details = $this->bm_fetch_customer_info_for_payment_intent( $checkout_key );
-		$customerID       = '';
-		$default_address  = array();
-
-		if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) && ! empty( $customer_details ) ) {
-			$payment = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-
-			$default_address['line1']       = 'Unknown';
-			$default_address['city']        = 'Unknown';
-			$default_address['state']       = 'Unknown';
-			$default_address['country']     = $dbhandler->get_global_option_value( 'bm_booking_country', 'IT' );
-			$default_address['postal_code'] = '00000';
-
-			$name     = isset( $customer_details['name'] ) && ! empty( $customer_details['name'] ) ? $customer_details['name'] : 'Unknown';
-			$email    = isset( $customer_details['email'] ) && ! empty( $customer_details['email'] ) ? $customer_details['email'] : 'no-email@example.com';
-			$address  = isset( $customer_details['address'] ) && ! empty( $customer_details['address'] ) ? $customer_details['address'] : $default_address;
-			$phone    = isset( $customer_details['phone'] ) && ! empty( $customer_details['phone'] ) ? $customer_details['phone'] : '0000000000';
-			$shipping = isset( $customer_details['shipping'] ) && ! empty( $customer_details['shipping'] ) ? $customer_details['shipping'] : $default_address;
-
-			$customer_description = isset( $customer_details['description'] ) ? $customer_details['description'] : '';
-
-			$customerID = $dbhandler->get_value( 'CUSTOMERS', 'stripe_id', $email, 'customer_email' );
-
-			if ( empty( $customerID ) ) {
-				$customer = $payment->saveCustomer( $name, $email, $customer_description, $address, $phone, $shipping, $method_id );
-
-				if ( ! empty( $customer ) ) {
-					$customerID = $customer->id;
-				}
-			} else {
-				$stripe_customer = $payment->getCustomer( $customerID );
-
-				if ( ! empty( $stripe_customer ) ) {
-					$customer = $payment->updateCustomer( $customerID, $name, $customer_description, $address, $phone, $shipping );
-				} else {
-					$customer   = $payment->saveCustomer( $name, $email, $customer_description, $address, $phone, $shipping, $method_id );
-					$customerID = $customer->id;
-				}
-
-				if ( ! empty( $customer ) ) {
-					if ( ! empty( $stripe_customer ) ) {
-						if ( $method_id !== null ) {
-							$method = $payment->attachPaymentMethodToCustomer( $method_id, $customerID );
-
-							if ( empty( $method ) ) {
-								$customerID = '';
-							}
-						}
-					}
-				} else {
-					$customerID = '';
-				}
-			}
-		}
+		$customerID = '';
 
 		return $customerID;
 	} // end bm_add_customer_data_to_payment()
@@ -12716,32 +12662,7 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_add_order_data_to_payment( $customerID, $method_id, $booking_key, $checkout_key ) {
-		$dbhandler            = new BM_DBhandler();
-		$booked_product       = $this->bm_fetch_booked_service_info_for_stripe_payment_intent( $booking_key );
-		$current_request_type = $this->bm_current_request_type( $booking_key );
-		$checkout_data        = $dbhandler->bm_fetch_data_from_transient( $checkout_key );
-		$request_type         = ! empty( $checkout_data ) && isset( $checkout_data['request_type'] ) ? $checkout_data['request_type'] : '';
-		$payment_intent       = '';
-
-        $gift                 = $checkout_data['checkout']['is_gift'] ?? 0;
-        $current_request_type = $gift ? 'direct' : $current_request_type;
-        if ( ( $current_request_type == $request_type ) && !empty( $method_id ) ) {
-            if ( !empty( $booked_product ) ) {
-                $amount      = !empty( $booked_product ) && isset( $booked_product['amount'] ) ? floatval( round( $booked_product['amount'], 2 ) ) * 100 : 0;
-                $currency    = !empty( $booked_product ) && isset( $booked_product['currency'] ) ? $booked_product['currency'] : '';
-                $description = !empty( $booked_product ) && isset( $booked_product['description'] ) ? $booked_product['description'] : '';
-
-				if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) && ( $amount > 0 ) && ! empty( $currency ) && ! empty( $description ) ) {
-					$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-
-					if ( $request_type == 'on_request' ) {
-						$payment_intent = $payment_processor->preAuthorizeAmount( $amount, $currency, $description, $customerID, $method_id, $booking_key, $checkout_key );
-					} elseif ( $request_type == 'direct' ) {
-						$payment_intent = $payment_processor->createOneTimePaymentIntent( $amount, $currency, $description, $customerID, $method_id, $booking_key, $checkout_key );
-					}
-				}
-			}
-		}
+		$payment_intent = '';
 
 		return $payment_intent;
 	} // end bm_add_order_data_to_payment()
@@ -12823,247 +12744,7 @@ class BM_Request {
      * @author Darpan
      */
     public function bm_save_payment_data( $booking_key, $checkout_key, $gift = false ) {
-        if ( ! class_exists( 'Booking_Management_Process_Payment' ) || ! defined( 'STRIPE_SECRET_KEY' ) ) {
-            return 'error';
-        }
-         $dbhandler        = new BM_DBhandler();
-        $payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-        $bookable_extra    = $this->bm_is_selected_extra_service_bookable( $booking_key );
-        $payment_id        = 0;
-        $customer_id       = 0;
-        $booking_id        = 0;
-        $voucher_id        = 0;
-        $transaction_id    = '';
-        $payment_status    = '';
-        $paid_amount       = 0;
-        $process_status    = 'error';
-        $intentStatuses    = array( 'succeeded', 'requires_capture' );
-
-        if ( $this->bm_check_if_cart_order_is_still_bookable( $booking_key, $gift ) ) {
-            if ( $bookable_extra ) {
-                $payment_intent = $payment_processor->getPaymentIntent( base64_decode( $dbhandler->get_global_option_value( 'bm_intent_id' . $booking_key ) ) );
-
-				if ( ! empty( $payment_intent ) ) {
-					$payment_status = isset( $payment_intent['status'] ) ? $payment_intent['status'] : '';
-					$customerID     = isset( $payment_intent['customer'] ) ? $payment_intent['customer'] : '';
-
-					if ( ! empty( $payment_status ) && ! empty( $customerID ) && in_array( $payment_status, $intentStatuses, true ) ) {
-						// Transaction details
-						$customer       = $payment_processor->getCustomer( $customerID );
-						$transaction_id = isset( $payment_intent['id'] ) ? $payment_intent['id'] : '';
-						$paid_amount    = isset( $payment_intent['amount'] ) ? $payment_intent['amount'] : 0;
-						$paid_amount    = ( $paid_amount / 100 );
-						$paid_currency  = isset( $payment_intent['currency'] ) ? strtoupper( $payment_intent['currency'] ) : '';
-						$customer_name  = isset( $customer->name ) ? $customer->name : '';
-						$customer_email = isset( $customer->email ) ? $customer->email : '';
-
-						$gift_key       = base64_encode( $booking_key );
-						$gift_recipient = $dbhandler->bm_fetch_data_from_transient( $gift_key );
-						$is_gift        = isset( $gift_recipient['is_gift'] ) ? $gift_recipient['is_gift'] : 0;
-
-						// Check if transaction data exists
-						$payment_id = $dbhandler->get_value( 'TRANSACTIONS', 'id', $transaction_id, 'transaction_id' );
-
-						// Transaction data
-						$transaction_data = array(
-							'paid_amount'          => $paid_amount,
-							'paid_amount_currency' => $paid_currency,
-							'transaction_id'       => $transaction_id,
-							'payment_method'       => 'card',
-							'payment_status'       => $payment_status,
-							'is_active'            => 1,
-						);
-
-						if ( ! empty( $payment_id ) ) {
-							$transaction_data['transaction_updated_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
-							$dbhandler->update_row( 'TRANSACTIONS', 'id', $payment_id, $transaction_data, '', '%d' );
-						} else {
-							$booking_id = $this->bm_save_booking_data( $booking_key, $checkout_key );
-
-							if ( $booking_id ) {
-								$checkout_data = $dbhandler->bm_fetch_data_from_transient( $checkout_key );
-								$checkout_data = isset( $checkout_data['checkout'] ) ? $checkout_data['checkout'] : array();
-
-								if ( ! empty( $checkout_data ) ) {
-									$billing_details          = ! empty( $checkout_data ) && isset( $checkout_data['billing_details'] ) ? $checkout_data['billing_details'] : null;
-									$shipping_same_as_billing = ! empty( $checkout_data ) && isset( $checkout_data['other_data']['shipping_same_as_billing'] ) ? $checkout_data['other_data']['shipping_same_as_billing'] : 0;
-									$shipping_details         = array();
-
-									if ( $shipping_same_as_billing == 1 ) {
-										if ( ! empty( $billing_details ) ) {
-											foreach ( $billing_details as $key => $value ) {
-												$shipping_details[ str_replace( 'billing', 'shipping', $key ) ] = $value;
-											}
-										}
-									} else {
-										$shipping_details = ! empty( $checkout_data ) && isset( $checkout_data['shipping_details'] ) ? $checkout_data['shipping_details'] : null;
-									}
-
-									$customer_data = array(
-										'stripe_id'        => $customerID,
-										'customer_name'    => $customer_name,
-										'customer_email'   => $customer_email,
-										'billing_details'  => $billing_details,
-										'shipping_details' => $shipping_details,
-										'shipping_same_as_billing' => $shipping_same_as_billing,
-										'is_active'        => 1,
-									);
-
-									$customer_final = $this->sanitize_request( $customer_data, 'CUSTOMERS' );
-
-									if ( $customer_final != false && $customer_final != null ) {
-										$customer_id = $dbhandler->get_value( 'CUSTOMERS', 'id', $customer_email, 'customer_email' );
-
-										if ( ! empty( $customer_id ) ) {
-											$customer_final['customer_updated_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
-											$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_final, '', '%d' );
-										} else {
-											$customer_final['customer_created_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
-											$customer_id                           = $dbhandler->insert_row( 'CUSTOMERS', $customer_final );
-										}
-
-										if ( isset( $customer_id ) && ! empty( $customer_id ) ) {
-											$booking_update_data = array(
-												'customer_id'        => $customer_id,
-												'booking_updated_at' => $this->bm_fetch_current_wordpress_datetime_stamp(),
-											);
-
-											$dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_update_data, '', '%d' );
-
-											// Transaction data
-											$transaction_data['booking_id']  = $booking_id;
-											$transaction_data['wc_order_id'] = 0;
-											$transaction_data['customer_id'] = $customer_id;
-
-											$transaction_data['transaction_created_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
-
-											$payment_final = $this->sanitize_request( $transaction_data, 'TRANSACTIONS' );
-
-											if ( $payment_final != false && $payment_final != null ) {
-												$payment_id = $dbhandler->insert_row( 'TRANSACTIONS', $payment_final );
-
-												if ( ! empty( $payment_id ) ) {
-													if ( $is_gift == 1 ) {
-														$voucher_expiry_date = $this->bm_get_voucher_expiry_date();
-														$voucher_code        = $this->bm_generate_unique_code( $customer_email );
-
-														if ( $voucher_expiry_date && $voucher_code ) {
-															$gift_data = array(
-																'code'           => $voucher_code,
-																'booking_id'     => $booking_id,
-																'customer_id'    => $customer_id,
-																'transaction_id' => $payment_id,
-																'recipient_data' => ! empty( $gift_recipient ) ? $gift_recipient : null,
-																'is_gift'        => $is_gift,
-																'settings'       => array( 'expiry' => $voucher_expiry_date ),
-																'created_at'     => $this->bm_fetch_current_wordpress_datetime_stamp(),
-															);
-
-															$gift_data = $this->sanitize_request( $gift_data, 'VOUCHERS' );
-
-															if ( $gift_data != false && $gift_data != null ) {
-																$voucher_id = $dbhandler->insert_row( 'VOUCHERS', $gift_data );
-
-																if ( ! empty( $voucher_id ) ) {
-																	$booking_update_data = array(
-																		'vouchers' => implode( ',', array( $voucher_code ) ),
-																		'booking_updated_at' => $this->bm_fetch_current_wordpress_datetime_stamp(),
-																	);
-
-																	$dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_update_data, '', '%d' );
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-				if ( ! empty( $payment_id ) ) {
-					$checkin_id   = 0;
-					$checkin_data = array(
-						'booking_id'      => $booking_id,
-						'qr_token'        => $booking_key,
-						'qr_scanned'      => 0,
-						'status'          => 'pending',
-						'service_expired' => 0,
-						'created_at'      => $this->bm_fetch_current_wordpress_datetime_stamp(),
-					);
-
-					$checkin_final_data = $this->sanitize_request( $checkin_data, 'CHECKIN' );
-
-					if ( $checkin_final_data != false && $checkin_final_data != null ) {
-						$checkin_id = $dbhandler->insert_row( 'CHECKIN', $checkin_final_data );
-					}
-
-					$dbhandler->update_global_option_value( 'bm_booking-checkin-id-' . $booking_key, $checkin_id );
-
-					$booking_type   = $dbhandler->get_value( 'BOOKING', 'booking_type', $booking_id, 'id' );
-					$process_status = 'success';
-
-					if ( $booking_type == 'on_request' ) {
-						do_action( 'flexibooking_set_process_new_request', $booking_id );
-						// Event-driven dispatch for async/microservice processing.
-						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-							SG_Event_Dispatcher::dispatch( 'booking.request_created', array( 'booking_id' => $booking_id, 'booking_type' => 'on_request' ) );
-						}
-					} elseif ( $booking_type == 'direct' ) {
-						do_action( 'flexibooking_set_process_new_order', $booking_id );
-						// Event-driven dispatch for async/microservice processing.
-						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-							SG_Event_Dispatcher::dispatch( 'booking.confirmed', array( 'booking_id' => $booking_id, 'booking_type' => 'direct' ) );
-						}
-					}
-
-					$this->bm_unset_session( 'flexi_current_payment_session' );
-
-					if ( ! empty( $voucher_id ) && $booking_type == 'direct' ) {
-						do_action( 'flexibooking_set_process_new_order_voucher', $booking_id );
-					}
-				}
-			}
-		}
-
-		$order_data = $dbhandler->get_all_result(
-			'BOOKING',
-			'*',
-			array( 'id' => $booking_id ),
-			'results',
-			0,
-			false,
-			null,
-			false,
-			'',
-			'ARRAY_A'
-		);
-		do_action( 'bm_after_booking_saved', $booking_id, isset( $order_data[0] ) ? $order_data[0] : array() );
-
-		if ( $process_status !== 'success' ) {
-			$this->bm_remove_order_data_after_failed_payment( $customer_id, $booking_id );
-			$this->bm_unset_session( 'flexi_current_payment_session' );
-
-			// Event-driven dispatch for failed payment processing.
-			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-				SG_Event_Dispatcher::dispatch( 'booking.failed', array( 'booking_id' => $booking_id, 'customer_id' => $customer_id ) );
-			}
-		} else {
-			// Event-driven dispatch for successful payment.
-			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-				SG_Event_Dispatcher::dispatch( 'payment.received', array(
-					'booking_id'     => $booking_id,
-					'transaction_id' => $transaction_id,
-					'paid_amount'    => $paid_amount,
-				) );
-			}
-		}
-
-		return $process_status;
+		return 'error';
 	} // end bm_save_payment_data()
 
 
@@ -13283,7 +12964,7 @@ class BM_Request {
 						$customer_final['customer_updated_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
 						$dbhandler->update_row( 'CUSTOMERS', 'id', $customer_id, $customer_final, '', '%d' );
 					} else {
-						$customer_final['stripe_id']           = $customerID;
+						$customer_final['stripe_id']           = '';
 						$customer_final['customer_created_at'] = $this->bm_fetch_current_wordpress_datetime_stamp();
 						$customer_id                           = $dbhandler->insert_row( 'CUSTOMERS', $customer_final );
 					}
@@ -13412,117 +13093,7 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_cancel_payment_intent_for_failed_payment( $booking_key, $checkout_key ) {
-		if ( ! class_exists( 'Booking_Management_Process_Payment' ) || ! defined( 'STRIPE_SECRET_KEY' ) ) {
-			return false;
-		}
-		$dbhandler         = new BM_DBhandler();
-		$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-		$intentStatuses    = array( 'requires_payment_method', 'requires_confirmation', 'requires_action', 'requires_capture' );
-		$is_cancelled      = false;
-
-		if ( $dbhandler->get_global_option_value( 'discount_' . $booking_key ) == 1 ) {
-			$booking_data = $dbhandler->bm_fetch_data_from_transient( 'discounted_' . $booking_key );
-		} else {
-			$booking_data = $dbhandler->bm_fetch_data_from_transient( $booking_key );
-		}
-
-		/**$booking_data   = $dbhandler->bm_fetch_data_from_transient( $booking_key )*/
-		$checkout_data  = $dbhandler->bm_fetch_data_from_transient( $checkout_key );
-		$checkout_data  = isset( $checkout_data['checkout'] ) ? $checkout_data['checkout'] : array();
-		$gift_key       = base64_encode( $booking_key );
-		$gift_data      = $dbhandler->bm_fetch_data_from_transient( $gift_key );
-		$payment_intent = $payment_processor->getPaymentIntent( base64_decode( $dbhandler->get_global_option_value( 'bm_intent_id' . $booking_key ) ) );
-
-		$booking_data['total_svc_slots']     = isset( $booking_data['total_service_booking'] ) ? $booking_data['total_service_booking'] : 0;
-		$booking_data['total_ext_svc_slots'] = isset( $booking_data['total_extra_slots_booked'] ) ? array_sum( explode( ',', $booking_data['total_extra_slots_booked'] ) ) : 0;
-		$total_cost                          = isset( $booking_data['total_cost'] ) ? $booking_data['total_cost'] : 0;
-		$booking_data['subtotal']            = isset( $booking_data['subtotal'] ) ? $booking_data['subtotal'] : $total_cost;
-
-		if ( isset( $booking_data['total_service_booking'] ) ) {
-			unset( $booking_data['total_service_booking'] );
-		}
-
-		$transaction_data = array(
-			'booking_data'  => ! empty( $booking_data ) ? maybe_serialize( $booking_data ) : null,
-			'customer_data' => ! empty( $checkout_data ) ? maybe_serialize( $checkout_data ) : null,
-			'gift_data'     => ! empty( $gift_data ) ? maybe_serialize( $gift_data ) : null,
-			'booking_key'   => $booking_key,
-			'checkout_key'  => $checkout_key,
-			'is_refunded'   => 0,
-			'refund_status' => 'not_required',
-		);
-
-		if ( ! empty( $payment_intent ) ) {
-			$payment_status = isset( $payment_intent['status'] ) ? $payment_intent['status'] : '';
-			$transaction_id = isset( $payment_intent['id'] ) ? $payment_intent['id'] : '';
-			$paid_amount    = isset( $payment_intent['amount'] ) ? $payment_intent['amount'] : '';
-			$customerID     = isset( $payment_intent['customer'] ) ? $payment_intent['customer'] : '';
-			$paid_currency  = isset( $payment_intent['currency'] ) ? $payment_intent['currency'] : '';
-			$customer       = $payment_processor->getCustomer( $customerID );
-			$customer_email = isset( $customer->email ) ? $customer->email : '';
-			$customer_id    = $dbhandler->get_value( 'CUSTOMERS', 'id', $customer_email, 'customer_email' );
-
-			$transaction_data['customer_id']        = $customer_id;
-			$transaction_data['payment_status']     = $payment_status;
-			$transaction_data['transaction_id']     = $transaction_id;
-			$transaction_data['stripe_customer_id'] = $customerID;
-			$transaction_data['amount_currency']    = $paid_currency;
-			$transaction_data['amount']             = $paid_amount;
-			$transaction_data['created_at']         = $this->bm_fetch_current_wordpress_datetime_stamp();
-
-			if ( ! empty( $transaction_id ) ) {
-				if ( in_array( $payment_status, $intentStatuses, true ) ) {
-					$cancelled_intent = $payment_processor->cancelPaymentIntent( $transaction_id );
-
-					if ( ! empty( $cancelled_intent ) && isset( $cancelled_intent['status'] ) && $cancelled_intent['status'] == 'canceled' ) {
-						$refund_id   = '';
-						$charge_data = isset( $cancelled_intent['charges']['data'][0] ) ? $cancelled_intent['charges']['data'][0] : array();
-
-						if ( ! empty( $charge_data ) ) {
-							$refund_data = isset( $charge_data['refunds']['data'][0] ) ? $charge_data['refunds']['data'][0] : array();
-
-							if ( ! empty( $refund_data ) ) {
-								$refund_id = isset( $refund_data['id'] ) ? $refund_data['id'] : '';
-							}
-						}
-
-						$transaction_data['is_refunded']   = 1;
-						$transaction_data['refund_id']     = ! empty( $refund_id ) ? $refund_id : '';
-						$transaction_data['refund_status'] = 'succeeded';
-
-						do_action( 'flexibooking_set_process_failed_order_refund', $booking_key );
-						// Event-driven dispatch for failed order refund.
-						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-							SG_Event_Dispatcher::dispatch( 'booking.failed_refund', array( 'booking_key' => $booking_key, 'transaction_id' => $transaction_id ) );
-						}
-						$is_cancelled = true;
-					} else {
-						$transaction_data['refund_status'] = 'failed';
-					}
-				} elseif ( ( $payment_status == 'succeeded' ) && ( $paid_amount !== '' ) ) {
-					$refund = $payment_processor->refundPaymentIntent( $transaction_id, $paid_amount );
-
-					if ( ! empty( $refund ) && isset( $refund['status'] ) && $refund['status'] == 'succeeded' ) {
-						$transaction_data['is_refunded']   = 1;
-						$transaction_data['refund_id']     = ! empty( $refund['id'] ) ? $refund['id'] : '';
-						$transaction_data['refund_status'] = 'succeeded';
-
-						do_action( 'flexibooking_set_process_failed_order_refund', $booking_key );
-						// Event-driven dispatch for failed order refund (succeeded path).
-						if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-							SG_Event_Dispatcher::dispatch( 'booking.failed_refund', array( 'booking_key' => $booking_key, 'transaction_id' => $transaction_id, 'refund_id' => $refund['id'] ?? '' ) );
-						}
-						$is_cancelled = true;
-					} else {
-						$transaction_data['refund_status'] = 'failed';
-					}
-				}
-			}
-		}
-
-		$dbhandler->insert_row( 'FAILED_TRANSACTIONS', $transaction_data );
-
-		return $is_cancelled;
+		return false;
 	} // end bm_cancel_payment_intent_for_failed_payment()
 
 
@@ -13789,35 +13360,6 @@ class BM_Request {
 			$paymentIntentId = $dbhandler->get_value( 'TRANSACTIONS', 'transaction_id', $booking_id, 'booking_id' );
 			$paymentStatus   = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $booking_id, 'booking_id' );
 			$is_active       = $dbhandler->get_value( 'TRANSACTIONS', 'is_active', $booking_id, 'booking_id' );
-
-			if ( class_exists( 'Booking_Management_Process_Payment' ) && defined( 'STRIPE_SECRET_KEY' ) && ! empty( $paymentIntentId ) && ! empty( $capture_amount ) && ( $paymentStatus == 'requires_capture' ) && ( $is_active == 1 ) ) {
-				$payment_processor = new Booking_Management_Process_Payment( STRIPE_SECRET_KEY );
-				$transaction_id    = $dbhandler->get_value( 'TRANSACTIONS', 'id', $booking_id, 'booking_id' );
-				$booking_is_active = $dbhandler->get_value( 'BOOKING', 'is_active', $booking_id, 'id' );
-				$booking_type      = $dbhandler->get_value( 'BOOKING', 'booking_type', $booking_id, 'id' );
-
-				if ( $payment_processor->isConnected() && ( $booking_type == 'on_request' ) && ( $booking_is_active == 1 ) && ! empty( $transaction_id ) ) {
-					$capture_amount  = $capture_amount * 100;
-					$approve_payment = $payment_processor->capturePayment( $paymentIntentId, $capture_amount );
-
-					if ( $approve_payment ) {
-						$approved       = true;
-						$payment_status = isset( $approve_payment['status'] ) ? $approve_payment['status'] : '';
-
-						$transaction_data = array(
-							'payment_status'         => $payment_status,
-							'transaction_updated_at' => $this->bm_fetch_current_wordpress_datetime_stamp(),
-						);
-
-						$booking_data = array(
-							'booking_updated_at' => $this->bm_fetch_current_wordpress_datetime_stamp(),
-						);
-
-						$one = $dbhandler->update_row( 'TRANSACTIONS', 'id', $transaction_id, $transaction_data, '', '%d' );
-						$two = $dbhandler->update_row( 'BOOKING', 'id', $booking_id, $booking_data, '', '%d' );
-					}
-				}
-			}
 		}
 
 		return $approved;
@@ -15592,7 +15134,7 @@ class BM_Request {
 			$transaction_data = array(
 				'paid_amount'          => $booking_data['total_cost'],
 				'paid_amount_currency' => $dbhandler->get_global_option_value( 'bm_booking_currency', 'EUR' ),
-				'transaction_id'       => $wc_order->get_payment_method() == 'stripe' && $wc_order->is_paid() ? $wc_order->get_transaction_id() : $wc_order->get_order_key(),
+				'transaction_id'       => $wc_order->is_paid() && $wc_order->get_transaction_id() ? $wc_order->get_transaction_id() : $wc_order->get_order_key(),
 				'payment_method'       => $wc_order->get_payment_method_title(),
 				'payment_status'       => $payment_status,
 				'is_active'            => 1,
@@ -15607,7 +15149,7 @@ class BM_Request {
 			}
 
 			$customer_data = array(
-				'stripe_id'                => $wc_order->get_meta( '_stripe_customer_id' ) ?? null,
+				'stripe_id'                => '',
 				'customer_name'            => $wc_order->get_billing_first_name() . ' ' . $wc_order->get_billing_last_name(),
 				'customer_email'           => $wc_order->get_billing_email(),
 				'billing_details'          => $checkout_data['billing_details'],
