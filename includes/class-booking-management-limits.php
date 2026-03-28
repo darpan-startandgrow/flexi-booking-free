@@ -97,7 +97,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function is_pro_active() {
-		return false;
+		return (bool) apply_filters( 'sg_booking_is_pro_active', false );
 	}
 
 	/**
@@ -109,6 +109,9 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_voucher() {
+		if ( self::is_pro_active() ) {
+			return true;
+		}
 		$dbhandler = new BM_DBhandler();
 		$count     = $dbhandler->bm_count( 'VOUCHERS' );
 
@@ -137,7 +140,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_add_custom_field() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -150,6 +153,9 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_delete_field( $field_name = '' ) {
+		if ( self::is_pro_active() ) {
+			return true;
+		}
 		return ! in_array( $field_name, self::FREE_DEFAULT_FIELD_NAMES, true );
 	}
 
@@ -162,7 +168,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_form() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -174,6 +180,9 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_notification_process() {
+		if ( self::is_pro_active() ) {
+			return true;
+		}
 		$dbhandler = new BM_DBhandler();
 		$count     = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
 
@@ -204,6 +213,9 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_mail_template( $template_type = '' ) {
+		if ( self::is_pro_active() ) {
+			return true;
+		}
 		// Check template type restriction (numeric type IDs).
 		if ( '' !== $template_type && ! in_array( (int) $template_type, self::FREE_MAIL_TEMPLATE_TYPES, true ) ) {
 			return false;
@@ -237,7 +249,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_qr_scanning() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -249,7 +261,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_pdf_customizer() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -261,7 +273,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_price_modules() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -273,7 +285,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_coupons() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -285,7 +297,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_full_analytics() {
-		return false;
+		return self::is_pro_active();
 	}
 
 
@@ -298,7 +310,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_advanced_time_slots() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -310,7 +322,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_advanced_global_settings() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -322,7 +334,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_stop_sales() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -334,7 +346,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_saleswitch() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -346,7 +358,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_edit_max_capacity() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -358,7 +370,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_age_settings() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -370,7 +382,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_create_customer() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -382,7 +394,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_resend_email() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -394,7 +406,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_ticket_scanner() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -406,7 +418,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_resend_ticket() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -418,7 +430,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_payment_logs() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -430,7 +442,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_smtp() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -442,7 +454,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_use_advanced_dashboard() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
@@ -454,7 +466,7 @@ class Booking_Management_Limits {
 	 * @return bool
 	 */
 	public static function can_redeem_voucher() {
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
