@@ -535,6 +535,26 @@ class Booking_Management_Rest_API {
 			)
 		);
 
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/counts',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_dashboard_counts' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/status-chart',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_dashboard_status_chart' ),
+				'permission_callback' => array( $this, 'check_admin_permission' ),
+			)
+		);
+
 		// --- Action endpoints (replacing AJAX handlers) ---
 
 		register_rest_route(
@@ -2095,6 +2115,72 @@ class Booking_Management_Rest_API {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$data['total_customers'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$cust_table}" );
 		}
+
+		return rest_ensure_response( $data );
+	}
+
+	/**
+	 * GET /dashboard/counts — Retrieve booking KPI counts.
+	 *
+	 * Accepts optional query params: year, month, type, status.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_dashboard_counts( $request ) {
+		$bmrequests = new BM_Request();
+
+		$type   = $request->get_param( 'type' ) ? sanitize_text_field( $request->get_param( 'type' ) ) : '';
+		$year   = $request->get_param( 'year' ) ? sanitize_text_field( $request->get_param( 'year' ) ) : '';
+		$month  = $request->get_param( 'month' ) ? sanitize_text_field( $request->get_param( 'month' ) ) : '';
+		$status = $request->get_param( 'status' ) ? sanitize_text_field( $request->get_param( 'status' ) ) : '';
+
+		$data = array();
+
+		if ( '' === $type ) {
+			$data['total_bookings_count']    = $bmrequests->bm_fetch_total_bookings_count( $year, $month, $status );
+			$data['upcoming_bookings_count'] = $bmrequests->bm_fetch_upcoming_bookings_count( $year, $month, $status );
+			$data['weekly_bookings_count']   = $bmrequests->bm_fetch_weekly_bookings_count( $status );
+			$data['total_bookings_revenue']  = $bmrequests->bm_fetch_total_bookings_revenue( $year, $month, $status );
+		} elseif ( 'total' === $type ) {
+			$data['total_bookings_count'] = $bmrequests->bm_fetch_total_bookings_count( $year, $month, $status );
+		} elseif ( 'upcoming' === $type ) {
+			$data['upcoming_bookings_count'] = $bmrequests->bm_fetch_upcoming_bookings_count( $year, $month, $status );
+		} elseif ( 'revenue' === $type ) {
+			$data['total_bookings_revenue'] = $bmrequests->bm_fetch_total_bookings_revenue( $year, $month, $status );
+		} elseif ( 'weekly' === $type ) {
+			$data['weekly_bookings_count'] = $bmrequests->bm_fetch_weekly_bookings_count( $status );
+		}
+
+		$data['booking_type'] = $type;
+
+		return rest_ensure_response( $data );
+	}
+
+	/**
+	 * GET /dashboard/status-chart — Retrieve booking status chart data.
+	 *
+	 * Accepts optional query params: from, to.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_dashboard_status_chart( $request ) {
+		$bmrequests = new BM_Request();
+
+		$post = array(
+			'type'   => 'monthly',
+			'status' => 'order_status',
+			'from'   => $request->get_param( 'from' ) ? sanitize_text_field( $request->get_param( 'from' ) ) : '',
+			'to'     => $request->get_param( 'to' ) ? sanitize_text_field( $request->get_param( 'to' ) ) : '',
+		);
+
+		$status_data = $bmrequests->bm_fetch_booking_status_count( $post );
+
+		$data = array(
+			'labels' => isset( $status_data['labels'] ) ? $status_data['labels'] : array(),
+			'data'   => isset( $status_data['data'] ) ? $status_data['data'] : array(),
+		);
 
 		return rest_ensure_response( $data );
 	}
