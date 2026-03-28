@@ -85,6 +85,11 @@ $feature_map = array(
 		'description' => __( 'Create, manage, and track booking vouchers with advanced redemption rules and PDF generation.', 'service-booking' ),
 		'icon'        => 'dashicons-tag',
 	),
+	'bm_email_logs'                 => array(
+		'title'       => __( 'Email Logs', 'service-booking' ),
+		'description' => __( 'View detailed email delivery logs with status tracking, error reporting, and filtering by booking or recipient.', 'service-booking' ),
+		'icon'        => 'dashicons-email',
+	),
 	'bm_customer_profile'           => array(
 		'title'       => __( 'Customer Profiles', 'service-booking' ),
 		'description' => __( 'View detailed customer profiles with booking history, payment records, and customer analytics.', 'service-booking' ),

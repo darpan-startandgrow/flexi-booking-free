@@ -92,8 +92,6 @@ class Booking_Management_Admin {
 			wp_enqueue_style( 'flexi-animate', plugin_dir_url( __FILE__ ) . 'css/booking-management-animate.css', array(), $this->version, 'all' );
 			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/booking-management-admin.css', array(), $this->version, 'all' );
 			wp_enqueue_style( 'flexi-daterangepicker', plugin_dir_url( __FILE__ ) . 'css/booking-management-daterangepicker.css', array(), $this->version, 'all' );
-			wp_enqueue_style( 'flexi-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-service-booking-planner.css', array(), $this->version, 'all' );
-			wp_enqueue_style( 'flexi-single-service-booking-planner', plugin_dir_url( __FILE__ ) . 'css/booking-management-single-service-booking-planner.css', array(), $this->version, 'all' );
             if ( $screen->base == 'toplevel_page_bm_home' ) {
                 wp_enqueue_style( 'dashboard-css', plugin_dir_url( __FILE__ ) . 'css/booking-management-dashboard.css', array(), $this->version, 'all' );
                 wp_enqueue_script( 'chartjs', plugin_dir_url( __FILE__ ) . 'js/booking-management-chart.js', array(), $this->version, true );
@@ -229,8 +227,6 @@ class Booking_Management_Admin {
 			wp_enqueue_script( 'jquery-fullcalendar', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-fullcalendar.js', array( 'jquery', 'jquery-moment' ), $this->version, true );
 			wp_enqueue_script( 'fullcalendar-moment', plugin_dir_url( __FILE__ ) . 'js/booking-management-fullcalendar-moment.js', array( 'jquery', 'jquery-fullcalendar', 'jquery-moment' ), $this->version, true );
 			wp_enqueue_script( 'jquery-daterangepicker', plugin_dir_url( __FILE__ ) . 'js/booking-management-daterangepicker.js', array( 'jquery', 'jquery-fullcalendar', 'fullcalendar-moment', 'jquery-moment' ), $this->version, true );
-			wp_enqueue_script( 'single-service-planner', plugin_dir_url( __FILE__ ) . 'js/booking-management-single-service-booking-planner.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
-			wp_enqueue_script( 'service-planner', plugin_dir_url( __FILE__ ) . 'js/booking-management-service-booking-planner.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 
 
 			$bm_svc_shrt_desc_char_limit = $dbhandler->get_global_option_value( 'bm_svc_shrt_desc_char_limit', 0 );
@@ -726,8 +722,8 @@ class Booking_Management_Admin {
 		// PDF Customization: Pro-only (free gets default non-customizable templates).
 		add_submenu_page( 'bm_home', __( 'PDF Templates', 'service-booking' ), __( 'PDF Templates', 'service-booking' ), 'manage_options', 'bm_pdf_customization', array( $this, 'bm_pdf_templates_page' ) );
 
-		// Email Logs — available in free version.
-		add_submenu_page( 'bm_home', __( 'Email Logs', 'service-booking' ), __( 'Email Logs', 'service-booking' ), 'manage_options', 'bm_email_logs', array( $this, 'bm_email_logs' ) );
+		// Email Logs: Pro-only.
+		add_submenu_page( 'bm_home', __( 'Email Logs', 'service-booking' ), __( 'Email Logs', 'service-booking' ) . ' <span class="bm-menu-pro-badge">Pro</span>', 'manage_options', 'bm_email_logs', array( $this, 'bm_pro_upsell_page' ) );
 
 		// Payment Logs: Pro-only.
 		add_submenu_page( 'bm_home', __( 'Payment Logs', 'service-booking' ), __( 'Payment Logs', 'service-booking' ) . ' <span class="bm-menu-pro-badge">Pro</span>', 'manage_options', 'bm_payment_logs', array( $this, 'bm_pro_upsell_page' ) );
@@ -838,12 +834,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_service_booking_planner() {
-		include 'partials/booking-management-service-booking-planner-shortcode.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_service_booking_planner()
 
 
 	public function bm_single_service_booking_planner() {
-		include 'partials/booking-management-single-service-booking-planner-shortcode.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_single_service_booking_planner()
 
 
@@ -903,12 +899,12 @@ class Booking_Management_Admin {
 
 
 	public function bm_email_logs() {
-		include 'partials/booking-management-email-logs.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_email_logs()
 
 
 	public function bm_payment_logs() {
-		include 'partials/booking-management-payment-logs.php';
+		$this->bm_pro_upsell_page();
 	} //end bm_payment_logs()
 
 

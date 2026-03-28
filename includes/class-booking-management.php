@@ -324,19 +324,9 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_ajax_bm_fetch_all_orders', $plugin_admin, 'bm_fetch_all_orders' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_saved_order_search', $plugin_admin, 'bm_fetch_saved_order_search' );
 		$this->loader->add_action( 'wp_ajax_bm_fetch_dashoboard_order_global_search', $plugin_admin, 'bm_fetch_dashoboard_order_global_search' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_dashboard_weekly_orders', $plugin_admin, 'bm_fetch_dashboard_weekly_orders' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_cat_wise_orders', $plugin_admin, 'bm_fetch_cat_wise_orders' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_wise_revenue', $plugin_admin, 'bm_fetch_service_wise_revenue' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_upcoming_orders', $plugin_admin, 'bm_fetch_upcoming_orders' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_datewise_revenue_orders', $plugin_admin, 'bm_fetch_datewise_revenue_orders' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_customer_wise_revenue_orders', $plugin_admin, 'bm_fetch_customer_wise_revenue_orders' );
 		$this->loader->add_action( 'wp_ajax_bm_get_primary_email_field_key', $plugin_admin, 'bm_get_primary_email_field_key' );
 		$this->loader->add_action( 'wp_ajax_bm_save_primary_email_field_key', $plugin_admin, 'bm_save_primary_email_field_key' );
 		$this->loader->add_action( 'wp_ajax_bm_save_non_primary_email_as_primary', $plugin_admin, 'bm_save_non_primary_email_as_primary' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_booking_counts', $plugin_admin, 'bm_fetch_booking_counts' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_customer_and_total_booked_slot_counts', $plugin_admin, 'bm_fetch_customer_and_total_booked_slot_counts' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_booking_status_counts', $plugin_admin, 'bm_fetch_booking_status_counts' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_booking_overview', $plugin_admin, 'bm_fetch_booking_overview' );
 		$this->loader->add_action( 'wp_ajax_bm_change_service_visibility', $plugin_admin, 'bm_change_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_extra_service_visibility', $plugin_admin, 'bm_change_extra_service_visibility' );
 		$this->loader->add_action( 'wp_ajax_bm_change_category_visibility', $plugin_admin, 'bm_change_category_visibility' );
@@ -367,11 +357,6 @@ class Booking_Management {
 		$this->loader->add_action( 'flexibooking_set_process_order_refund', $plugin_admin, 'bm_flexibooking_set_process_order_refund_callback', 10, 2 );
 		$this->loader->add_action( 'flexibooking_mail_order_refund', $plugin_admin, 'bm_flexibooking_mail_on_order_refund_callback', 10, 3 );
 		// $this->loader->add_filter( 'flexibooking_google_analytics_data', $plugin_admin, 'bm_prepare_ga_purchase_data', 10, 1 );
-		$this->loader->add_action( 'wp_ajax_bm_filter_service_planner_events', $plugin_admin, 'bm_filter_service_planner_events_callback' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_planner_dialog_content', $plugin_admin, 'bm_fetch_service_planner_dialog_content' );
-
-		$this->loader->add_action( 'wp_ajax_bm_single_service_planner_events', $plugin_admin, 'bm_single_service_planner_events_callback' );
-		$this->loader->add_action( 'wp_ajax_bm_fetch_service_planner_time_slots', $plugin_admin, 'bm_fetch_service_planner_time_slots' );
 		$this->loader->add_action( 'wp_ajax_bm_get_order_personal_info', $plugin_admin, 'bm_get_order_personal_info' );
 		$this->loader->add_action( 'wp_ajax_bm_get_order_payment_details', $plugin_admin, 'bm_get_order_payment_details' );
 		$this->loader->add_action( 'wp_ajax_bm_get_order_email_info', $plugin_admin, 'bm_get_order_email_info' );
