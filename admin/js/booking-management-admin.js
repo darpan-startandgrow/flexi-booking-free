@@ -370,7 +370,7 @@ jQuery(document).on('click', '#delsvc', function () {
 
 // Duplicate a service
 jQuery(document).on('click', '.bm-duplicate-service', function () {
-	if (confirm('Duplicate this service?')) {
+	if (confirm(bm_normal_object.confirm_duplicate_service)) {
 		var serviceId = jQuery(this).data('service-id');
 		var data = { 'service_id': serviceId, 'nonce': bm_ajax_object.nonce };
 		bmRestRequest('bm_duplicate_service', data, function (response) {
@@ -378,7 +378,7 @@ jQuery(document).on('click', '.bm-duplicate-service', function () {
 			if (jsondata.status == true) {
 				location.reload();
 			} else {
-				alert('Could not duplicate service.');
+				showMessage(bm_error_object.server_error, 'error');
 			}
 		});
 	}

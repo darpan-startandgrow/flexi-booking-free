@@ -370,6 +370,7 @@ class Booking_Management_Admin {
             $normal['cancel_bor_order']        = __( 'Are you sure you want to cancel this order ? The process can not be reverted once done.', 'service-booking' );
             $normal['approve_bor_order']       = __( 'Are you sure you want to approve this order ? The process can not be reverted once done.', 'service-booking' );
             $normal['sure_remove_service']     = __( 'Are you sure you want to remove this service ? The process can not be reverted once done.', 'service-booking' );
+            $normal['confirm_duplicate_service'] = __( 'Duplicate this service?', 'service-booking' );
             $normal['sure_remove_category']    = __( 'Are you sure you want to remove this category ? The process can not be reverted once done.', 'service-booking' );
             $normal['sure_remove_template']    = __( 'Are you sure you want to remove this template ? The process can not be reverted once done.', 'service-booking' );
             $normal['sure_remove_process']     = __( 'Are you sure you want to remove this notification ? The process can not be reverted once done.', 'service-booking' );
