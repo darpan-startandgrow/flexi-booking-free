@@ -27,6 +27,7 @@ This document lists all available WordPress action hooks and filter hooks provid
 19. [Async Queue Hooks](#async-queue-hooks)
 20. [Deactivation Hooks](#deactivation-hooks)
 21. [Hybrid Architecture Overview](#hybrid-architecture-overview)
+22. [Hooks Audit Report](#hooks-audit-report)
 
 ---
 
@@ -1887,3 +1888,202 @@ add_filter( 'sg_booking_email_records_items', function ( $items ) {
     return $items;
 } );
 ```
+
+---
+
+## Hooks Audit Report
+
+This section documents the audit of all admin hooks registered in `define_admin_hooks()` in `class-booking-management.php` and their associated callback functions in `class-booking-management-admin.php`.
+
+### 1. Hooks Summary
+
+#### Admin UI & Title Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `admin_notices` | action | `bm_disable_admin_notices_on_specific_pages` | 1 | 1 | ✅ Correct |
+| `admin_title` | filter | `bm_ensure_admin_title` | 1 | 1 | ✅ Correct |
+| `parent_file` | filter | `bm_fix_menu_highlight` | 10 | 1 | ✅ Correct |
+| `set-screen-option` | filter | `bm_set_screen_option` | 10 | 3 | ✅ Correct |
+| `admin_notices` | action | `bm_flexi_admin_notice` | 10 | 1 | ✅ Correct |
+| `admin_bar_menu` | action | `bm_add_flexibooking_language_switcher_in_admin_bar` | 999 | 1 | ✅ Correct — late priority ensures other menu items are already registered |
+| `wp_footer` | action | `bm_add_flexibooking_language_switcher_in_footer` | 10 | 1 | ✅ Correct |
+
+#### Timezone Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `init` | action | `bm_set_timezone` | 10 | 1 | ✅ Refactored — now skips DB write when timezone is unchanged |
+| `update_option_timezone_string` | action | `bm_update_plugin_timezone_on_wp_change` | 10 | 2 | ✅ Correct |
+| `update_option_gmt_offset` | action | `bm_update_plugin_timezone_on_gmt_offset_change` | 10 | 2 | ✅ Refactored — early return pattern |
+
+#### Initialisation Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `init` | action | `bm_register_shortcodes` | 10 | 1 | ✅ Correct |
+| `init` | action | `bm_set_installed_languages` | 10 | 1 | ✅ Refactored — skips download when Italian already installed |
+| `init` | action | `bm_multilingual_email` | 10 | 1 | ✅ Correct |
+
+#### Cron Schedule Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `cron_schedules` | filter | `bm_custom_cron_schedule` | 10 | 1 | ✅ Correct — adds `per_minute` and `per_5_minute` schedules |
+| `init` | action | `bm_check_booking_requests` | 10 | 1 | ✅ Correct — schedules `flexibooking_check_expired_book_on_request_bookings` |
+| `init` | action | `bm_check_falied_emails_and_resend_pdfs` | 10 | 1 | ⚠️ Typo in method name (`falied` should be `failed`) — kept for backward compatibility |
+| `init` | action | `bm_mark_flexi_paid_processing_bookings_as_completed` | 10 | 1 | ✅ Correct |
+| `init` | action | `bm_mark_pending_bookings_as_cancelled` | 10 | 1 | ✅ Correct |
+| `init` | action | `bm_mark_expired_free_bookings_as_completed` | 10 | 1 | ✅ Correct |
+| `init` | action | `bm_check_expired_vouchers` | 10 | 1 | ✅ Correct |
+
+#### Cron Callback Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `flexibooking_check_expired_book_on_request_bookings` | action | `flexibooking_check_expired_book_on_request_bookings_callback` | 10 | 1 | ✅ Refactored — timezone moved outside loop, uses helper methods |
+| `bm_resend_missing_emails_hook` | action | `bm_resend_missing_emails_cron` | 10 | 1 | ✅ Correct |
+| `flexibooking_check_paid_expired_processing_bookings` | action | `flexibooking_check_paid_expired_processing_bookings_callback` | 10 | 1 | ✅ Refactored — uses `bm_is_booking_service_expired()` and `bm_expire_woocommerce_order_for_booking()` |
+| `flexibooking_check_expired_pending_bookings` | action | `flexibooking_check_expired_pending_bookings_callback` | 10 | 1 | ✅ Refactored |
+| `flexibooking_check_expired_free_bookings` | action | `flexibooking_check_expired_free_bookings_callback` | 10 | 1 | ✅ Refactored |
+| `flexibooking_check_expired_vouchers` | action | `flexibooking_check_expired_vouchers_callback` | 10 | 1 | ✅ Correct |
+
+#### Booking Status Update Filters
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `flexibooking_cancel_booking` | filter | `bm_flexibooking_cancel_booking` | 10 | 1 | ✅ Refactored — uses `bm_update_all_booking_tables()` |
+| `flexibooking_update_status_as_refunded` | filter | `bm_flexibooking_update_status_as_refunded` | 10 | 2 | ✅ Refactored |
+| `flexibooking_update_status_as_completed` | filter | `bm_flexibooking_update_status_as_completed` | 10 | 1 | ✅ Refactored |
+| `flexibooking_update_status_as_processing` | filter | `bm_flexibooking_update_status_as_processing` | 10 | 1 | ✅ Refactored |
+| `flexibooking_update_status_as_on_hold` | filter | `bm_flexibooking_update_status_as_on_hold` | 10 | 1 | ✅ Refactored |
+| `flexibooking_mark_processing_orders_as_complete` | filter | `bm_flexibooking_mark_processing_orders_as_complete` | 10 | 1 | ✅ Correct |
+| `bm_mark_free_orders_as_complete` | filter | `bm_mark_free_orders_as_complete` | 10 | 1 | ✅ Refactored — removed unused `$wc_order_id` |
+
+#### Notification Process Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `flexibooking_set_process_approved_order` | action | `bm_flexibooking_set_process_approved_order_callback` | 10 | 1 | ✅ Refactored — uses `bm_schedule_notification_for_event()` |
+| `flexibooking_mail_approved_order` | action | `bm_flexibooking_mail_on_approved_order_callback` | 10 | 3 | ✅ Correct — thin wrapper |
+| `flexibooking_set_process_cancel_order` | action | `bm_flexibooking_set_process_cancel_order_callback` | 10 | 1 | ✅ Refactored |
+| `flexibooking_mail_cancel_order` | action | `bm_flexibooking_mail_on_cancel_order_callback` | 10 | 3 | ✅ Correct — thin wrapper |
+| `flexibooking_set_process_failed_order` | action | `bm_flexibooking_set_process_failed_order_callback` | 10 | 1 | ✅ Refactored — fixed `maybe_serialize` → `maybe_unserialize` bug |
+| `flexibooking_mail_failed_order` | action | `bm_flexibooking_mail_on_failed_order_callback` | 10 | 3 | ✅ Correct — thin wrapper |
+| `flexibooking_refund_cancelled_order` | filter | `bm_flexibooking_refund_cancelled_order` | 10 | 1 | ✅ Correct |
+| `flexibooking_set_process_order_refund` | action | `bm_flexibooking_set_process_order_refund_callback` | 10 | 2 | ✅ Refactored |
+| `flexibooking_mail_order_refund` | action | `bm_flexibooking_mail_on_order_refund_callback` | 10 | 3 | ✅ Correct — thin wrapper |
+
+#### Transaction Data Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `flexibooking_fetch_order_transaction_data` | filter | `bm_flexibooking_fetch_order_transaction_data` | 10 | 1 | ✅ Fixed — empty array guard added |
+| `flexibooking_fetch_html_with_transaction_data` | filter | `bm_flexibooking_fetch_html_with_transaction_data` | 10 | 1 | ✅ Correct |
+| `flexibooking_save_order_transaction_data` | filter | `bm_flexibooking_save_order_transaction_data` | 10 | 5 | ✅ Correct — orchestrates full transaction save pipeline |
+| `flexibooking_save_existing_transaction_data_before_update` | action | `bm_flexibooking_save_existing_transaction_data_before_update` | 10 | 1 | ✅ Correct |
+| `flexibooking_verify_if_valid_transaction_id` | filter | `bm_flexibooking_verify_if_valid_transaction_id` | 10 | 3 | ✅ Correct |
+| `flexibooking_verify_if_paid_transaction_id` | filter | `bm_flexibooking_verify_if_paid_transaction_id` | 10 | 1 | ✅ Correct |
+| `flexibooking_paid_transaction_statuses` | filter | `bm_flexibooking_paid_transaction_statuses` | 10 | 1 | ✅ Correct — extensibility hook |
+| `flexibooking_verify_if_pending_transaction_id` | filter | `bm_flexibooking_verify_if_pending_transaction_id` | 10 | 1 | ✅ Fixed — variable naming |
+| `flexibooking_pending_transaction_statuses` | filter | `bm_flexibooking_pending_transaction_statuses` | 10 | 1 | ✅ Correct — extensibility hook |
+| `flexibooking_verify_if_cancelled_transaction_id` | filter | `bm_flexibooking_verify_if_cancelled_transaction_id` | 10 | 1 | ✅ Correct |
+| `flexibooking_verify_transaction_for_free_payment_status` | filter | `bm_flexibooking_verify_transaction_for_free_payment_status` | 10 | 1 | ✅ Correct |
+| `flexibooking_verify_if_refunded_transaction_id` | filter | `bm_flexibooking_verify_if_refunded_transaction_id` | 10 | 1 | ✅ Correct |
+| `flexibooking_update_transaction_data` | filter | `bm_flexibooking_update_transaction_data` | 10 | 2 | ✅ Correct |
+| `flexibooking_update_booking_data_before_marking_transaction_failed` | filter | `bm_flexibooking_update_booking_data_before_marking_transaction_failed` | 10 | 1 | ✅ Correct |
+| `flexibooking_add_data_to_failed_transaction_table` | filter | `bm_flexibooking_add_data_to_failed_transaction_table` | 10 | 2 | ✅ Fixed — return `$status` on empty booking_id |
+| `flexibooking_update_booking_data_after_transaction_update` | filter | `bm_flexibooking_update_booking_data_after_transaction_update` | 10 | 2 | ✅ Correct |
+| `flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table` | filter | `bm_flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table` | 10 | 1 | ✅ Correct |
+| `flexibooking_revert_transaction_update` | filter | `bm_flexibooking_revert_transaction_update` | 10 | 1 | ✅ Correct |
+
+#### WooCommerce Integration Hooks
+
+| Hook | Type | Callback | Priority | Args | Status |
+|------|------|----------|----------|------|--------|
+| `woocommerce_admin_order_data_after_order_details` | action | `bm_display_service_date_in_admin` | 10 | 1 | ✅ Fixed — text domain typo corrected, uses `esc_html__()` |
+| `before_delete_post` | action | `bm_remove_flexi_order_if_woocommerce_order_is_permanently_deleted` | 10 | 1 | ✅ Correct |
+| `wp_trash_post` | action | `bm_modify_flexi_plugin_order_on_woocommerce_order_trash` | 10 | 1 | ✅ Correct |
+| `untrash_post` | action | `bm_schedule_woocommerce_order_status_check_on_untrash` | 10 | 1 | ✅ Correct |
+| `bm_update_flexi_order_as_woocommerce_order_is_restored` | action | `bm_modify_flexi_plugin_order_on_woocommerce_order_untrash` | 10 | 1 | ✅ Fixed — order validity check added |
+| `woocommerce_hidden_order_itemmeta` | filter | `bm_hide_flexi_order_itemmeta` | 10 | 1 | ✅ Correct |
+| `pre_post_update` | action | `bm_prevent_expired_woocommerce_order_updates` | 10 | 2 | ✅ Correct |
+
+### 2. Bugs Fixed
+
+| Bug | Location | Fix |
+|-----|----------|-----|
+| Text domain typo `'servuice-booking'` | `bm_display_service_date_in_admin` | Changed to `'service-booking'` |
+| `maybe_serialize` instead of `maybe_unserialize` | `bm_flexibooking_set_process_failed_order_callback` | Fixed to `maybe_unserialize` |
+| Unchecked array access `$transaction_data[0]` | `bm_flexibooking_fetch_order_transaction_data` | Added empty/is_array guard |
+| Bare `return;` instead of `return $status;` | `bm_flexibooking_add_data_to_failed_transaction_table` | Fixed return value |
+| Missing `$order` validity check | `bm_modify_flexi_plugin_order_on_woocommerce_order_untrash` | Added `! $order` guard |
+| Uninitialized `$failed_customer_data` | `bm_flexibooking_add_data_to_failed_transaction_table` | Initialized to empty array |
+
+### 3. Performance Improvements
+
+| Improvement | Method | Impact |
+|-------------|--------|--------|
+| Skip DB write when timezone unchanged | `bm_set_timezone` | Eliminates 2 DB writes per page load when timezone hasn't changed |
+| Skip language pack download when already installed | `bm_set_installed_languages` | Eliminates filesystem access and HTTP request per page load |
+| Move timezone fetch outside loop | `flexibooking_check_expired_book_on_request_bookings_callback` | Reduces from N DB queries to 1 for timezone |
+| Cache timestamp in single variable | `bm_update_all_booking_tables` | Reduces redundant `bm_fetch_current_wordpress_datetime_stamp()` calls from 5-7 to 1 |
+
+### 4. DRY Refactoring Summary
+
+| Helper Method | Replaces | Lines Saved |
+|---------------|----------|-------------|
+| `bm_update_all_booking_tables()` | 5 status-update methods (cancel, refunded, completed, processing, on_hold) | ~200 lines |
+| `bm_schedule_notification_for_event()` | 4 notification callbacks (approved, cancel, failed, refund) | ~400 lines |
+| `bm_evaluate_notification_conditions()` | Condition evaluation logic duplicated 4 times | Extracted into reusable method |
+| `bm_calculate_notification_delay()` | Time offset calculation duplicated 4 times | Extracted into reusable method |
+| `bm_expire_woocommerce_order_for_booking()` | WC order expiry logic in 4 cron callbacks | ~60 lines |
+| `bm_is_booking_service_expired()` | Service date comparison in 3 cron callbacks | ~30 lines |
+| `bm_get_current_plugin_datetime()` | Timezone + DateTime construction in 4 callbacks | ~20 lines |
+
+### 5. Critical Hooks for Connectivity
+
+The following hooks are essential for core functionality and third-party integration:
+
+#### Core Booking Lifecycle
+- `flexibooking_cancel_booking` — Central cancellation point, deactivates all booking tables
+- `flexibooking_update_status_as_completed` — Marks bookings as succeeded
+- `flexibooking_update_status_as_processing` — Marks bookings as processing
+- `flexibooking_update_status_as_refunded` — Handles refund status updates with Stripe refund ID
+- `flexibooking_save_order_transaction_data` — Orchestrates the full transaction save pipeline
+
+#### WooCommerce Integration
+- `woocommerce_admin_order_data_after_order_details` — Displays service date in WC admin
+- `before_delete_post` / `wp_trash_post` / `untrash_post` — Syncs FlexiBooking status with WC order lifecycle
+- `woocommerce_hidden_order_itemmeta` — Hides internal meta from WC order admin
+- `pre_post_update` — Prevents updates to expired WC orders
+
+#### Cron & Scheduled Tasks
+- `cron_schedules` — Registers per-minute and per-5-minute schedules
+- `flexibooking_check_expired_book_on_request_bookings` — Cancels expired book-on-request orders
+- `flexibooking_check_paid_expired_processing_bookings` — Completes expired processing orders
+- `flexibooking_check_expired_pending_bookings` — Cancels expired pending orders
+- `flexibooking_check_expired_free_bookings` — Completes expired free orders
+- `bm_resend_missing_emails_hook` — Resends failed emails for upcoming bookings
+
+#### Notification System
+- `flexibooking_set_process_approved_order` — Triggers approved order email workflow
+- `flexibooking_set_process_cancel_order` — Triggers cancellation email workflow
+- `flexibooking_set_process_failed_order` — Triggers failed order email workflow
+- `flexibooking_set_process_order_refund` — Triggers refund email workflow
+
+#### Internationalisation
+- `admin_bar_menu` → `bm_add_flexibooking_language_switcher_in_admin_bar` — Admin bar language switcher
+- `wp_footer` → `bm_add_flexibooking_language_switcher_in_footer` — Frontend language switcher
+
+### 6. Coding Standards Improvements
+
+| Issue | Fix |
+|-------|-----|
+| Loose comparisons (`==`) | Changed to strict (`===`) or `absint()` where DB values are string type |
+| Inconsistent variable naming (`$pending_payment_Statuses`) | Fixed to `$pending_payment_statuses` |
+| Unused variables | Removed `$wc_order_id` in `bm_mark_free_orders_as_complete` |
+| Missing PHPDoc blocks | Added `@since`, `@param`, `@return` to all refactored methods |
+| Non-descriptive variable names (`$one`, `$two`, `$three`, `$four`) | Replaced with `$txn_result`, `$booking_result`, `$slotcount_result` in helper |
+| Deeply nested conditionals | Replaced with early returns and guard clauses |
+| Misleading variable name (`$show_admin_bar` in footer method) | Renamed to `$show_in_footer` |

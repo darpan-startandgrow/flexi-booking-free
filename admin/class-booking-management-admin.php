@@ -1371,7 +1371,6 @@ class Booking_Management_Admin {
 		echo wp_kses( $html, $bmrequests->bm_fetch_expanded_allowed_tags() );
 
 		do_action( 'bm_flexibooking_footer_language_switcher_added', $html );
-		}
 	}//end bm_add_flexibooking_language_switcher_in_footer()
 
 
