@@ -299,15 +299,7 @@ class Booking_Management {
 		$this->loader->add_filter( 'flexibooking_mark_processing_orders_as_complete', $this->plugin_admin, 'bm_flexibooking_mark_processing_orders_as_complete', 10, 1 );
 		$this->loader->add_filter( 'bm_mark_free_orders_as_complete', $this->plugin_admin, 'bm_mark_free_orders_as_complete', 10, 1 );
 
-		$this->loader->add_action( 'flexibooking_set_process_approved_order', $this->plugin_admin, 'bm_flexibooking_set_process_approved_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_approved_order', $this->plugin_admin, 'bm_flexibooking_mail_on_approved_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_cancel_order', $this->plugin_admin, 'bm_flexibooking_set_process_cancel_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_cancel_order', $this->plugin_admin, 'bm_flexibooking_mail_on_cancel_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_failed_order', $this->plugin_admin, 'bm_flexibooking_set_process_failed_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_failed_order', $this->plugin_admin, 'bm_flexibooking_mail_on_failed_order_callback', 10, 3 );
 		$this->loader->add_filter( 'flexibooking_refund_cancelled_order', $this->plugin_admin, 'bm_flexibooking_refund_cancelled_order', 10, 1 );
-		$this->loader->add_action( 'flexibooking_set_process_order_refund', $this->plugin_admin, 'bm_flexibooking_set_process_order_refund_callback', 10, 2 );
-		$this->loader->add_action( 'flexibooking_mail_order_refund', $this->plugin_admin, 'bm_flexibooking_mail_on_order_refund_callback', 10, 3 );
 		// $this->loader->add_filter( 'flexibooking_google_analytics_data', $this->plugin_admin, 'bm_prepare_ga_purchase_data', 10, 1 );
 
 		$this->loader->add_filter( 'flexibooking_fetch_order_transaction_data', $this->plugin_admin, 'bm_flexibooking_fetch_order_transaction_data', 10, 1 );
@@ -368,16 +360,6 @@ class Booking_Management {
 		$this->loader->add_action( 'wp_enqueue_scripts', $this->plugin_public, 'enqueue_scripts' );
 		$this->loader->add_action( 'init', $this->plugin_public, 'bm_register_shortcodes' );
 
-		$this->loader->add_action( 'flexibooking_set_process_new_order', $this->plugin_public, 'bm_flexibooking_set_process_new_order_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_new_order', $this->plugin_public, 'bm_flexibooking_mail_on_new_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_voucher_redeem', $this->plugin_public, 'bm_flexibooking_set_process_voucher_redeem_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_voucher_redeem', $this->plugin_public, 'bm_flexibooking_mail_on_voucher_redeem_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_new_request', $this->plugin_public, 'bm_flexibooking_set_process_new_request_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_new_request', $this->plugin_public, 'bm_flexibooking_mail_new_request_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_new_order_voucher', $this->plugin_public, 'bm_flexibooking_set_process_new_order_voucher_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_voucher_mail_new_order', $this->plugin_public, 'bm_flexibooking_voucher_mail_new_order_callback', 10, 3 );
-		$this->loader->add_action( 'flexibooking_set_process_failed_order_refund', $this->plugin_public, 'bm_flexibooking_set_process_failed_order_refund_callback', 10, 1 );
-		$this->loader->add_action( 'flexibooking_mail_failed_order_refund', $this->plugin_public, 'bm_flexibooking_mail_on_failed_order_refund_callback', 10, 3 );
 		$this->loader->add_filter( 'flexibooking_google_analytics_data', $this->plugin_public, 'bm_prepare_ga_purchase_data', 10, 1 );
 		$this->loader->add_filter( 'woocommerce_checkout_get_value', $this->plugin_public, 'bm_set_checkout_form_value', 10, 2 );
 		$this->loader->add_filter( 'woocommerce_cart_item_quantity', $this->plugin_public, 'bm_disable_quantity_change_for_plugin_products', 10, 3 );
@@ -534,10 +516,6 @@ class Booking_Management {
 			'bm_change_extra_service_visibility' => 'bm_change_extra_service_visibility',
 			'bm_change_category_visibility' => 'bm_change_category_visibility',
 			'bm_check_if_existing_field_key' => 'bm_check_if_existing_field_key',
-			'bm_fetch_event_condition_value' => 'bm_fetch_value_for_notification_event_type',
-			'bm_fetch_notification_processes_listing' => 'bm_fetch_notification_processes_listing',
-			'bm_remove_process' => 'bm_remove_notification_process',
-			'bm_change_process_visibility' => 'bm_change_notification_process_visibility',
 			'bm_update_transaction' => 'bm_update_order_transaction',
 			'bm_save_order_transaction' => 'bm_save_order_transaction',
 			'bm_get_order_personal_info' => 'bm_get_order_personal_info',
