@@ -237,7 +237,7 @@ class Booking_Management {
 	private function set_locale() {
          $plugin_i18n = new Booking_Management_i18n();
 
-		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
+		$this->loader->add_action( 'init', $plugin_i18n, 'load_plugin_textdomain' );
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'detect_active_plugin', 20 );
         $this->loader->add_action( 'activated_plugin', $plugin_i18n, 'on_plugin_activation', 10, 1 );
         $this->loader->add_action( 'deactivated_plugin', $plugin_i18n, 'on_plugin_deactivation', 10, 1 );

@@ -1250,11 +1250,8 @@ class Booking_Management_Rest_API {
 		}
 
 		if ( ! empty( $cat_id ) ) {
-			$activator = new Booking_Management_Activator();
-			$map_table = $activator->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
-			$where    .= " AND (service_category = %d OR id IN (SELECT service_id FROM `{$map_table}` WHERE category_id = %d))";
-			$args[]    = $cat_id;
-			$args[]    = $cat_id;
+			$where .= ' AND service_category = %d';
+			$args[] = $cat_id;
 		}
 
 		$args[] = $per_page;
