@@ -76,7 +76,7 @@ minute = '0' + minute;
 sign = sign == 1 ? '' : '-';
 
 // Concate hours and minutes
-time = sign + hour + ':' + minute;
+var time = sign + hour + ':' + minute;
 
 return time;
 }

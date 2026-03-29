@@ -145,8 +145,8 @@ class BM_DBhandler {
 		 */
 		do_action( 'sg_booking_before_delete', $identifier, $unique_field_value, $result );
 
-		$where       = array( $unique_field => $unique_field_value );
-		$del_result  = $wpdb->delete( $table, $where, $where_format );
+		$where      = array( $unique_field => $unique_field_value );
+		$del_result = $wpdb->delete( $table, $where, $where_format );
 
 		/**
 		 * Fires after a row is deleted.
@@ -334,7 +334,7 @@ class BM_DBhandler {
 		} else {
 			return null;
 		}
-		
+
 		if ( is_array( $results ) && count( $results ) === 0 ) {
 			return null;
 		}

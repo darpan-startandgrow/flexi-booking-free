@@ -869,29 +869,6 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                     </tr>
 
                     <tr>
-                        <th scope="row"><label for="external_price_module"><?php echo sprintf( esc_html__( 'Link Price Module', 'service-booking' ), esc_html( $currency_symbol ) ); ?></label></th>
-                        <td id="price_module_section">
-                            <?php
-                            if ( !empty( $price_modules ) ) {
-                                ?>
-                                <select name="external_price_module" id="external_price_module" class="regular-text">
-                                    <option value=""><?php esc_html_e( 'Select Price Module', 'service-booking' ); ?></option>
-                                    <?php foreach ( $price_modules as $price_module ) { ?>
-                                        <option value="<?php echo esc_attr( $price_module->id ) ?? ''; ?>" <?php isset( $svc_row ) && isset( $svc_row->external_price_module ) ? selected( esc_attr( $svc_row->external_price_module ), esc_attr( $price_module->id ) ) : ''; ?>><?php echo esc_html( $price_module->module_name ) ?? ''; ?></option>
-                                    <?php } ?>
-                                </select>
-                            <?php } else { ?>
-                                <p><?php esc_html_e( 'No price modules found !!', 'service-booking' ); ?> &nbsp;&nbsp;<a href="<?php echo esc_url_raw( 'admin.php?page=bm_add_external_service_price' ); ?>" target="_blank" class="button button-secondary"><?php esc_html_e( 'Add price module', 'service-booking' ); ?></a><span class="info_text">
-                                        <?php esc_html_e( 'Optional. If linked, prices defined as per this external module will be considered while checking out an order', 'service-booking' ); ?>
-                                    </span></p>
-                                <?php
-                            }
-                            ?>
-
-                        </td>
-                    </tr>
-
-                    <tr>
                         <th scope="row"><?php esc_html_e( 'Link WooCommerce Product ?', 'service-booking' ); ?></th>
                         <td class="bm-checkbox-td">
                             <input name="is_linked_wc_product" type="checkbox" id="is_linked_wc_product" class="regular-text bm_toggle" <?php isset( $svc_row ) && isset( $svc_row->is_linked_wc_product ) ? checked( esc_attr( $svc_row->is_linked_wc_product ), 1 ) : ''; ?> onclick="bm_open_close_tab('wc_products_section')">
@@ -1267,8 +1244,8 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                     <?php if ( $id > 0 ) : ?>
                         <?php
                         // Fetch linked global extras for this service.
-                        $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
-                        $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
+                        $sge_links         = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
+                        $linked_ge_ids     = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
                         $all_global_extras = $dbhandler->get_all_result( 'GLOBAL_EXTRA', '*', 1, 'results' );
                         ?>
 
@@ -1277,7 +1254,13 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                         if ( isset( $_POST['bm_svc_link_shared_extra'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce_svc_shared'] ?? '' ) ), 'bm_svc_shared_extra_nonce' ) ) {
                             $link_ge_id = absint( $_POST['link_global_extra_id'] ?? 0 );
                             if ( $link_ge_id > 0 && ! in_array( $link_ge_id, array_map( 'intval', $linked_ge_ids ), true ) ) {
-                                $dbhandler->insert_row( 'SERVICE_GLOBAL_EXTRA', array( 'service_id' => $id, 'global_extra_id' => $link_ge_id ) );
+                                $dbhandler->insert_row(
+                                    'SERVICE_GLOBAL_EXTRA',
+                                    array(
+										'service_id'      => $id,
+										'global_extra_id' => $link_ge_id,
+                                    )
+                                );
                                 echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared extra linked.', 'service-booking' ) . '</div>';
                                 // Refresh.
                                 $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
@@ -1291,7 +1274,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                 global $wpdb;
                                 $junction_table = ( new Booking_Management_Activator() )->get_db_table_name( 'SERVICE_GLOBAL_EXTRA' );
                                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- targeted junction delete
-                                $wpdb->query( $wpdb->prepare( "DELETE FROM `" . esc_sql( $junction_table ) . "` WHERE service_id = %d AND global_extra_id = %d", $id, $unlink_ge_id ) );
+                                $wpdb->query( $wpdb->prepare( 'DELETE FROM `' . esc_sql( $junction_table ) . '` WHERE service_id = %d AND global_extra_id = %d', $id, $unlink_ge_id ) );
                                 echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared extra unlinked.', 'service-booking' ) . '</div>';
                                 $sge_links     = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $id ), 'results' );
                                 $linked_ge_ids = ! empty( $sge_links ) ? wp_list_pluck( $sge_links, 'global_extra_id' ) : array();
@@ -1313,12 +1296,15 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ( $linked_ge_ids as $ge_id ) :
+                                    <?php
+                                    foreach ( $linked_ge_ids as $ge_id ) :
                                         $ge_row = $dbhandler->get_row( 'GLOBAL_EXTRA', $ge_id );
-                                        if ( ! $ge_row ) continue;
+                                        if ( ! $ge_row ) {
+											continue;
+                                        }
                                         $ge_service_count = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', 'id', array( 'global_extra_id' => $ge_id ), 'results' );
-                                        $svc_count = is_array( $ge_service_count ) ? count( $ge_service_count ) : 0;
-                                    ?>
+                                        $svc_count        = is_array( $ge_service_count ) ? count( $ge_service_count ) : 0;
+										?>
                                         <tr>
                                             <td style="text-align:center;"><?php echo esc_html( $ge_row->extra_name ); ?></td>
                                             <td style="text-align:center;"><?php echo esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ge_row->extra_price, true ) ); ?></td>
@@ -1569,7 +1555,7 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                             <td>
                                 <?php
                                 $unavailable_weekdays = ( isset( $svc_unavailability ) && ! empty( $svc_unavailability ) && isset( $svc_unavailability['weekdays'] ) ) ? $svc_unavailability['weekdays'] : array();
-                                $weekday_map = array(
+                                $weekday_map          = array(
                                     1 => __( 'Monday', 'service-booking' ),
                                     2 => __( 'Tuesday', 'service-booking' ),
                                     3 => __( 'Wednesday', 'service-booking' ),
@@ -1596,7 +1582,10 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                     if ( $is_unavailable ) :
                                         ?>
                                         <input type="hidden" name="service_unavailability[weekdays][]" value="<?php echo esc_attr( $day_val ); ?>" class="bm-weekday-hidden" data-day="<?php echo esc_attr( $day_val ); ?>">
-                                    <?php endif; endforeach; ?>
+										<?php
+                                    endif;
+endforeach;
+								?>
                             </td>
                         </tr>
                     </table>

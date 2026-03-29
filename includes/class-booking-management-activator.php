@@ -474,8 +474,6 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
-		$this->migrate_legacy_global_extras();
-
 		// --- Service-Category mapping (many-to-many) ---
 		$table_name = $this->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
 		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
@@ -489,9 +487,6 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
-		$this->migrate_service_category_to_map();
-
-		$this->add_error_column_to_emails();
 		$this->create_default_form_fields();
 		$this->create_default_email_templates();
 		$this->add_default_options();
@@ -1553,7 +1548,7 @@ class Booking_Management_Activator {
 		$period_table  = $this->get_db_table_name( 'AVAILABILITY_PERIOD' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
-		$services = $wpdb->get_results( "SELECT id, service_unavailability FROM `" . esc_sql( $service_table ) . "`" );
+		$services = $wpdb->get_results( 'SELECT id, service_unavailability FROM `' . esc_sql( $service_table ) . '`' );
 
 		if ( ! empty( $services ) ) {
 			foreach ( $services as $svc ) {
@@ -1611,17 +1606,6 @@ class Booking_Management_Activator {
 		update_option( 'bm_availability_periods_migrated', '1' );
 	}
 
-	private function add_error_column_to_emails() {
-		global $wpdb;
-		$table_name = $this->get_db_table_name( 'EMAILS' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration
-		$row = $wpdb->get_results( $wpdb->prepare( 'SHOW COLUMNS FROM `' . esc_sql( $table_name ) . '` LIKE %s', 'error_message' ) );
-		if ( empty( $row ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time schema migration
-			$wpdb->query( 'ALTER TABLE `' . esc_sql( $table_name ) . '` ADD `error_message` text NULL AFTER `mail_lang`' );
-		}
-	}
-
 	public function create_default_form_fields() {
 		$dbhandler  = new BM_DBhandler();
 		$bmrequest  = new BM_Request();
@@ -1631,7 +1615,6 @@ class Booking_Management_Activator {
 			$this->create_default_billing_form();
 			$bmrequest->bm_create_default_booking_form_fields();
 		}
-		$this->add_form_id_and_visible_columns();
 	} //end create_default_form_fields()
 
 
@@ -1642,7 +1625,7 @@ class Booking_Management_Activator {
 		global $wpdb;
 		$table_name = $this->get_db_table_name( 'BILLING_FORMS' );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from get_db_table_name() is hardcoded
-		$exists     = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE is_default = %d", 1 ) );
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE is_default = %d", 1 ) );
 		if ( empty( $exists ) || intval( $exists ) === 0 ) {
 			$wpdb->insert(
 				$table_name,
@@ -1654,29 +1637,6 @@ class Booking_Management_Activator {
 				),
 				array( '%s', '%s', '%d', '%d' )
 			);
-		}
-	}
-
-	/**
-	 * Add form_id and visible columns to existing FIELDS table if missing.
-	 */
-	private function add_form_id_and_visible_columns() {
-		global $wpdb;
-		// Table name from get_db_table_name() is hardcoded — not user input.
-		$table_name = $this->get_db_table_name( 'FIELDS' );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
-		$columns    = $wpdb->get_col( "DESCRIBE {$table_name}", 0 );
-
-		if ( ! in_array( 'form_id', $columns, true ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
-			$wpdb->query( "ALTER TABLE {$table_name} ADD `form_id` int(11) NOT NULL DEFAULT 1 AFTER `id`" );
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
-			$wpdb->query( "ALTER TABLE {$table_name} ADD KEY `idx_fields_form_id` (`form_id`)" );
-		}
-
-		if ( ! in_array( 'visible', $columns, true ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is hardcoded
-			$wpdb->query( "ALTER TABLE {$table_name} ADD `visible` int(11) NOT NULL DEFAULT 1 AFTER `is_editable`" );
 		}
 	}
 
@@ -1827,114 +1787,6 @@ class Booking_Management_Activator {
 			update_option( 'bm_qr_scanner_page_id', $qr_scanner_page_id );
 		}
 	} //end bm_create_custom_pages()
-
-
-	/**
-	 * Migrate legacy global extras (is_global=1 in service_extras) to the new
-	 * global_extras table and create junction records in service_global_extras.
-	 *
-	 * Runs once; controlled by the bm_global_extras_migrated option.
-	 *
-	 * @since 1.5.0
-	 */
-	private function migrate_legacy_global_extras() {
-		global $wpdb;
-
-		if ( get_option( 'bm_global_extras_migrated', '0' ) === '1' ) {
-			return;
-		}
-
-		$extra_table          = $this->get_db_table_name( 'EXTRA' );
-		$global_extra_table   = $this->get_db_table_name( 'GLOBAL_EXTRA' );
-		$junction_table       = $this->get_db_table_name( 'SERVICE_GLOBAL_EXTRA' );
-		$service_table        = $this->get_db_table_name( 'SERVICE' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
-		$legacy_globals = $wpdb->get_results( "SELECT * FROM `" . esc_sql( $extra_table ) . "` WHERE is_global = 1" );
-
-		if ( ! empty( $legacy_globals ) ) {
-			// Get all service IDs.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration
-			$all_services = $wpdb->get_col( "SELECT id FROM `" . esc_sql( $service_table ) . "`" );
-
-			foreach ( $legacy_globals as $legacy ) {
-				// Insert into global_extras.
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
-				$wpdb->insert(
-					$global_extra_table,
-					array(
-						'extra_name'             => $legacy->extra_name,
-						'extra_desc'             => $legacy->extra_desc,
-						'extra_price'            => $legacy->extra_price,
-						'extra_duration'         => $legacy->extra_duration,
-						'extra_operation'        => $legacy->extra_operation,
-						'extra_max_cap'          => $legacy->extra_max_cap,
-						'is_extra_service_front' => $legacy->is_extra_service_front,
-						'is_linked_wc_extrasvc'  => $legacy->is_linked_wc_extrasvc,
-						'svcextra_wc_product'    => $legacy->svcextra_wc_product,
-					),
-					array( '%s', '%s', '%f', '%f', '%f', '%d', '%d', '%d', '%d' )
-				);
-
-				$new_global_id = $wpdb->insert_id;
-
-				if ( $new_global_id && ! empty( $all_services ) ) {
-					// Link to all services (legacy global extras were available to all).
-					foreach ( $all_services as $svc_id ) {
-						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
-						$wpdb->insert(
-							$junction_table,
-							array(
-								'service_id'      => absint( $svc_id ),
-								'global_extra_id' => absint( $new_global_id ),
-							),
-							array( '%d', '%d' )
-						);
-					}
-				}
-			}
-		}
-
-		update_option( 'bm_global_extras_migrated', '1' );
-	}
-
-
-	/**
-	 * Migrate legacy service_category column values into the mapping table.
-	 *
-	 * @since 1.5.0
-	 */
-	private function migrate_service_category_to_map() {
-		global $wpdb;
-
-		if ( get_option( 'bm_service_category_map_migrated', '0' ) === '1' ) {
-			return;
-		}
-
-		$service_table = $this->get_db_table_name( 'SERVICE' );
-		$map_table     = $this->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- One-time migration, table name from get_db_table_name() is safe
-		$services = $wpdb->get_results(
-			"SELECT id, service_category FROM `{$service_table}` WHERE service_category IS NOT NULL AND service_category > 0"
-		);
-
-		if ( ! empty( $services ) ) {
-			foreach ( $services as $svc ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- One-time migration insert
-				$wpdb->insert(
-					$map_table,
-					array(
-						'service_id'  => absint( $svc->id ),
-						'category_id' => absint( $svc->service_category ),
-					),
-					array( '%d', '%d' )
-				);
-			}
-		}
-
-		update_option( 'bm_service_category_map_migrated', '1' );
-	}
 
 
 }//end class

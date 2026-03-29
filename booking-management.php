@@ -55,6 +55,8 @@ function activate_booking_management() {
 		);
 	}
 
+	include_once plugin_dir_path( __FILE__ ) . 'includes/class-booking-management-dbhandler.php';
+	include_once plugin_dir_path( __FILE__ ) . 'includes/class-booking-management-request.php';
 	include_once plugin_dir_path( __FILE__ ) . 'includes/class-booking-management-activator.php';
 	$activator = new Booking_Management_Activator();
 	$activator->activate();
