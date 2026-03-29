@@ -1764,12 +1764,8 @@ class Booking_Management_Admin {
 			$pagenum = isset( $post['pagenum'] ) ? absint( $post['pagenum'] ) : 1;
 			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 
-			$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-			$num_of_pages               = ( $limit > 0 ) ? ceil( $total_price_module_records / $limit ) : 1;
 			$data['status']             = true;
-			$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
 			$data['current_pagenumber'] = ( 1 + $offset );
-			$data['price_modules']      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', array( 'id', 'module_name', 'status' ), 1, 'results', $offset, $limit );
 		}
 
 		$data = apply_filters( 'bm_flexibooking_modify_price_module_listing_response', $data );
@@ -2167,32 +2163,7 @@ class Booking_Management_Admin {
 			$offset  = ( $limit > 0 ) ? ( ( $pagenum - 1 ) * $limit ) : 0;
 			$id      = isset( $post['id'] ) ? $post['id'] : 0;
 
-			$service_linked = $dbhandler->get_all_result( 'SERVICE', '*', array( 'external_price_module' => $id ), 'results' );
-			$service_linked = apply_filters( 'bm_flexibooking_modify_remove_price_module_linked_services', $service_linked );
-
-			$services = $dbhandler->get_all_result( 'SERVICE', '*', 1, 'results' );
-			$result   = ( new BM_Request() )->bm_search_data_from_serialized_column( $services, 'variable_svc_price_modules', $id );
-			$result   = apply_filters( 'bm_flexibooking_modify_remove_price_module_filtered_services', $result, $id, $services );
-
-			if ( empty( $service_linked ) && empty( $result ) ) {
-				$data['is_removeable'] = true;
-			}
-
-			$data = apply_filters( 'bm_flexibooking_after_checking_price_module_removal', $data, $id );
-
-			if ( $data['is_removeable'] == true ) {
-				$removed = $dbhandler->remove_row( 'EXTERNAL_SERVICE_PRICE_MODULE', 'id', $id, '%d' );
-
-				if ( $removed ) {
-					$total_price_module_records = $dbhandler->bm_count( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-					$num_of_pages               = ( $limit > 0 ) ? ceil( $total_price_module_records / $limit ) : 1;
-					$data['pagination']         = wp_kses_post( $dbhandler->bm_get_pagination( $num_of_pages, $pagenum, $base, 'list' ) );
-					$data['current_pagenumber'] = ( 1 + $offset );
-					$data['price_modules']      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', array( 'id', 'module_name', 'status' ), 1, 'results', $offset, $limit );
-				}
-
-				do_action( 'bm_flexibooking_after_price_module_removal', $id, $data['price_modules'], $total_price_module_records );
-			}
+			$data['is_removeable'] = true;
 
 			$data['status'] = true;
 		}
@@ -2228,7 +2199,6 @@ class Booking_Management_Admin {
 			$data['status']          = true;
 			$data['default_price']   = ! empty( $service ) && isset( $service->default_price ) ? $service->default_price : 0;
 			$data['variable_price']  = ! empty( $service ) && isset( $service->variable_svc_prices ) ? maybe_unserialize( $service->variable_svc_prices ) : array();
-			$data['variable_module'] = ! empty( $service ) && isset( $service->variable_svc_price_modules ) ? maybe_unserialize( $service->variable_svc_price_modules ) : array();
 			$data['unavailability']  = ! empty( $service ) && isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 			$data['gbl_unavlabilty'] = $dbhandler->get_global_option_value( 'bm_global_unavailability' );
 
@@ -2271,8 +2241,6 @@ class Booking_Management_Admin {
 			$service = apply_filters( 'bm_flexibooking_stopsales_service_object', $service, $id );
 
 			$data['status']             = true;
-			$data['default_stopsales']  = ! empty( $service ) && isset( $service->default_stopsales ) ? $service->default_stopsales : '';
-			$data['variable_stopsales'] = ! empty( $service ) && isset( $service->variable_stopsales ) ? maybe_unserialize( $service->variable_stopsales ) : array();
 			$data['unavailability']     = ! empty( $service ) && isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 			$data['gbl_unavlabilty']    = $dbhandler->get_global_option_value( 'bm_global_unavailability' );
 		}
@@ -2310,8 +2278,6 @@ class Booking_Management_Admin {
 			$service = apply_filters( 'bm_flexibooking_saleswitch_service_object', $service, $id );
 
 			$data['status']              = true;
-			$data['default_saleswitch']  = ! empty( $service ) && isset( $service->default_saleswitch ) ? $service->default_saleswitch : '';
-			$data['variable_saleswitch'] = ! empty( $service ) && isset( $service->variable_saleswitch ) ? maybe_unserialize( $service->variable_saleswitch ) : array();
 			$data['unavailability']      = ! empty( $service ) && isset( $service->service_unavailability ) ? maybe_unserialize( $service->service_unavailability ) : array();
 			$data['gbl_unavlabilty']     = $dbhandler->get_global_option_value( 'bm_global_unavailability' );
 		}
@@ -3126,7 +3092,6 @@ class Booking_Management_Admin {
 							$update_data = array(
 								'default_price'       => $default_price,
 								'variable_svc_prices' => null,
-								'variable_svc_price_modules' => null,
 								'service_updated_at'  => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
 							);
 							$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
@@ -3174,25 +3139,6 @@ class Booking_Management_Admin {
 						$data['status'] = true;
 					}
 
-					if ( $data['status'] == true ) {
-						$variable_module = isset( $service->variable_svc_price_modules ) ? maybe_unserialize( $service->variable_svc_price_modules ) : array();
-
-						if ( ! empty( $variable_module ) ) {
-							$dates = isset( $variable_module['date'] ) ? $variable_module['date'] : array();
-
-							if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-								$index = (int) array_search( $date, $dates, true );
-								if ( count( $variable_module['date'] ) == 1 && count( $variable_module['module'] ) == 1 ) {
-									$variable_module = null;
-								} else {
-									unset( $variable_module['date'][ $index ] );
-									unset( $variable_module['module'][ $index ] );
-									$variable_module = maybe_serialize( $variable_module );
-								}
-								$dbhandler->update_row( 'SERVICE', 'id', $id, array( 'variable_svc_price_modules' => $variable_module ), '', '%d' );
-							} //end if
-						} //end if
-					} //end if
 				} //end if
 			} //end if
 		} //end if
@@ -3244,7 +3190,6 @@ class Booking_Management_Admin {
 							$update_data = array(
 								'default_price'       => $default_price,
 								'variable_svc_prices' => null,
-								'variable_svc_price_modules' => null,
 								'service_updated_at'  => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
 							);
 							$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
@@ -3307,31 +3252,6 @@ class Booking_Management_Admin {
 						$data['default_price']  = ! empty( $service ) && isset( $service->default_price ) ? $service->default_price : 0;
 						$data['variable_price'] = ! empty( $service ) && isset( $service->variable_svc_prices ) ? maybe_unserialize( $service->variable_svc_prices ) : array();
 					}
-
-					if ( $data['status'] == true ) {
-						$variable_module = isset( $service->variable_svc_price_modules ) ? maybe_unserialize( $service->variable_svc_price_modules ) : array();
-
-						if ( ! empty( $variable_module ) ) {
-							$dates = isset( $variable_module['date'] ) ? $variable_module['date'] : array();
-
-							foreach ( $period as $value ) {
-								$date = $value->format( 'Y-m-d' );
-								if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-									$index = (int) array_search( $date, $dates, true );
-									unset( $variable_module['date'][ $index ] );
-									unset( $variable_module['module'][ $index ] );
-								} //end if
-							} //end foreach
-
-							if ( ! array_filter( $variable_module ) ) {
-								$variable_module = null;
-							} else {
-								$variable_module = maybe_serialize( $variable_module );
-							} //end if
-
-							$dbhandler->update_row( 'SERVICE', 'id', $id, array( 'variable_svc_price_modules' => $variable_module ), '', '%d' );
-						} //end if
-					} //end if
 				} //end if
 			} //end if
 		} //end if
@@ -3376,64 +3296,12 @@ class Booking_Management_Admin {
 							$update_data = array(
 								'default_price'       => $default_price,
 								'variable_svc_prices' => null,
-								'variable_svc_price_modules' => null,
 								'service_updated_at'  => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
 							);
 							$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
 						}
 					}
 
-					$service = $dbhandler->get_row( 'SERVICE', $id );
-					if ( ! empty( $service ) ) {
-						$variable_data = isset( $service->variable_svc_price_modules ) ? maybe_unserialize( $service->variable_svc_price_modules ) : array();
-
-						if ( ! empty( $variable_data ) ) {
-							$dates = isset( $variable_data['date'] ) ? $variable_data['date'] : array();
-							if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-								$index = (int) array_search( $date, $dates, true );
-
-								$variable_data['module'][ $index ] = $module_id;
-							} elseif ( ! empty( $dates ) ) {
-									$last_index                                     = (int) end( array_keys( $dates ) );
-									$variable_data['date'][ ( $last_index + 1 ) ]   = $date;
-									$variable_data['module'][ ( $last_index + 1 ) ] = $module_id;
-							}
-						} else {
-							$variable_data = array(
-								'module' => array( '1' => $module_id ),
-								'date'   => array( '1' => $date ),
-							);
-						} //end if
-
-						$variable_data = array( 'variable_svc_price_modules' => $variable_data );
-						$service_post  = $bmrequests->sanitize_request( $variable_data, 'SERVICE', $exclude );
-
-						if ( $service_post != false ) {
-							$service_post['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-							$dbhandler->update_row( 'SERVICE', 'id', $id, $service_post, '', '%d' );
-							$data['status'] = true;
-						} //end if
-
-						if ( $data['status'] == true ) {
-							$variable_price = isset( $service->variable_svc_prices ) ? maybe_unserialize( $service->variable_svc_prices ) : array();
-
-							if ( ! empty( $variable_price ) ) {
-								$dates = isset( $variable_price['date'] ) ? $variable_price['date'] : array();
-
-								if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-									$index = (int) array_search( $date, $dates, true );
-									if ( count( $variable_price['date'] ) == 1 && count( $variable_price['price'] ) == 1 ) {
-										$variable_price = null;
-									} else {
-										unset( $variable_price['date'][ $index ] );
-										unset( $variable_price['price'][ $index ] );
-										$variable_price = maybe_serialize( $variable_price );
-									}
-									$dbhandler->update_row( 'SERVICE', 'id', $id, array( 'variable_svc_prices' => $variable_price ), '', '%d' );
-								} //end if
-							} //end if
-						} //end if
-					} //end if
 				} //end if
 			} //end if
 		} //end if
@@ -3485,80 +3353,12 @@ class Booking_Management_Admin {
 							$update_data = array(
 								'default_price'       => $default_price,
 								'variable_svc_prices' => null,
-								'variable_svc_price_modules' => null,
 								'service_updated_at'  => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
 							);
 							$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
 						}
 					}
 
-					$service       = $dbhandler->get_row( 'SERVICE', $id );
-					$variable_data = ! empty( $service ) && isset( $service->variable_svc_price_modules ) ? maybe_unserialize( $service->variable_svc_price_modules ) : array();
-
-					if ( ! empty( $variable_data ) ) {
-						$dates = isset( $variable_data['date'] ) ? $variable_data['date'] : array();
-						$i     = ! empty( $dates ) ? ( (int) end( array_keys( $dates ) ) + 1 ) : 0;
-						foreach ( $period as $value ) {
-							$date = $value->format( 'Y-m-d' );
-							if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-								$index = (int) array_search( $date, $variable_data['date'], true );
-
-								$variable_data['module'][ $index ] = $module_id;
-							} elseif ( ! empty( $dates ) ) {
-									$variable_data['date'][ $i ]   = $date;
-									$variable_data['module'][ $i ] = $module_id;
-									++$i;
-							}
-						} //end foreach
-					} else {
-						$i            = 1;
-						$module_value = array();
-						$date_value   = array();
-						foreach ( $period as $value ) {
-							$module_value[ $i ] = $module_id;
-							$date_value[ $i ]   = $value->format( 'Y-m-d' );
-							++$i;
-						}
-
-						$variable_data = array(
-							'module' => $module_value,
-							'date'   => $date_value,
-						);
-					} //end if
-
-					$variable_data = array( 'variable_svc_price_modules' => $variable_data );
-					$service_post  = $bmrequests->sanitize_request( $variable_data, 'SERVICE', $exclude );
-
-					if ( $service_post != false ) {
-						$service_post['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $service_post, '', '%d' );
-						$data['status'] = true;
-					} //end if
-
-					if ( $data['status'] == true ) {
-						$variable_price = isset( $service->variable_svc_prices ) ? maybe_unserialize( $service->variable_svc_prices ) : array();
-
-						if ( ! empty( $variable_price ) ) {
-							$dates = isset( $variable_price['date'] ) ? $variable_price['date'] : array();
-
-							foreach ( $period as $value ) {
-								$date = $value->format( 'Y-m-d' );
-								if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-									$index = (int) array_search( $date, $dates, true );
-									unset( $variable_price['date'][ $index ] );
-									unset( $variable_price['price'][ $index ] );
-								} //end if
-							} //end foreach
-
-							if ( ! array_filter( $variable_price ) ) {
-								$variable_price = null;
-							} else {
-								$variable_price = maybe_serialize( $variable_price );
-							} //end if
-
-							$dbhandler->update_row( 'SERVICE', 'id', $id, array( 'variable_svc_prices' => $variable_price ), '', '%d' );
-						} //end if
-					} //end if
 				} //end if
 			} //end if
 		} //end if
@@ -3594,110 +3394,6 @@ class Booking_Management_Admin {
 		$data       = array( 'status' => false );
 
 		if ( $post != false && $post != null ) {
-			$id                    = isset( $post['id'] ) ? $post['id'] : '';
-			$old_default_stopsales = isset( $post['old_default_stopsales'] ) ? $post['old_default_stopsales'] : '';
-			$default_stopsales     = isset( $post['default_stopsales'] ) ? $post['default_stopsales'] : '';
-			$stopsales             = isset( $post['stopsales'] ) ? $post['stopsales'] : '';
-			$date                  = isset( $post['date'] ) ? $post['date'] : '';
-
-			if ( ! empty( $id ) ) {
-				if ( ! empty( $date ) ) {
-					if ( $old_default_stopsales != $default_stopsales ) {
-						$update_data = array(
-							'default_stopsales'  => $default_stopsales,
-							'variable_stopsales' => null,
-							'service_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-						);
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
-					}
-
-					$service       = $dbhandler->get_row( 'SERVICE', $id );
-					$variable_data = ! empty( $service ) && isset( $service->variable_stopsales ) ? maybe_unserialize( $service->variable_stopsales ) : array();
-
-					if ( ! empty( $variable_data ) ) {
-						$dates          = isset( $variable_data['date'] ) ? $variable_data['date'] : array();
-						$excluded_dates = isset( $variable_data['exclude_dates'] ) ? $variable_data['exclude_dates'] : array();
-						if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-							$index = (int) array_search( $date, $variable_data['date'] );
-							if ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales && ! empty( $stopsales ) ) {
-								$variable_data['stopsales'][ $index ] = $stopsales;
-							} else {
-								if ( count( $variable_data['date'] ) == 1 && count( $variable_data['stopsales'] ) == 1 ) {
-									unset( $variable_data['date'] );
-									unset( $variable_data['stopsales'] );
-								} else {
-									unset( $variable_data['date'][ $index ] );
-									unset( $variable_data['stopsales'][ $index ] );
-								}
-
-								if ( empty( $stopsales ) && ! empty( $default_stopsales ) ) {
-									if ( ! empty( $excluded_dates ) ) {
-										$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-										$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-									} else {
-										$variable_data['exclude_dates'][1] = $date;
-									}
-								}
-							}
-						} elseif ( ! empty( $excluded_dates ) && in_array( $date, $excluded_dates, true ) ) {
-							if ( ! empty( $stopsales ) ) {
-								$index = (int) array_search( $date, $variable_data['exclude_dates'] );
-								if ( count( $variable_data['exclude_dates'] ) == 1 ) {
-									unset( $variable_data['exclude_dates'] );
-								} else {
-									unset( $variable_data['exclude_dates'][ $index ] );
-								}
-
-								if ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales ) {
-									if ( ! empty( $dates ) ) {
-										$lastindex                                        = (int) end( array_keys( $variable_data['date'] ) );
-										$variable_data['date'][ ( $lastindex + 1 ) ]      = $date;
-										$variable_data['stopsales'][ ( $lastindex + 1 ) ] = $stopsales;
-									} else {
-										$variable_data['stopsales'] = array( '1' => $stopsales );
-										$variable_data['date']      = array( '1' => $date );
-									}
-								}
-							}
-						} elseif ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales && ! empty( $stopsales ) ) {
-							if ( isset( $dates ) && ! empty( $dates ) ) {
-								$last_index                                        = (int) end( array_keys( $variable_data['date'] ) );
-								$variable_data['date'][ ( $last_index + 1 ) ]      = $date;
-								$variable_data['stopsales'][ ( $last_index + 1 ) ] = $stopsales;
-							} else {
-								$variable_data['stopsales'] = array( '1' => $stopsales );
-								$variable_data['date']      = array( '1' => $date );
-							}
-						} elseif ( empty( $stopsales ) && ! empty( $default_stopsales ) ) {
-							if ( isset( $excluded_dates ) && ! empty( $excluded_dates ) ) {
-								$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-								$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-							} else {
-								$variable_data['exclude_dates'][1] = $date;
-							}
-						} //end if
-					} elseif ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales && ! empty( $stopsales ) ) {
-							$variable_data['stopsales'] = array( '1' => $stopsales );
-							$variable_data['date']      = array( '1' => $date );
-					} elseif ( empty( $stopsales ) && ! empty( $default_stopsales ) ) {
-							$variable_data['exclude_dates'][1] = $date;
-					} else {
-						$variable_data = null;
-					} //end if
-
-					$variable_data = array( 'variable_stopsales' => $variable_data );
-					$service_post  = $bmrequests->sanitize_request( $variable_data, 'SERVICE', $exclude );
-
-					if ( $service_post != false ) {
-						$service_post['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $service_post, '', '%d' );
-						$service                    = $dbhandler->get_row( 'SERVICE', $id );
-						$data['status']             = true;
-						$data['default_stopsales']  = ! empty( $service ) && isset( $service->default_stopsales ) ? $service->default_stopsales : 0;
-						$data['variable_stopsales'] = ! empty( $service ) && isset( $service->variable_stopsales ) ? maybe_unserialize( $service->variable_stopsales ) : array();
-					}
-				} //end if
-			} //end if
 		} //end if
 
 		echo wp_json_encode( $data );
@@ -3731,110 +3427,6 @@ class Booking_Management_Admin {
 		$data       = array( 'status' => false );
 
 		if ( $post != false && $post != null ) {
-			$id                     = isset( $post['id'] ) ? $post['id'] : '';
-			$old_default_saleswitch = isset( $post['old_default_saleswitch'] ) ? $post['old_default_saleswitch'] : '';
-			$default_saleswitch     = isset( $post['default_saleswitch'] ) ? $post['default_saleswitch'] : '';
-			$saleswitch             = isset( $post['saleswitch'] ) ? $post['saleswitch'] : '';
-			$date                   = isset( $post['date'] ) ? $post['date'] : '';
-
-			if ( ! empty( $id ) ) {
-				if ( ! empty( $date ) ) {
-					if ( $old_default_saleswitch != $default_saleswitch ) {
-						$update_data = array(
-							'default_saleswitch'  => $default_saleswitch,
-							'variable_saleswitch' => null,
-							'service_updated_at'  => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-						);
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
-					}
-
-					$service       = $dbhandler->get_row( 'SERVICE', $id );
-					$variable_data = ! empty( $service ) && isset( $service->variable_saleswitch ) ? maybe_unserialize( $service->variable_saleswitch ) : array();
-
-					if ( ! empty( $variable_data ) ) {
-						$dates          = isset( $variable_data['date'] ) ? $variable_data['date'] : array();
-						$excluded_dates = isset( $variable_data['exclude_dates'] ) ? $variable_data['exclude_dates'] : array();
-						if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-							$index = (int) array_search( $date, $variable_data['date'] );
-							if ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch && ! empty( $saleswitch ) ) {
-								$variable_data['saleswitch'][ $index ] = $saleswitch;
-							} else {
-								if ( count( $variable_data['date'] ) == 1 && count( $variable_data['saleswitch'] ) == 1 ) {
-									unset( $variable_data['date'] );
-									unset( $variable_data['saleswitch'] );
-								} else {
-									unset( $variable_data['date'][ $index ] );
-									unset( $variable_data['saleswitch'][ $index ] );
-								}
-
-								if ( empty( $saleswitch ) && ! empty( $default_saleswitch ) ) {
-									if ( ! empty( $excluded_dates ) ) {
-										$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-										$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-									} else {
-										$variable_data['exclude_dates'][1] = $date;
-									}
-								}
-							}
-						} elseif ( ! empty( $excluded_dates ) && in_array( $date, $excluded_dates, true ) ) {
-							if ( ! empty( $saleswitch ) ) {
-								$index = (int) array_search( $date, $variable_data['exclude_dates'] );
-								if ( count( $variable_data['exclude_dates'] ) == 1 ) {
-									unset( $variable_data['exclude_dates'] );
-								} else {
-									unset( $variable_data['exclude_dates'][ $index ] );
-								}
-
-								if ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch ) {
-									if ( ! empty( $dates ) ) {
-										$lastindex                                   = (int) end( array_keys( $variable_data['date'] ) );
-										$variable_data['date'][ ( $lastindex + 1 ) ] = $date;
-										$variable_data['saleswitch'][ ( $lastindex + 1 ) ] = $saleswitch;
-									} else {
-										$variable_data['saleswitch'] = array( '1' => $saleswitch );
-										$variable_data['date']       = array( '1' => $date );
-									}
-								}
-							}
-						} elseif ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch && ! empty( $saleswitch ) ) {
-							if ( isset( $dates ) && ! empty( $dates ) ) {
-								$last_index                                   = (int) end( array_keys( $variable_data['date'] ) );
-								$variable_data['date'][ ( $last_index + 1 ) ] = $date;
-								$variable_data['saleswitch'][ ( $last_index + 1 ) ] = $saleswitch;
-							} else {
-								$variable_data['saleswitch'] = array( '1' => $saleswitch );
-								$variable_data['date']       = array( '1' => $date );
-							}
-						} elseif ( empty( $saleswitch ) && ! empty( $default_saleswitch ) ) {
-							if ( isset( $excluded_dates ) && ! empty( $excluded_dates ) ) {
-								$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-								$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-							} else {
-								$variable_data['exclude_dates'][1] = $date;
-							}
-						} //end if
-					} elseif ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch && ! empty( $saleswitch ) ) {
-							$variable_data['saleswitch'] = array( '1' => $saleswitch );
-							$variable_data['date']       = array( '1' => $date );
-					} elseif ( empty( $saleswitch ) && ! empty( $default_saleswitch ) ) {
-							$variable_data['exclude_dates'][1] = $date;
-					} else {
-						$variable_data = null;
-					} //end if
-
-					$variable_data = array( 'variable_saleswitch' => $variable_data );
-					$service_post  = $bmrequests->sanitize_request( $variable_data, 'SERVICE', $exclude );
-
-					if ( $service_post != false ) {
-						$service_post['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $service_post, '', '%d' );
-						$service                     = $dbhandler->get_row( 'SERVICE', $id );
-						$data['status']              = true;
-						$data['default_saleswitch']  = ! empty( $service ) && isset( $service->default_saleswitch ) ? $service->default_saleswitch : 0;
-						$data['variable_saleswitch'] = ! empty( $service ) && isset( $service->variable_saleswitch ) ? maybe_unserialize( $service->variable_saleswitch ) : array();
-					}
-				} //end if
-			} //end if
 		} //end if
 
 		echo wp_json_encode( $data );
@@ -3868,136 +3460,6 @@ class Booking_Management_Admin {
 		$data       = array( 'status' => false );
 
 		if ( $post != false && $post != null ) {
-			$id                    = isset( $post['id'] ) ? $post['id'] : '';
-			$old_default_stopsales = isset( $post['old_default_stopsales'] ) ? $post['old_default_stopsales'] : '';
-			$default_stopsales     = isset( $post['default_stopsales'] ) ? $post['default_stopsales'] : '';
-			$stopsales             = isset( $post['stopsales'] ) ? $post['stopsales'] : '';
-			$from_date             = isset( $post['from_date'] ) ? $post['from_date'] : '';
-			$to_date               = isset( $post['to_date'] ) ? $post['to_date'] : '';
-
-			$period = new DatePeriod(
-				new DateTime( $from_date ),
-				new DateInterval( 'P1D' ),
-				new DateTime( $to_date . '+1 day' )
-			);
-
-			if ( ! empty( $id ) ) {
-				if ( ! empty( $from_date ) && ! empty( $to_date ) && ! empty( $period ) ) {
-					if ( $old_default_stopsales != $default_stopsales ) {
-						$update_data = array(
-							'default_stopsales'  => $default_stopsales,
-							'variable_stopsales' => null,
-							'service_updated_at' => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-						);
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
-					}
-
-					$service       = $dbhandler->get_row( 'SERVICE', $id );
-					$variable_data = ! empty( $service ) && isset( $service->variable_stopsales ) ? maybe_unserialize( $service->variable_stopsales ) : array();
-
-					if ( ! empty( $variable_data ) ) {
-						$dates          = isset( $variable_data['date'] ) ? $variable_data['date'] : array();
-						$excluded_dates = isset( $variable_data['exclude_dates'] ) ? $variable_data['exclude_dates'] : array();
-						foreach ( $period as $value ) {
-							$date = $value->format( 'Y-m-d' );
-							if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-								$index = (int) array_search( $date, $variable_data['date'] );
-								if ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales && ! empty( $stopsales ) ) {
-									$variable_data['stopsales'][ $index ] = $stopsales;
-								} else {
-									if ( count( $variable_data['date'] ) == 1 && count( $variable_data['stopsales'] ) == 1 ) {
-										unset( $variable_data['date'] );
-										unset( $variable_data['stopsales'] );
-									} else {
-										unset( $variable_data['date'][ $index ] );
-										unset( $variable_data['stopsales'][ $index ] );
-									}
-
-									if ( empty( $stopsales ) && ! empty( $default_stopsales ) ) {
-										if ( isset( $variable_data['exclude_dates'] ) && ! empty( $variable_data['exclude_dates'] ) ) {
-											$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-											$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-										} else {
-											$variable_data['exclude_dates'][1] = $date;
-										}
-									}
-								}
-							} elseif ( ! empty( $excluded_dates ) && in_array( $date, $excluded_dates, true ) ) {
-								if ( ! empty( $stopsales ) ) {
-									$index = (int) array_search( $date, $variable_data['exclude_dates'] );
-									if ( count( $variable_data['exclude_dates'] ) == 1 ) {
-										unset( $variable_data['exclude_dates'] );
-									} else {
-										unset( $variable_data['exclude_dates'][ $index ] );
-									}
-
-									if ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales ) {
-										if ( isset( $variable_data['date'] ) && ! empty( $variable_data['date'] ) ) {
-											$lastindex                                        = (int) end( array_keys( $variable_data['date'] ) );
-											$variable_data['date'][ ( $lastindex + 1 ) ]      = $date;
-											$variable_data['stopsales'][ ( $lastindex + 1 ) ] = $stopsales;
-										} else {
-											$variable_data['stopsales'] = array( '1' => $stopsales );
-											$variable_data['date']      = array( '1' => $date );
-										}
-									}
-								}
-							} elseif ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales && ! empty( $stopsales ) ) {
-								if ( isset( $variable_data['date'] ) && ! empty( $variable_data['date'] ) ) {
-									$lastindex                                        = (int) end( array_keys( $variable_data['date'] ) );
-									$variable_data['date'][ ( $lastindex + 1 ) ]      = $date;
-									$variable_data['stopsales'][ ( $lastindex + 1 ) ] = $stopsales;
-								} else {
-									$variable_data['stopsales'] = array( '1' => $stopsales );
-									$variable_data['date']      = array( '1' => $date );
-								}
-							} elseif ( empty( $stopsales ) && ! empty( $default_stopsales ) ) {
-								if ( isset( $variable_data['exclude_dates'] ) && ! empty( $variable_data['exclude_dates'] ) ) {
-									$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-									$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-								} else {
-									$variable_data['exclude_dates'][1] = $date;
-								}
-							} //end if
-						} //end foreach
-					} else {
-						$i               = 1;
-						$stopsales_value = array();
-						$date_value      = array();
-						if ( isset( $service->default_stopsales ) && $stopsales != $service->default_stopsales && ! empty( $stopsales ) ) {
-							foreach ( $period as $value ) {
-								$stopsales_value[ $i ] = $stopsales;
-								$date_value[ $i ]      = $value->format( 'Y-m-d' );
-								++$i;
-							}
-
-							$variable_data['stopsales'] = $stopsales_value;
-							$variable_data['date']      = $date_value;
-						} elseif ( empty( $stopsales ) && ! empty( $default_stopsales ) ) {
-							foreach ( $period as $value ) {
-								$date_value[ $i ] = $value->format( 'Y-m-d' );
-								++$i;
-							}
-
-								$variable_data['exclude_dates'] = $date_value;
-						} else {
-							$variable_data = null;
-						} //end if
-					} //end if
-
-					$variable_data = array( 'variable_stopsales' => $variable_data );
-					$service_post  = $bmrequests->sanitize_request( $variable_data, 'SERVICE', $exclude );
-
-					if ( $service_post != false ) {
-						$service_post['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $service_post, '', '%d' );
-						$service                    = $dbhandler->get_row( 'SERVICE', $id );
-						$data['status']             = true;
-						$data['default_stopsales']  = ! empty( $service ) && isset( $service->default_stopsales ) ? $service->default_stopsales : 0;
-						$data['variable_stopsales'] = ! empty( $service ) && isset( $service->variable_stopsales ) ? maybe_unserialize( $service->variable_stopsales ) : array();
-					}
-				} //end if
-			} //end if
 		} //end if
 
 		echo wp_json_encode( $data );
@@ -4031,136 +3493,6 @@ class Booking_Management_Admin {
 		$data       = array( 'status' => false );
 
 		if ( $post != false && $post != null ) {
-			$id                     = isset( $post['id'] ) ? $post['id'] : '';
-			$old_default_saleswitch = isset( $post['old_default_saleswitch'] ) ? $post['old_default_saleswitch'] : '';
-			$default_saleswitch     = isset( $post['default_saleswitch'] ) ? $post['default_saleswitch'] : '';
-			$saleswitch             = isset( $post['saleswitch'] ) ? $post['saleswitch'] : '';
-			$from_date              = isset( $post['from_date'] ) ? $post['from_date'] : '';
-			$to_date                = isset( $post['to_date'] ) ? $post['to_date'] : '';
-
-			$period = new DatePeriod(
-				new DateTime( $from_date ),
-				new DateInterval( 'P1D' ),
-				new DateTime( $to_date . '+1 day' )
-			);
-
-			if ( ! empty( $id ) ) {
-				if ( ! empty( $from_date ) && ! empty( $to_date ) && ! empty( $period ) ) {
-					if ( $old_default_saleswitch != $default_saleswitch ) {
-						$update_data = array(
-							'default_saleswitch'  => $default_saleswitch,
-							'variable_saleswitch' => null,
-							'service_updated_at'  => $bmrequests->bm_fetch_current_wordpress_datetime_stamp(),
-						);
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $update_data, '', '%d' );
-					}
-
-					$service       = $dbhandler->get_row( 'SERVICE', $id );
-					$variable_data = ! empty( $service ) && isset( $service->variable_saleswitch ) ? maybe_unserialize( $service->variable_saleswitch ) : array();
-
-					if ( ! empty( $variable_data ) ) {
-						$dates          = isset( $variable_data['date'] ) ? $variable_data['date'] : array();
-						$excluded_dates = isset( $variable_data['exclude_dates'] ) ? $variable_data['exclude_dates'] : array();
-						foreach ( $period as $value ) {
-							$date = $value->format( 'Y-m-d' );
-							if ( ! empty( $dates ) && in_array( $date, $dates, true ) ) {
-								$index = (int) array_search( $date, $variable_data['date'] );
-								if ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch && ! empty( $saleswitch ) ) {
-									$variable_data['saleswitch'][ $index ] = $saleswitch;
-								} else {
-									if ( count( $variable_data['date'] ) == 1 && count( $variable_data['saleswitch'] ) == 1 ) {
-										unset( $variable_data['date'] );
-										unset( $variable_data['saleswitch'] );
-									} else {
-										unset( $variable_data['date'][ $index ] );
-										unset( $variable_data['saleswitch'][ $index ] );
-									}
-
-									if ( empty( $saleswitch ) && ! empty( $default_saleswitch ) ) {
-										if ( isset( $variable_data['exclude_dates'] ) && ! empty( $variable_data['exclude_dates'] ) ) {
-											$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-											$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-										} else {
-											$variable_data['exclude_dates'][1] = $date;
-										}
-									}
-								}
-							} elseif ( ! empty( $excluded_dates ) && in_array( $date, $excluded_dates, true ) ) {
-								if ( ! empty( $saleswitch ) ) {
-									$index = (int) array_search( $date, $variable_data['exclude_dates'] );
-									if ( count( $variable_data['exclude_dates'] ) == 1 ) {
-										unset( $variable_data['exclude_dates'] );
-									} else {
-										unset( $variable_data['exclude_dates'][ $index ] );
-									}
-
-									if ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch ) {
-										if ( isset( $variable_data['date'] ) && ! empty( $variable_data['date'] ) ) {
-											$lastindex                                   = (int) end( array_keys( $variable_data['date'] ) );
-											$variable_data['date'][ ( $lastindex + 1 ) ] = $date;
-											$variable_data['saleswitch'][ ( $lastindex + 1 ) ] = $saleswitch;
-										} else {
-											$variable_data['saleswitch'] = array( '1' => $saleswitch );
-											$variable_data['date']       = array( '1' => $date );
-										}
-									}
-								}
-							} elseif ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch && ! empty( $saleswitch ) ) {
-								if ( isset( $variable_data['date'] ) && ! empty( $variable_data['date'] ) ) {
-									$lastindex                                   = (int) end( array_keys( $variable_data['date'] ) );
-									$variable_data['date'][ ( $lastindex + 1 ) ] = $date;
-									$variable_data['saleswitch'][ ( $lastindex + 1 ) ] = $saleswitch;
-								} else {
-									$variable_data['saleswitch'] = array( '1' => $saleswitch );
-									$variable_data['date']       = array( '1' => $date );
-								}
-							} elseif ( empty( $saleswitch ) && ! empty( $default_saleswitch ) ) {
-								if ( isset( $variable_data['exclude_dates'] ) && ! empty( $variable_data['exclude_dates'] ) ) {
-									$lastindex = (int) end( array_keys( $variable_data['exclude_dates'] ) );
-									$variable_data['exclude_dates'][ ( $lastindex + 1 ) ] = $date;
-								} else {
-									$variable_data['exclude_dates'][1] = $date;
-								}
-							} //end if
-						} //end foreach
-					} else {
-						$i                = 1;
-						$saleswitch_value = array();
-						$date_value       = array();
-						if ( isset( $service->default_saleswitch ) && $saleswitch != $service->default_saleswitch && ! empty( $saleswitch ) ) {
-							foreach ( $period as $value ) {
-								$saleswitch_value[ $i ] = $saleswitch;
-								$date_value[ $i ]       = $value->format( 'Y-m-d' );
-								++$i;
-							}
-
-							$variable_data['saleswitch'] = $saleswitch_value;
-							$variable_data['date']       = $date_value;
-						} elseif ( empty( $saleswitch ) && ! empty( $default_saleswitch ) ) {
-							foreach ( $period as $value ) {
-								$date_value[ $i ] = $value->format( 'Y-m-d' );
-								++$i;
-							}
-
-								$variable_data['exclude_dates'] = $date_value;
-						} else {
-							$variable_data = null;
-						} //end if
-					} //end if
-
-					$variable_data = array( 'variable_saleswitch' => $variable_data );
-					$service_post  = $bmrequests->sanitize_request( $variable_data, 'SERVICE', $exclude );
-
-					if ( $service_post != false ) {
-						$service_post['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-						$dbhandler->update_row( 'SERVICE', 'id', $id, $service_post, '', '%d' );
-						$service                     = $dbhandler->get_row( 'SERVICE', $id );
-						$data['status']              = true;
-						$data['default_saleswitch']  = ! empty( $service ) && isset( $service->default_saleswitch ) ? $service->default_saleswitch : 0;
-						$data['variable_saleswitch'] = ! empty( $service ) && isset( $service->variable_saleswitch ) ? maybe_unserialize( $service->variable_saleswitch ) : array();
-					}
-				} //end if
-			} //end if
 		} //end if
 
 		echo wp_json_encode( $data );
@@ -7083,7 +6415,6 @@ class Booking_Management_Admin {
             : array(
                 'gross_sales' => 0,
                 'returns'     => 0,
-                'coupons'     => 0,
                 'net_sales'   => 0,
             );
 
@@ -7092,8 +6423,6 @@ class Booking_Management_Admin {
             'gross_sales_change' => $this->bm_calculate_change( $previous_revenue['gross_sales'], $current_revenue['gross_sales'] ),
             'returns'            => $current_revenue['returns'],
             'returns_change'     => $this->bm_calculate_change( $previous_revenue['returns'], $current_revenue['returns'] ),
-            'coupons'            => $current_revenue['coupons'],
-            'coupons_change'     => $this->bm_calculate_change( $previous_revenue['coupons'], $current_revenue['coupons'] ),
             'net_sales'          => $current_revenue['net_sales'],
             'net_sales_change'   => $this->bm_calculate_change( $previous_revenue['net_sales'], $current_revenue['net_sales'] ),
         );
@@ -7225,7 +6554,6 @@ class Booking_Management_Admin {
         $results = $dbhandler->get_results_with_join(
             array( 'BOOKING', 'b' ),
             'SUM(b.total_cost) as gross_sales,
-             SUM(COALESCE(b.disount_amount, 0)) as coupons,
              SUM(b.total_cost - COALESCE(b.disount_amount, 0)) as net_before_returns,
              COUNT(DISTINCT b.id) as total_orders',
             array(),
@@ -7253,14 +6581,12 @@ class Booking_Management_Admin {
         );
 
         $gross_sales   = $results ? floatval( $results->gross_sales ) : 0;
-        $coupons       = $results ? floatval( $results->coupons ) : 0;
         $total_returns = $returns ? floatval( $returns->total_returns ) : 0;
-        $net_sales     = $gross_sales - $coupons - $total_returns;
+        $net_sales     = $gross_sales - $total_returns;
 
         return array(
             'gross_sales'  => $gross_sales,
             'returns'      => $total_returns,
-            'coupons'      => $coupons,
             'net_sales'    => $net_sales,
             'total_orders' => $results ? intval( $results->total_orders ) : 0,
         );
@@ -7283,8 +6609,7 @@ class Booking_Management_Admin {
             $results = $dbhandler->get_results_with_join(
                 array( 'BOOKING', 'b' ),
                 'COUNT(DISTINCT b.id) as orders,
-                 SUM(b.total_cost) as gross_sales,
-                 SUM(COALESCE(b.disount_amount, 0)) as coupons',
+                 SUM(b.total_cost) as gross_sales',
                 array(),
                 $where,
                 'row'
@@ -7308,16 +6633,14 @@ class Booking_Management_Admin {
             );
 
             $gross_sales   = $results ? floatval( $results->gross_sales ) : 0;
-            $coupons       = $results ? floatval( $results->coupons ) : 0;
             $total_returns = $returns ? floatval( $returns->total_returns ) : 0;
-            $net_sales     = $gross_sales - $coupons - $total_returns;
+            $net_sales     = $gross_sales - $total_returns;
 
             $daily_revenue[] = array(
                 'date'        => gmdate( 'd/m/Y', strtotime( $date ) ),
                 'orders'      => $results ? intval( $results->orders ) : 0,
                 'gross_sales' => $gross_sales,
                 'returns'     => $total_returns,
-                'coupons'     => $coupons,
                 'net_sales'   => $net_sales,
                 'taxes'       => 0,
                 'shipping'    => 0,
@@ -7772,7 +7095,6 @@ class Booking_Management_Admin {
             'chart_labels'     => array(),
             'gross_sales_data' => array(),
             'returns_data'     => array(),
-            'coupons_data'     => array(),
             'net_sales_data'   => array(),
         );
 
@@ -7781,7 +7103,6 @@ class Booking_Management_Admin {
             $daily                          = $this->bm_get_daily_revenue_single_join( $date );
             $response['gross_sales_data'][] = $daily['gross_sales'];
             $response['returns_data'][]     = $daily['returns'];
-            $response['coupons_data'][]     = $daily['coupons'];
             $response['net_sales_data'][]   = $daily['net_sales'];
         }
 
@@ -7877,8 +7198,7 @@ class Booking_Management_Admin {
 
         $results = $dbhandler->get_results_with_join(
             array( 'BOOKING', 'b' ),
-            'SUM(b.total_cost) as gross_sales,
-             SUM(COALESCE(b.disount_amount, 0)) as coupons',
+            'SUM(b.total_cost) as gross_sales',
             array(),
             $where,
             'row'
@@ -7901,14 +7221,12 @@ class Booking_Management_Admin {
         );
 
         $gross_sales   = $results ? floatval( $results->gross_sales ) : 0;
-        $coupons       = $results ? floatval( $results->coupons ) : 0;
         $total_returns = $returns ? floatval( $returns->total_returns ) : 0;
-        $net_sales     = $gross_sales - $coupons - $total_returns;
+        $net_sales     = $gross_sales - $total_returns;
 
         return array(
             'gross_sales' => $gross_sales,
             'returns'     => $total_returns,
-            'coupons'     => $coupons,
             'net_sales'   => $net_sales,
         );
     }
@@ -9454,7 +8772,6 @@ class Booking_Management_Admin {
 					$day['orders'],
 					$day['gross_sales'],
 					$day['returns'],
-					$day['coupons'],
 					$day['net_sales'],
 					$day['taxes'],
 					$day['shipping'],
@@ -9531,7 +8848,6 @@ class Booking_Management_Admin {
             'extra_services_sold' => 'SUM(b.total_ext_svc_slots)',
             'gross_sales'         => 'SUM(b.total_cost)',
             'returns'             => "COALESCE((SELECT SUM(t.paid_amount) FROM $transactions_table t WHERE t.booking_id = b.id AND t.payment_status = 'refunded' AND DATE(t.transaction_created_at) = '__DATE__'), 0)",
-            'coupons'             => 'SUM(COALESCE(b.disount_amount, 0))',
             'items_sold'          => 'SUM(b.total_svc_slots + b.total_ext_svc_slots)',
             'revenue_net_sales'   => "SUM(b.total_cost - COALESCE(b.disount_amount, 0)) - COALESCE((SELECT SUM(t.paid_amount) FROM $transactions_table t WHERE t.booking_id = b.id AND t.payment_status = 'refunded' AND DATE(t.transaction_created_at) = '__DATE__'), 0)",
             'products_net_sales'  => "SUM(b.total_cost - COALESCE(b.disount_amount, 0)) - COALESCE((SELECT SUM(t.paid_amount) FROM $transactions_table t WHERE t.booking_id = b.id AND t.payment_status = 'refunded' AND DATE(t.transaction_created_at) = '__DATE__'), 0)",
