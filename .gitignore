@@ -7,3 +7,4 @@ src/stripe/
 src/dompdf/
 src/phpqrcode/
 __pycache__/
+vendor/

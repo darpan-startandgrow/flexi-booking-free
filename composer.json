@@ -1,0 +1,13 @@
+{
+    "name": "startandgrow/flexi-booking-free",
+    "description": "SG Flexi Booking Free WordPress Plugin",
+    "type": "wordpress-plugin",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
