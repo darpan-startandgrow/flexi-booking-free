@@ -169,120 +169,11 @@ jQuery(document).ready(function ($) {
 	});
 });
 
-function bmRestRequest(action, data, successCallback) {
-	var routePrefix = 'admin-action/';
-	return jQuery.ajax({
-		url: bm_ajax_object.rest_url + routePrefix + action,
-		method: 'POST',
-		data: data,
-		beforeSend: function(xhr) {
-			xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
-		},
-		success: successCallback
-	});
-}
 
 /**
  * Safely parse a response that may already be an object (auto-parsed by jQuery)
  * or still a JSON string.
  */
-function bmSafeParse(response) {
-	if ( typeof response === 'string' ) {
-		return bmSafeParse(response);
-	}
-	return response;
-}
-
-
-// Ajax for sorting service listing on Page Load
-function bm_sort_service_listing(ids = [], pagenum = 1) {
-    var post = {
-        'pagenum': pagenum ? pagenum : jQuery('#service_pagenum').val(),
-        'base': jQuery(location).attr("href"),
-        'limit': jQuery.trim(jQuery('#limit_count').val()),
-        'ids': ids,
-    }
-
-    var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-    bmRestRequest('bm_sort_service_listing', data, function (response) {
-        var jsondata = bmSafeParse(response);
-        var status = jsondata.status ? jsondata.status : '';
-        if (status == true) {
-            jQuery(".service_records").html('');
-            jQuery(".service_pagination").html('');
-            var services = jsondata.services ? jsondata.services : [];
-            var category_name = jsondata.category_name ? jsondata.category_name : '';
-            var pagination = jsondata.pagination ? jsondata.pagination : '';
-            var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : '';
-            var serviceListing = '';
-
-            for (var i = 0; i < services.length; i++) {
-                serviceListing += "<tr class='single_service_record ui-sortable-handle'><form role='form' method='post'>" +
-                    "<td style='text-align: center;cursor:move;' data-id='" + services[i].id + "' data-order=" + (i + 1) + " data-position='" + services[i].service_position + "' class='service_listing_number'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-                    "<td style='text-align: center;cursor:move;' title=" + services[i].service_name + ">" + services[i].service_name.substring(0, 40) + '...' + " </td>" +
-                    "<td style='text-align: center;' title=" + (category_name[i] ? category_name[i] : '') + ">" + (category_name[i] ? category_name[i].substring(0, 40) + '...' : '') + " </td>" +
-                    "<td style='text-align: center;' class='bm-checkbox-td'>" +
-                    "<input name='bm_show_service_in_front' type='checkbox' id='bm_show_service_in_front_" + services[i].id + "' class='regular-text auto-checkbox bm_toggle' " + (services[i].is_service_front == 1 ? 'checked' : '') + " onchange='bm_change_service_visibility(this)'>" +
-                    "<label for='bm_show_service_in_front_" + services[i].id + "'></label>" +
-                    "</td>" +
-                    "<td style='text-align: center;'>" +
-                    "<div class='copyMessagetooltip' style='margin-bottom: 5px;'>" +
-                    "<input style='cursor:pointer;border:none;width:200px;padding: 2px 2px 6px 12px;font-family:serif;' class='copytextTooltip' value='[sgbm_single_service id=\"" + services[i].id + "\"]' onclick='bm_copy_text(this)' onmouseout='bm_copy_message(this)' readonly>" +
-                    "<span class='tooltiptext'>" + bm_normal_object.copy_to_clipboard + "</span>" +
-                    "<button type='button' class='bm-info-button' data-shortcode='sgbm_single_service' title='" + bm_normal_object.shortcode_info + "'>i</button>" +
-                    "</div>" +
-                    "<div class='copyMessagetooltip'>" +
-                    "<input style='cursor:pointer;border:none;width:200px;padding: 2px 2px 6px 12px;font-family:serif;' class='copytextTooltip' value='[sgbm_single_service_calendar id=\"" + services[i].id + "\"]' onclick='bm_copy_text(this)' onmouseout='bm_copy_message(this)' readonly>" +
-                    "<span class='tooltiptext'>" + bm_normal_object.copy_to_clipboard + "</span>" +
-                    "<button type='button' class='bm-info-button' data-shortcode='sgbm_single_service_calendar' title='" + bm_normal_object.shortcode_info + "'>i</button>" +
-                    "</div>" +
-                    "</td>" +
-                    "<td style='text-align: center;'>" +
-                    "<button type='button' name='editsvc' id='editsvc' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + services[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-                    "<button type='button' name='delsvc' id='delsvc' title='" + bm_normal_object.remove + "' value='" + services[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-                    "</td>" +
-                    "</form></tr>";
-                current_pagenumber++;
-            }
-            jQuery(".service_records").append(serviceListing);
-            jQuery(".service_pagination").append(pagination);
-
-            jQuery('.bm-info-button').off('click').on('click', function() {
-                var shortcode = jQuery(this).data('shortcode');
-                var info = bm_shortcode_info[shortcode];
-                
-                if (info) {
-                    jQuery('#bm-shortcode-title').text(info.title);
-                    jQuery('#bm-shortcode-description').text(info.description);
-                    
-                    var attributesBody = jQuery('#bm-shortcode-attributes tbody');
-                    attributesBody.empty();
-                    
-                    if (info.attributes.length > 0) {
-                        jQuery.each(info.attributes, function(i, attr) {
-                            attributesBody.append(
-                                '<tr>' +
-                                '<td>' + attr.name + '</td>' +
-                                '<td>' + attr.description + '</td>' +
-                                '<td>' + attr.default + '</td>' +
-                                '</tr>'
-                            );
-                        });
-                    } else {
-                        attributesBody.append(
-                            '<tr><td colspan="3">' + bm_normal_object.no_attributes + '</td></tr>'
-                        );
-                    }
-                    
-                    var examplesHtml = info.examples.join('\n');
-                    jQuery('#bm-shortcode-examples').text(examplesHtml);
-                    
-                    jQuery('#bm-shortcode-info-modal').show();
-                }
-            });
-        }
-    });
-}
 
 
 // Redirect to edit service page
@@ -388,54 +279,6 @@ jQuery(document).on('click', '.bm-duplicate-service', function () {
 	}
 });
 
-// Change service visiblity
-function bm_change_service_visibility($this) {
-	var id = jQuery($this).attr('id');
-
-	if (confirm(bm_normal_object.change_svc_visibility)) {
-		var service_id = id.split('_')[5];
-		var data = { 'id': service_id, 'nonce': bm_ajax_object.nonce };
-		bmRestRequest('bm_change_service_visibility', data, function (response) {
-			var jsondata = bmSafeParse(response);
-			if (jsondata.status == true) {
-				showMessage(bm_success_object.status_successfully_changed, 'success');
-			} else {
-				showMessage(bm_error_object.server_error, 'error');
-			}
-		});
-	} else {
-		if (jQuery($this).is(':checked')) {
-			jQuery('#' + id).prop('checked', false);
-		} else {
-			jQuery('#' + id).prop('checked', true);
-		}
-	}
-}
-
-
-function bm_change_extra_service_visibility($this) {
-	var id = jQuery($this).attr('id');
-
-	if (confirm(bm_normal_object.change_svc_visibility)) {
-		var extra_id = id.split('_')[6];
-		var data = { 'id': extra_id, 'nonce': bm_ajax_object.nonce };
-		bmRestRequest('bm_change_extra_service_visibility', data, function (response) {
-			var jsondata = bmSafeParse(response);
-			if (jsondata.status == true) {
-				showMessage(bm_success_object.status_successfully_changed, 'success');
-			} else {
-				showMessage(bm_error_object.server_error, 'error');
-			}
-		});
-	} else {
-		if (jQuery($this).is(':checked')) {
-			jQuery('#' + id).prop('checked', false);
-		} else {
-			jQuery('#' + id).prop('checked', true);
-		}
-	}
-}
-
 
 // Remove a template
 jQuery(document).on('click', '#deltemplate', function () {
@@ -490,64 +333,6 @@ jQuery(document).on('click', '#deltemplate', function () {
 });
 
 
-// Ajax for sorting category listing on Page Load
-function bm_sort_category_listing(ids = [], pagenum = 1) {
-	var post = {
-		'pagenum': pagenum ? pagenum : jQuery('#category_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-		'ids': ids,
-	}
-
-	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-	bmRestRequest('bm_sort_category_listing', data, function (response) {
-		var jsondata = bmSafeParse(response);
-		var status = jsondata.status ? jsondata.status : '';
-		if (status == true) {
-			jQuery(".category_records").html('');
-			jQuery(".category_pagination").html('');
-			var categories = jsondata.categories ? jsondata.categories : 0;
-			var cat_ids = jsondata.cat_ids ? jsondata.cat_ids : '';
-			var pagination = jsondata.pagination ? jsondata.pagination : '';
-			var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : '';
-			var categoryListing = '';
-			jQuery(".overallCategoryShortcode").val('[sgbm_service_by_category ids="' + cat_ids + '"]');
-
-			for (var i = 0; i < categories.length; i++) {
-				categoryListing += "<tr class='single_category_record ui-sortable-handle'><form role='form' method='post'>" +
-					"<td style='text-align: center;cursor:move;' data-id='" + categories[i].id + "' data-order=" + (i + 1) + " data-position='" + categories[i].cat_position + "' class='category_listing_number'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-					"<td style='text-align: center;cursor:move;' title=" + categories[i].cat_name + ">" + categories[i].cat_name.substring(0, 40) + '...' + " </td>" +
-					"<td style='text-align: center;' class='bm-checkbox-td'>" +
-					"<input name='bm_show_category_in_front' type='checkbox' id='bm_show_category_in_front_" + categories[i].id + "' class='regular-text auto-checkbox bm_toggle' " + (categories[i].cat_in_front == 1 ? 'checked' : '') + " onchange='bm_change_category_visibility(this)'>" +
-					"<label for='bm_show_category_in_front_" + categories[i].id + "'></label>" +
-					"</td>" +
-					"<td style='text-align: center;'>" +
-					"<div class='copyMessagetooltip'>" +
-					'<input style="cursor:pointer;border:none;width:240px;padding: 2px 2px 6px 12px;font-family:serif;" class="copytextTooltip" id="copyInput_' + categories[i].id + '" onclick="bm_copy_text(this)" onmouseout="bm_copy_message(this)" readonly>' +
-					"<span class='tooltiptext' id='copyTooltip_" + categories[i].id + "'>" + bm_normal_object.copy_to_clipboard + "</span>" +
-					"</div></td>" +
-					"<td style='text-align: center;'>" +
-					"<button type='button' name='editcat' id='editcat' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + categories[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-					"<button type='button' name='delcat' id='delcat' title='" + bm_normal_object.remove + "' value='" + categories[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-					"</td>" +
-					"</form></tr>";
-				current_pagenumber++;
-			}
-			jQuery(".category_records").append(categoryListing);
-			jQuery(".category_pagination").append(pagination);
-
-			if (categoryListing != '') {
-				for (var i = 0; i < categories.length; i++) {
-					var id = categories[i].id.toString().trim();
-					var shortcode = '[sgbm_service_by_category ids="' + id + '"]';
-					jQuery('#copyInput_' + id).val(shortcode);
-				}
-			}
-		}
-	});
-}
-
-
 // Redirect to edit category page
 jQuery(document).on('click', '#editcat', function () {
 	var id = jQuery(this).val();
@@ -560,56 +345,6 @@ jQuery(document).on('click', '#editcust', function () {
 	var id = jQuery(this).val();
 	window.location = 'admin.php?page=bm_add_customer&id=' + id;
 });
-
-
-// Change category visiblity
-function bm_change_category_visibility($this) {
-	var id = jQuery($this).attr('id');
-
-	if (confirm(bm_normal_object.change_cat_visibility)) {
-		var category_id = id.split('_')[5];
-		var data = { 'id': category_id, 'nonce': bm_ajax_object.nonce };
-		bmRestRequest('bm_change_category_visibility', data, function (response) {
-			var jsondata = bmSafeParse(response);
-			if (jsondata.status == true) {
-				showMessage(bm_success_object.status_successfully_changed, 'success');
-			} else {
-				showMessage(bm_error_object.server_error, 'error')
-			}
-		});
-	} else {
-		if (jQuery($this).is(':checked')) {
-			jQuery('#' + id).prop('checked', false);
-		} else {
-			jQuery('#' + id).prop('checked', true);
-		}
-	}
-}
-
-
-// Change customer visiblity
-function bm_change_customer_visibility($this) {
-	var id = jQuery($this).attr('id');
-
-	if (confirm(bm_normal_object.change_cust_visibility)) {
-		var customer_id = id.split('_')[3];
-		var data = { 'id': customer_id, 'nonce': bm_ajax_object.nonce };
-		bmRestRequest('bm_change_customer_visibility', data, function (response) {
-			var jsondata = bmSafeParse(response);
-			if (jsondata.status == true) {
-				showMessage(bm_success_object.status_successfully_changed, 'success');
-			} else {
-				showMessage(bm_error_object.server_error, 'error')
-			}
-		});
-	} else {
-		if (jQuery($this).is(':checked')) {
-			jQuery('#' + id).prop('checked', false);
-		} else {
-			jQuery('#' + id).prop('checked', true);
-		}
-	}
-}
 
 
 // Remove a category
@@ -847,24 +582,6 @@ function svc_gallery_remove($this) {
 	jQuery('#svc_gallery_image_id').val(image_ids.join(','));
 	jQuery($this).find('image').attr('src', '');
 	jQuery($this).parent('span').hide();
-}
-
-
-// Get Url Param
-function getUrlParameter(sParam) {
-	var sPageURL = window.location.search.substring(1),
-		sURLVariables = sPageURL.split('&'),
-		sParameterName,
-		i;
-
-	for (i = 0; i < sURLVariables.length; i++) {
-		sParameterName = sURLVariables[i].split('=');
-
-		if (sParameterName[0] === sParam) {
-			return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-		}
-	}
-	return false;
 }
 
 
@@ -1332,44 +1049,6 @@ function showSlotsTiming($this) {
 }
 
 
-// Convert Number to Time
-function convertNumToTime(number) {
-	// Check sign of given number
-	var sign = (number >= 0) ? 1 : -1;
-
-	// Set positive value of number of sign negative
-	number = number * sign;
-
-	// Separate the int from the decimal part
-	var hour = Math.floor(number);
-	var decpart = number - hour;
-
-	var min = 1 / 60;
-	// Round to nearest minute
-	decpart = min * Math.round(decpart / min);
-
-	var minute = Math.floor(decpart * 60) + '';
-
-	// Add padding if need
-	if (hour.toString().length < 2) {
-		hour = '0' + hour;
-	}
-
-	// Add padding if need
-	if (minute.length < 2) {
-		minute = '0' + minute;
-	}
-
-	// Add Sign in final result
-	sign = sign == 1 ? '' : '-';
-
-	// Concate hours and minutes
-	time = sign + hour + ':' + minute;
-
-	return time;
-}
-
-
 // Add/Subtract functions for Single or Multiple Times
 function addTime() {
 	if (arguments.length < 2) {
@@ -1399,36 +1078,6 @@ function addTime() {
 	}
 
 	return totalTime;
-}
-
-function isFormattedDate(date) {
-	var splitDate = date.split(':');
-	if (splitDate.length == 2 && (parseInt(splitDate[0]) + '').length <= 2 && (parseInt(splitDate[1]) + '').length <= 2) return true;
-	else return false;
-}
-
-function padWithZeros(number) {
-	var lengthOfNumber = (parseInt(number) + '').length;
-	if (lengthOfNumber == 2) return number;
-	else if (lengthOfNumber == 1) return '0' + number;
-	else if (lengthOfNumber == 0) return '00';
-	else return false;
-}
-
-function strToMins(t) {
-	var s = t.split(":");
-	return Number(s[0]) * 60 + Number(s[1]);
-}
-
-function minsToStr(t) {
-	return padWithZeros(Math.trunc(t / 60)) + ':' + padWithZeros(('00' + t % 60)).slice(-2);
-}
-
-function timeStringToFloat(time) {
-	var hoursMinutes = time.split(/[.:]/);
-	var hours = parseInt(hoursMinutes[0], 10);
-	var minutes = hoursMinutes[1] ? parseInt(hoursMinutes[1], 10) : 0;
-	return hours + minutes / 60;
 }
 
 
@@ -5221,44 +4870,6 @@ function bm_get_service_time_slots() {
 }
 
 
-// Show To Service Date In Bulk Price/Stopsales Change
-function showToDate(type = '') {
-	if (type == 'price') {
-		var date_from = jQuery('#from_bulk_price_change');
-		var date_to = jQuery('#to_bulk_price_change');
-	} else if (type == 'stopsales') {
-		var date_from = jQuery('#from_bulk_stopsales_change');
-		var date_to = jQuery('#to_bulk_stopsales_change');
-	} else if (type == 'saleswitch') {
-		var date_from = jQuery('#from_bulk_saleswitch_change');
-		var date_to = jQuery('#to_bulk_saleswitch_change');
-	} else if (type == 'capacity') {
-		var date_from = jQuery('#from_bulk_cap_change');
-		var date_to = jQuery('#to_bulk_cap_change');
-	}
-	date_to.val('');
-	date_to.attr('min', date_from.val());
-
-	if (date_from.val() != '') {
-		if (date_to.prop('readonly')) {
-			date_to.prop('readonly', false);
-		}
-	} else {
-		date_to.prop('readonly', true);
-		date_to.val('');
-	}
-}
-
-
-// Get All Dates in Range
-function getDaysArray(start, end) {
-	for (var arr = [], dt = new Date(start); dt <= new Date(end); dt.setDate(dt.getDate() + 1)) {
-		arr.push(new Date(dt));
-	}
-	return arr;
-};
-
-
 // Field Tabs
 function fieldTabs(evt, fieldSection) {
 	jQuery(".field_successtext").html('');
@@ -6543,23 +6154,6 @@ jQuery(document).on('click', '.preview_button', function (e) {
 });
 
 
-// Close Modal
-function closeModal(id) {
-	// jQuery('#' + id).removeClass('active-modal');
-
-	var modal = jQuery('#' + id);
-
-	modal.animate({ top: "-=100px" }, 300, function () {
-		modal.css({ top: "" });
-		modal.removeClass('active-modal');
-	});
-
-	if (id == 'resend_email_modal') {
-		remove_unsent_temporary_email_attachment();
-	}
-}
-
-
 // Template validation
 function add_template_validation() {
 	jQuery('.tmpl_errortext').html('');
@@ -7431,14 +7025,10 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
 function resetNoOfServiceSelection() {
 	jQuery('#total_service_booking').prop('disabled', true);
 	jQuery('#total_service_booking').html('');
 }
-
-
 
 
 // Reset order page extra service content
@@ -7457,17 +7047,6 @@ function resetTimeSlots() {
 }
 
 
-// Reset order page customer details content
-function resetCustomerDetails() {
-	jQuery('.billing_details').hide();
-	jQuery('.shipping_details').hide();
-}
-
-
-
-
-
-
 // Fetch billing details from order page
 jQuery(document).ready(function ($) {
 	if (getUrlParameter('id')) {
@@ -7475,8 +7054,6 @@ jQuery(document).ready(function ($) {
 	}
 	setIntlInputForCustomeForm();
 });
-
-
 
 
 //International tel input for phone form fields for backend order
@@ -7496,10 +7073,6 @@ function setIntlInputForCustomeForm() {
 		}
 	});
 }
-
-
-
-
 
 
 jQuery(document).ready(function ($) {
@@ -7786,24 +7359,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-// Read a page's or a string's GET URL variables and return them as an associative array.
-function getUrlVars(string = '') {
-	var vars = [], hash;
-	if (string != '') {
-		var hashes = string.slice(string.indexOf('?') + 1).split('&');
-	} else {
-		var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-	}
-
-	for (var i = 0; i < hashes.length; i++) {
-		hash = hashes[i].split('=');
-		vars.push(hash[0]);
-		vars[hash[0]] = hash[1];
-	}
-	return vars;
-}
-
-
 // Clicking on booking overview tag on dashboard
 jQuery(document).on('click', '.booking_overview_tag', function (e) {
 	e.preventDefault();
@@ -7872,14 +7427,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
-
-
-
-
-
-
 // Fetch order export options html
 jQuery(document).on('click', '.export_order_records', function (e) {
 	e.preventDefault();
@@ -7937,8 +7484,6 @@ jQuery(document).on('click', '#exportButton', function () {
 });
 
 
-
-
 // Fetch export data on click
 jQuery(document).on('click', '#checkinexportButton', function () {
 	var exportOption = jQuery('#exportOption').val();
@@ -7962,300 +7507,12 @@ jQuery(document).on('click', '#checkinexportButton', function () {
 });
 
 
-
-
-// Handle special characters in export
-function encodeValue1(value) {
-	value = String(value);
-	if (value.includes(',')) {
-		return `"${value.replace(/"/g, '""')}"`;
-	}
-	return value;
-}
-
-
-// Handle special characters in export
-function encodeValue(value) {
-	return `"${value.replace(/"/g, '""')}"`;
-}
-
-
-// Show/hide search box
-function bm_show_search_box(id) {
-	if (jQuery("#" + id).is(':visible')) {
-		jQuery("#" + id).slideUp("slow");
-	} else {
-		jQuery("#" + id).slideDown("slow");
-	}
-}
-
-
-// Add/remove search box
-function bm_remove_hidden_class(id) {
-	if (jQuery("#" + id).hasClass('hidden')) {
-		jQuery("#" + id).removeClass("hidden");
-	} else {
-		jQuery("#" + id).addClass("hidden");
-	}
-}
-
-
-// Convert one date format to another format
-function convertDateFormat_old(date, toFormat) {
-	var convertedDate = new Date(date);
-
-	if (!isNaN(convertedDate.getTime())) {
-		var formattedDate = '';
-
-		switch (toFormat) {
-			case 'YYYY-MM-DD':
-				formattedDate = convertedDate.toISOString().split('T')[0];
-				break;
-			case 'MM/DD/YYYY':
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				formattedDate = month + '/' + day + '/' + convertedDate.getFullYear();
-				break;
-			case 'DD/MM/YYYY':
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				formattedDate = day + '/' + month + '/' + convertedDate.getFullYear();
-				break;
-			case 'DD-MM-YYYY':
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				formattedDate = day + '-' + month + '-' + convertedDate.getFullYear();
-				break;
-			case 'YYYY/MM/DD':
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				formattedDate = convertedDate.getFullYear() + '/' + month + '/' + day;
-				break;
-			case 'DD/MM/YY':
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				formattedDate = day + '/' + month + '/' + convertedDate.getFullYear().toString().substr(-2);
-				break;
-			case 'MMMM DD, YYYY':
-				formattedDate = convertedDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-				break;
-			case 'MMM DD, YYYY':
-				formattedDate = convertedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-				break;
-			case 'YYYY MMMM DD':
-				formattedDate = convertedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-				break;
-			case 'YYYY MMM DD':
-				formattedDate = convertedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-				break;
-			default:
-				formattedDate = convertedDate.toLocaleDateString();
-				break;
-		}
-
-		return formattedDate;
-	} else {
-		return false;
-	}
-}
-
-
-// Convert one date format to another format
-function convertDateFormat(date, toFormat) {
-	var convertedDate = new Date(date);
-
-	if (!isNaN(convertedDate.getTime())) {
-		var formattedDate = '';
-
-		switch (toFormat) {
-			case 'YYYY-MM-DD':
-				formattedDate = convertedDate.toISOString().split('T')[0];
-				break;
-
-			case 'MM/DD/YYYY':
-			case 'DD/MM/YYYY':
-			case 'DD-MM-YYYY':
-			case 'YYYY/MM/DD':
-			case 'DD/MM/YY':
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				var year = convertedDate.getFullYear();
-				switch (toFormat) {
-					case 'MM/DD/YYYY':
-						formattedDate = month + '/' + day + '/' + year;
-						break;
-					case 'DD/MM/YYYY':
-						formattedDate = day + '/' + month + '/' + year;
-						break;
-					case 'DD-MM-YYYY':
-						formattedDate = day + '-' + month + '-' + year;
-						break;
-					case 'YYYY/MM/DD':
-						formattedDate = year + '/' + month + '/' + day;
-						break;
-					case 'DD/MM/YY':
-						formattedDate = day + '/' + month + '/' + year.toString().substr(-2);
-						break;
-				}
-				break;
-
-			case 'MMMM DD, YYYY':
-				formattedDate = convertedDate.toLocaleDateString(undefined, {
-					month: 'long',
-					day: 'numeric',
-					year: 'numeric'
-				});
-				break;
-
-			case 'MMM DD, YYYY':
-				formattedDate = convertedDate.toLocaleDateString(undefined, {
-					month: 'short',
-					day: 'numeric',
-					year: 'numeric'
-				});
-				break;
-
-			case 'YYYY MMMM DD':
-				formattedDate = convertedDate.toLocaleDateString(undefined, {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
-				});
-				break;
-
-			case 'YYYY MMM DD':
-				formattedDate = convertedDate.toLocaleDateString(undefined, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric'
-				});
-				break;
-
-			case 'YYYY-MM-DD HH:mm:ss':
-				var year = convertedDate.getFullYear();
-				var month = ("0" + (convertedDate.getMonth() + 1)).slice(-2);
-				var day = ("0" + convertedDate.getDate()).slice(-2);
-				var hours = ("0" + convertedDate.getHours()).slice(-2);
-				var minutes = ("0" + convertedDate.getMinutes()).slice(-2);
-				var seconds = ("0" + convertedDate.getSeconds()).slice(-2);
-				formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-				break;
-
-			case 'atTimeOnDate':
-				var hours = convertedDate.getHours();
-				var minutes = ("0" + convertedDate.getMinutes()).slice(-2);
-				var period = hours >= 12 ? 'PM' : 'AM';
-				var hour12 = hours % 12 || 12;
-
-				var dayNum = convertedDate.getDate();
-				var daySuffix;
-				if (dayNum >= 11 && dayNum <= 13) {
-					daySuffix = 'th';
-				} else {
-					switch (dayNum % 10) {
-						case 1: daySuffix = 'st'; break;
-						case 2: daySuffix = 'nd'; break;
-						case 3: daySuffix = 'rd'; break;
-						default: daySuffix = 'th';
-					}
-				}
-
-				var monthName = convertedDate.toLocaleString(undefined, { month: 'long' });
-				var year = convertedDate.getFullYear();
-
-				formattedDate = ` at ${hour12}:${minutes} ${period} on ${dayNum}${daySuffix} ${monthName} ${year}`;
-				break;
-
-			default:
-				formattedDate = convertedDate.toLocaleDateString();
-				break;
-		}
-
-		return formattedDate;
-	} else {
-		return false;
-	}
-}
-
-
-// Change price format
-function changePriceFormat(price, customLocale = '') {
-	price = !isNaN(parseFloat(price)) ? parseFloat(price) : 0.00;
-	var formatLocale = bm_normal_object.price_format ? bm_normal_object.price_format : 'it-IT';
-	formatLocale = formatLocale.replace('_', '-');
-	var currency = bm_normal_object.currency_type ? bm_normal_object.currency_type : 'EUR';
-
-	const formattedPrice = new Intl.NumberFormat((customLocale != '' ? customLocale : formatLocale), {
-		// style: 'currency',
-		// currency: currency,
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(price);
-
-	return formattedPrice;
-}
-
-
-
-
-// Pagination
-function generatePagination(pageNumber, baseUrl, totalPages) {
-	var pagination = jQuery("<ul class='page-numbers'></ul>");
-
-	// "Previous" link
-	var previousPage = pageNumber - 1;
-	if (previousPage > 0) {
-		var previousLink = jQuery("<li><a href='" + baseUrl + previousPage + "'>" + bm_normal_object.previous + "</a></li>");
-		pagination.append(previousLink);
-	}
-
-	// numeric page links
-	for (var i = 1; i <= totalPages; i++) {
-		var pageLink = jQuery("<li><a href='" + baseUrl + i + "'>" + i + "</a></li>");
-		if (i === pageNumber) {
-			pageLink.addClass("active");
-		}
-		pagination.append(pageLink);
-	}
-
-	// "Next" link
-	var nextPage = pageNumber + 1;
-	if (nextPage <= totalPages) {
-		var nextLink = jQuery("<li><a href='" + baseUrl + nextPage + "'>" + bm_normal_object.next + "</a></li>");
-		pagination.append(nextLink);
-	}
-
-	return pagination;
-}
-
-
 // Show module pop up message
 jQuery(document).ready(function ($) {
 	$("#close-popup-message").click(function () {
 		hideMessage();
 	});
 });
-
-
-// Show module pop up message
-function showMessage(message, type) {
-	jQuery("#popup-message").text(message ? message : bm_error_object.server_error);
-	if (type === "success") {
-		jQuery("#popup-message-container").css("background-color", "#4CAF50");
-	} else if (type === "error") {
-		jQuery("#popup-message-container").css("background-color", "#2271b1");
-	} else {
-		jQuery("#popup-message-container").css("background-color", "#2271b1");
-	}
-
-	jQuery("#popup-message-overlay, #popup-message-container").fadeIn();
-}
-
-
-// Hide module pop up message
-function hideMessage() {
-	jQuery("#popup-message-overlay, #popup-message-container").fadeOut();
-}
 
 
 // Check validity of age values entered in service
@@ -8387,8 +7644,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-
-
 // Multiselect
 function initializeMultiselect(a) {
 	var placeholder = bm_normal_object.choose_option;
@@ -8438,11 +7693,6 @@ function initializeMultiselect(a) {
 		}
 	});
 }
-
-
-
-
-
 
 
 // Process form Validation
@@ -8566,24 +7816,6 @@ function add_process_form_validation() {
 		showMessage(bm_error_object.server_error, 'error');
 		return false;
 	}
-}
-
-
-// Check if two arrays has a common element
-function hasCommonElement(arr1, arr2) {
-	var hasCommon = false;
-	if (arr1.length > 0 && arr2.length > 0) {
-		jQuery.each(arr2, function (index, value) {
-			if (jQuery.inArray(value, arr1) != -1) {
-				hasCommon = true;
-			}
-			if (hasCommon) {
-				return false;
-			}
-		});
-	}
-
-	return hasCommon;
 }
 
 
@@ -8794,8 +8026,6 @@ function bm_resend_email(type='') {
 		}
 	});
 }
-
-
 
 
 jQuery(document).ready(function () {
@@ -9018,29 +8248,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-// Copy text to clipboard
-function bm_copy_text(element) {
-    element.select();
-    element.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(element.value);
-    
-    // Update tooltip
-    var tooltip = element.nextElementSibling;
-    if (tooltip) {
-        tooltip.innerHTML = bm_normal_object.copied_to_clipboard;
-    }
-}
-
-
-// Copy text to clipboard message
-function bm_copy_message(element) {
-    var tooltip = element.nextElementSibling;
-    if (tooltip) {
-        tooltip.innerHTML = bm_normal_object.copy_to_clipboard;
-    }
-}
-
-
 // Global payment settings validation
 function bm_payment_settings_validation() {
 	jQuery('.errortext').html('');
@@ -9153,106 +8360,6 @@ function change_flexi_language($this) {
 			return false;
 		}
 	});
-}
-
-
-// Array sum
-function array_sum(arr) {
-	return arr.reduce((a, b) => a + b, 0);
-}
-
-
-function customer_form_validation() {
-	let b = 0;
-	jQuery('.errortext').html('').hide();
-	jQuery('.billing_field_errortext').html('').hide();
-
-	const tel_pattern = /([0-9]{10})|(\([0-9]{3}\)\s+[0-9]{3}\-[0-9]{4})/;
-
-	jQuery('.bm_required').each(function () {
-		const input = jQuery(this).find('input, select');
-		const value = jQuery.trim(input.val());
-
-		if (!value) {
-			jQuery(this).find('.errortext').html(bm_error_object.required_field).show();
-			b++;
-		} else if (input.attr('type') === 'email') {
-			const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			if (!regex.test(value)) {
-				jQuery(this).find('.errortext').html(bm_error_object.invalid_email).show();
-				b++;
-			}
-		} else if (input.attr('id') === 'tel') {
-			if (!tel_pattern.test(value)) {
-				jQuery(this).find('.errortext').html(bm_error_object.invalid_contact).show();
-				b++;
-			}
-		}
-	});
-
-	if (jQuery('#billing_contact').val() == '') {
-		jQuery('.billing_contact_field').find('.billing_field_errortext').html(bm_error_object.required_field).show();
-		b++;
-	} else if (!tel_pattern.test(jQuery('#billing_contact').val())) {
-		jQuery('.billing_contact_field').find('.billing_field_errortext').html(bm_error_object.invalid_contact).show();
-		b++;
-	}
-
-	if (jQuery('#shipping_contact').val() == '') {
-		jQuery('.shipping_contact_field').find('.billing_field_errortext').html(bm_error_object.required_field).show();
-		b++;
-	} else if (!tel_pattern.test(jQuery('#shipping_contact').val())) {
-		jQuery('.shipping_contact_field').find('.billing_field_errortext').html(bm_error_object.invalid_contact).show();
-		b++;
-	}
-
-
-	if (b > 0) {
-		return Promise.resolve(false);
-	}
-
-	const post = {
-		main_email: jQuery('#customer_email').val(),
-		billing_email: jQuery('#billing_email').val(),
-		shipping_email: jQuery('#shipping_email').val(),
-		customer_id: getUrlParameter('id'),
-	};
-
-	const data = {
-		post: post,
-		nonce: bm_ajax_object.nonce,
-	};
-
-	return bmRestRequest('bm_check_if_exisiting_customer', data)
-		.then(response => {
-			let c = 0;
-
-			if (response.success) {
-				if (response.data) {
-					if (response.data.main_email) {
-						jQuery('#customer_email').next('.errortext').html(bm_error_object.existing_mail).show();
-						c++;
-					}
-					if (response.data.billing_email) {
-						jQuery('#billing_email').next('.errortext').html(bm_error_object.existing_mail).show();
-						c++;
-					}
-					if (response.data.shipping_email) {
-						jQuery('#shipping_email').next('.errortext').html(bm_error_object.existing_mail).show();
-						c++;
-					}
-				}
-			} else {
-				showMessage(bm_error_object.server_error, 'error');
-				c++;
-			}
-
-			return c === 0;
-		})
-		.catch(() => {
-			showMessage(bm_error_object.server_error, 'error');
-			return false;
-		});
 }
 
 
@@ -9458,8 +8565,6 @@ function bm_show_vocuher_recipient_info($this) {
 			jQuery('.loader_modal').hide();
 		});
 }
-
-
 
 
 // Sticky header
@@ -9742,9 +8847,4 @@ jQuery(document).on('click', '.bm-view-pdf-sample', function(e) {
     });
 });
 
-// Close modal function
-function closeModal(modalId) {
-    jQuery('#' + modalId).removeClass('active-modal');
-    jQuery('.pdf-sample-container').html('');
-}
 

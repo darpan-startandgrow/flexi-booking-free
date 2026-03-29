@@ -233,7 +233,12 @@ class Booking_Management_Admin {
 			wp_enqueue_script( 'jquery-ui', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-ui.js', array( 'jquery' ), $this->version, false );
 			wp_enqueue_script( 'intl-tel-input', plugin_dir_url( __FILE__ ) . 'js/booking-management-intl-tel-input.js', array( 'jquery' ), $this->version, false );
 			wp_enqueue_script( 'multiselect', plugin_dir_url( __FILE__ ) . 'js/booking-management-multiselect.js', array( 'jquery' ), $this->version, false );
-			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-admin.js', array( 'jquery' ), $this->version, false );
+			wp_enqueue_script( 'bm-admin-utils', plugin_dir_url( __FILE__ ) . 'js/bm-admin-utils.js', array( 'jquery' ), $this->version, false );
+			wp_enqueue_script( 'bm-admin-categories', plugin_dir_url( __FILE__ ) . 'js/bm-admin-categories.js', array( 'jquery', 'bm-admin-utils' ), $this->version, false );
+			wp_enqueue_script( 'bm-admin-customers', plugin_dir_url( __FILE__ ) . 'js/bm-admin-customers.js', array( 'jquery', 'bm-admin-utils' ), $this->version, false );
+			wp_enqueue_script( 'bm-admin-services', plugin_dir_url( __FILE__ ) . 'js/bm-admin-services.js', array( 'jquery', 'bm-admin-utils' ), $this->version, false );
+			wp_enqueue_script( 'bm-admin-orders', plugin_dir_url( __FILE__ ) . 'js/bm-admin-orders.js', array( 'jquery', 'bm-admin-utils' ), $this->version, false );
+			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-admin.js', array( 'jquery', 'bm-admin-utils', 'bm-admin-categories', 'bm-admin-customers', 'bm-admin-services', 'bm-admin-orders' ), $this->version, false );
 			wp_enqueue_script( 'jquery-datepicker-i18n', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-datepicker-i18n.min.js', array( 'jquery' ), $this->version, true );
 			wp_enqueue_script( 'jquery-moment', plugin_dir_url( __FILE__ ) . 'js/booking-management-momentjs.js', array( 'jquery' ), $this->version, true );
 			wp_enqueue_script( 'jquery-fullcalendar', plugin_dir_url( __FILE__ ) . 'js/booking-management-jquery-fullcalendar.js', array( 'jquery', 'jquery-moment' ), $this->version, true );

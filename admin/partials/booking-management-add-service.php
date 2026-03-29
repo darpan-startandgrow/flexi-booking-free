@@ -208,63 +208,10 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
     $exclude = array( '_wpnonce', '_wp_http_referer', 'savesvc', 'upsvc' );
 
-    // --- Service Details data preparation ---
-    $raw_category = isset( $_POST['service_category'] )
-        ? ( is_array( $_POST['service_category'] ) ? reset( $_POST['service_category'] ) : $_POST['service_category'] )
-        : null;
-
-    $service_details_data = array(
-        'service_name'           => isset( $_POST['service_name'] ) ? ucfirst( filter_input( INPUT_POST, 'service_name' ) ) : '',
-        'service_calendar_title' => isset( $_POST['service_calendar_title'] ) ? ucfirst( filter_input( INPUT_POST, 'service_calendar_title' ) ) : '',
-        'service_category'       => null !== $raw_category ? absint( $raw_category ) : null,
-        'service_duration'       => isset( $_POST['service_duration'] ) ? filter_input( INPUT_POST, 'service_duration' ) : null,
-        'service_operation'      => isset( $_POST['service_operation'] ) ? filter_input( INPUT_POST, 'service_operation' ) : null,
-        'default_max_cap'        => ! empty( $_POST['default_max_cap'] ) ? filter_input( INPUT_POST, 'default_max_cap' ) : 1,
-        'is_service_front'       => isset( $_POST['is_service_front'] ) ? 1 : 0,
-        'service_short_desc'     => isset( $_POST['service_short_desc'] ) ? filter_input( INPUT_POST, 'service_short_desc' ) : null,
-        'service_desc'           => isset( $_POST['service_desc'] ) ? filter_input( INPUT_POST, 'service_desc' ) : null,
-        'default_price'          => isset( $_POST['default_price'] ) ? filter_input( INPUT_POST, 'default_price' ) : null,
-        'external_price_module'  => isset( $_POST['external_price_module'] ) ? filter_input( INPUT_POST, 'external_price_module' ) : null,
-        'service_image_guid'     => isset( $_POST['svc_image_id'] ) ? filter_input( INPUT_POST, 'svc_image_id' ) : 0,
-        'is_linked_wc_product'   => isset( $_POST['is_linked_wc_product'] ) ? 1 : 0,
-        'wc_product'             => isset( $_POST['is_linked_wc_product'] ) ? filter_input( INPUT_POST, 'wc_product' ) : null,
-        'service_settings'       => isset( $_POST['service_settings'] ) ? filter_input( INPUT_POST, 'service_settings', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-    );
-
-    // --- Unavailability data preparation ---
-    $raw_service_options = isset( $_POST['service_options'] )
-        ? filter_input( INPUT_POST, 'service_options', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY )
-        : null;
-
-    $unavailability_data = array(
-        'service_unavailability' => isset( $_POST['service_unavailability'] ) ? filter_input( INPUT_POST, 'service_unavailability', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY ) : null,
-        'service_options'        => ( $raw_service_options && array_filter( $raw_service_options ) ) ? $raw_service_options : null,
-    );
-
-    $availability_periods_new = isset( $_POST['availability_periods_new'] )
-        ? filter_input( INPUT_POST, 'availability_periods_new', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY )
-        : array();
-
-    $availability_periods_existing = isset( $_POST['availability_periods'] ) && isset( $_POST['availability_periods']['existing'] )
-        ? array_map( 'absint', $_POST['availability_periods']['existing'] )
-        : array();
-
-    // --- Gallery data preparation ---
-    $gallery_data = array(
-        'module_type' => isset( $svc_identifier ) ? $svc_identifier : '',
-        'image_guid'  => isset( $_POST['svc_gallery_image_id'] ) ? filter_input( INPUT_POST, 'svc_gallery_image_id' ) : null,
-    );
-
-    // --- Prices data preparation ---
-    $prices_data = array();
-
-    if ( isset( $_POST['variable_svc_prices'] ) ) {
-        $prices_data['variable_svc_prices'] = filter_input( INPUT_POST, 'variable_svc_prices', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-    }
-
-    if ( isset( $_POST['variable_svc_price_modules'] ) ) {
-        $prices_data['variable_svc_price_modules'] = filter_input( INPUT_POST, 'variable_svc_price_modules', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-    }
+    require __DIR__ . '/save-service-details.php';
+    require __DIR__ . '/save-unavailability.php';
+    require __DIR__ . '/save-gallery.php';
+    require __DIR__ . '/save-prices.php';
 
     $data = array_merge( $service_details_data, $unavailability_data );
 
