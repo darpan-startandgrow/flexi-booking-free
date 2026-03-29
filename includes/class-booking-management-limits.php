@@ -26,11 +26,6 @@ class Booking_Management_Limits {
 	const FREE_VOUCHER_LIMIT = 20;
 
 	/**
-	 * Maximum number of active notification processes in the free version.
-	 */
-	const FREE_NOTIFICATION_PROCESS_LIMIT = 2;
-
-	/**
 	 * Maximum number of active mail templates in the free version.
 	 */
 	const FREE_MAIL_TEMPLATE_LIMIT = 9;
@@ -169,37 +164,6 @@ class Booking_Management_Limits {
 	 */
 	public static function can_create_form() {
 		return self::is_pro_active();
-	}
-
-	/**
-	 * Check if a new notification process can be created.
-	 *
-	 * Free version: limited to FREE_NOTIFICATION_PROCESS_LIMIT active processes.
-	 * Pro version: unlimited.
-	 *
-	 * @return bool
-	 */
-	public static function can_create_notification_process() {
-		if ( self::is_pro_active() ) {
-			return true;
-		}
-		$dbhandler = new BM_DBhandler();
-		$count     = $dbhandler->bm_count( 'EVENTNOTIFICATION' );
-
-		return ( (int) $count < self::FREE_NOTIFICATION_PROCESS_LIMIT );
-	}
-
-	/**
-	 * Get the remaining notification process count for the free version.
-	 *
-	 * @return int Remaining processes allowed.
-	 */
-	public static function get_remaining_notification_processes() {
-		$dbhandler = new BM_DBhandler();
-		$count     = (int) $dbhandler->bm_count( 'EVENTNOTIFICATION' );
-		$remaining = self::FREE_NOTIFICATION_PROCESS_LIMIT - $count;
-
-		return max( 0, $remaining );
 	}
 
 	/**
@@ -492,11 +456,6 @@ class Booking_Management_Limits {
 				self::FREE_VOUCHER_LIMIT
 			),
 			'custom_fields'          => __( 'Adding new custom fields is a Pro feature. You can edit the default fields in the free version.', 'service-booking' ),
-			'notification_processes' => sprintf(
-				/* translators: %d: Maximum number of notification processes allowed */
-				__( 'You have reached the free limit of %d notification processes. Upgrade to Pro for unlimited processes.', 'service-booking' ),
-				self::FREE_NOTIFICATION_PROCESS_LIMIT
-			),
 			'mail_templates'         => sprintf(
 				/* translators: %d: Maximum number of mail templates allowed */
 				__( 'You have reached the free limit of %d mail templates. Upgrade to Pro for unlimited templates and all template types.', 'service-booking' ),

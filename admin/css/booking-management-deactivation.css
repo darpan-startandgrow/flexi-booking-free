@@ -1,0 +1,94 @@
+/**
+ * Deactivation feedback modal styles.
+ *
+ * @package Booking_Management
+ * @since   1.1.0
+ */
+
+#bm-deactivation-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.6);
+	z-index: 999999;
+	display: none;
+}
+
+#bm-deactivation-modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: #fff;
+	border-radius: 8px;
+	padding: 30px;
+	max-width: 480px;
+	width: 90%;
+	z-index: 1000000;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+	display: none;
+}
+
+#bm-deactivation-modal h3 {
+	margin: 0 0 15px;
+	font-size: 18px;
+	color: #23282d;
+}
+
+#bm-deactivation-modal p {
+	margin: 0 0 20px;
+	color: #555;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+#bm-deactivation-modal .bm-deactivation-actions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+#bm-deactivation-modal .bm-deactivation-actions button {
+	padding: 8px 18px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	background: #f7f7f7;
+	color: #555;
+	transition: background 0.2s;
+}
+
+#bm-deactivation-modal .bm-deactivation-actions button:hover {
+	background: #eee;
+}
+
+#bm-deactivation-modal .bm-btn-keep {
+	background: #0073aa;
+	color: #fff;
+	border-color: #0073aa;
+}
+
+#bm-deactivation-modal .bm-btn-keep:hover {
+	background: #005a87;
+	border-color: #005a87;
+}
+
+#bm-deactivation-modal .bm-btn-delete {
+	background: #dc3232;
+	color: #fff;
+	border-color: #dc3232;
+}
+
+#bm-deactivation-modal .bm-btn-delete:hover {
+	background: #b52727;
+	border-color: #b52727;
+}
+
+#bm-deactivation-modal .bm-btn-cancel {
+	background: #f7f7f7;
+	color: #555;
+}

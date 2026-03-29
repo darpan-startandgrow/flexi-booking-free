@@ -70,11 +70,6 @@ $feature_map = array(
 		'description' => __( 'Create entirely new custom booking fields to collect additional information from your customers.', 'service-booking' ),
 		'icon'        => 'dashicons-forms',
 	),
-	'bm_all_notification_processes' => array(
-		'title'       => __( 'Notification Processes', 'service-booking' ),
-		'description' => __( 'Set up automated notification workflows with unlimited processes and templates.', 'service-booking' ),
-		'icon'        => 'dashicons-bell',
-	),
 	'bm_email_records'              => array(
 		'title'       => __( 'Email Records', 'service-booking' ),
 		'description' => __( 'View and manage all email communication records with detailed logs and resend capabilities.', 'service-booking' ),
@@ -151,11 +146,6 @@ $pro_features = array(
 		'icon'  => 'dashicons-camera',
 		'title' => __( 'QR Code Scanning', 'service-booking' ),
 		'desc'  => __( 'Automated QR code check-in processing', 'service-booking' ),
-	),
-	array(
-		'icon'  => 'dashicons-email-alt',
-		'title' => __( 'Unlimited Notifications', 'service-booking' ),
-		'desc'  => __( 'Unlimited notification processes and templates', 'service-booking' ),
 	),
 	array(
 		'icon'  => 'dashicons-forms',

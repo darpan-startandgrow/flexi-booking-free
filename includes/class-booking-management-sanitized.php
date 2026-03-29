@@ -407,62 +407,6 @@ class BM_Sanitizer {
 	} //end get_sanitized_slotcount_field()
 
 
-	public function get_sanitized_managecolumns_field( $field, $value ) {
-		switch ( $field ) {
-			case 'id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'language':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'user_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'default_columns':
-				$value = $value;
-				break;
-			case 'screen_options':
-				$value = $value;
-				break;
-			case 'is_admin':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'view_type':
-				$value = sanitize_text_field( $value );
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		}
-
-		return $value;
-	} //end get_sanitized_managecolumns_field()
-
-
-	public function get_sanitized_savesearch_field( $field, $value ) {
-		switch ( $field ) {
-			case 'id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'user_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'search_data':
-				$value = $value;
-				break;
-			case 'is_admin':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'module':
-				$value = sanitize_text_field( $value );
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		}
-
-		return $value;
-	} //end get_sanitized_savesearch_field()
-
-
 	public function get_sanitized_extraslotcount_field( $field, $value ) {
 		switch ( $field ) {
 			case 'id':
@@ -618,9 +562,6 @@ class BM_Sanitizer {
 			case 'bm_new_order_admin_email_body':
 				$value = wp_kses_post( $value );
 				break;
-			case 'bm_stripe_secret_key':
-				$value = sanitize_text_field( $value );
-				break;
 			case 'bm_payment_session_time':
 				$value = sanitize_text_field( $value );
 				break;
@@ -643,9 +584,6 @@ class BM_Sanitizer {
 				$value = sanitize_text_field( $value );
 				break;
 			case 'bm_price_modules_per_page':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'bm_notification_processes_per_page':
 				$value = sanitize_text_field( $value );
 				break;
 			case 'bm_email_records_per_page':
@@ -801,9 +739,6 @@ class BM_Sanitizer {
 			case 'id':
 				$value = sanitize_text_field( $value );
 				break;
-			case 'stripe_id':
-				$value = sanitize_text_field( $value );
-				break;
 			case 'customer_name':
 				$value = sanitize_text_field( $value );
 				break;
@@ -890,86 +825,6 @@ class BM_Sanitizer {
 	} //end get_sanitized_booking_archive_field()
 
 
-	public function get_sanitized_failed_transactions_field( $field, $value ) {
-		switch ( $field ) {
-			case 'id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'customer_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'transaction_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'stripe_customer_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'amount':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'amount_currency':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'booking_data':
-				$value = $value;
-				break;
-			case 'customer_data':
-				$value = $value;
-				break;
-			case 'gift_data':
-				$value = $value;
-				break;
-			case 'is_refunded':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'refund_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'payment_status':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'refund_status':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'booking_key':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'checkout_key':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'mail_sent':
-				$value = sanitize_text_field( $value );
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		}
-
-		return $value;
-	} //end get_sanitized_transactions_field()
-
-
-	public function get_sanitized_external_service_price_module_field( $field, $value ) {
-		switch ( $field ) {
-			case 'id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'module_name':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'module_values':
-				$value = $value;
-				break;
-			case 'status':
-				$value = sanitize_text_field( $value );
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		} //end switch
-
-		return $value;
-	} //end get_sanitized_external_service_price_module_field()
-
-
 	public function get_sanitized_emails_field( $field, $value ) {
 		switch ( $field ) {
 			case 'id':
@@ -1025,37 +880,6 @@ class BM_Sanitizer {
 	} //end get_sanitized_emails_field()
 
 
-	public function get_sanitized_eventnotification_field( $field, $value ) {
-		switch ( $field ) {
-			case 'id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'name':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'type':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'trigger_conditions':
-				$value = $value;
-				break;
-			case 'time_offset':
-				$value = $value;
-				break;
-			case 'template_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'status':
-				$value = sanitize_text_field( $value );
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		} //end switch
-
-		return $value;
-	} //end get_sanitized_eventnotification_field()
-
-
 	public function get_sanitized_vouchers_field( $field, $value ) {
         switch ( $field ) {
 			case 'recipient_data':
@@ -1070,34 +894,6 @@ class BM_Sanitizer {
 
 		return $value;
 	} //end get_sanitized_vouchers_field()
-
-
-	public function get_sanitized_pdf_customization_field( $field, $value ) {
-        switch ( $field ) {
-			case 'booking_pdf_en':
-				$value = $value;
-				break;
-			case 'booking_pdf_it':
-				$value = $value;
-				break;
-			case 'voucher_pdf_en':
-				$value = $value;
-				break;
-			case 'voucher_pdf_it':
-				$value = $value;
-				break;
-			case 'customer_info_pdf_en':
-				$value = $value;
-				break;
-			case 'customer_info_pdf_it':
-				$value = $value;
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		}
-
-		return $value;
-	} //end get_sanitized_pdf_customization()
 
 
 	public function get_sanitized_checkin_field( $field, $value ) {
@@ -1121,110 +917,6 @@ class BM_Sanitizer {
 
 		return $input;
 	} //end remove_magic_quotes()
-
-	public function get_sanitized_coupon_field( $field, $value ) {
-		switch ( $field ) {
-			case 'id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'coupon_code':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'wc_order_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'service_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'discount_type':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'discount_amount':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'coupon_description':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'booking_id':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'expiry_date':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'coupon_unavailability':
-				$value = $value;
-				break;
-			case 'min_spend':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'is_individual_use':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'max_spend':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'per_person_used_once':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'overall_used_once':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'used_per_coupon_per_service':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'is_email_exclude':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'excluded_conditions':
-				$value = $value;
-				break;
-			case 'is_service_included':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'included_services':
-				$value = $value;
-				break;
-			case 'is_geographic_restrictions':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'geographic_restriction':
-				$value = $value;
-				break;
-			case 'is_active':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'coupon_used_count':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'coupon_used_data':
-				$value = $value;
-			case 'is_event_coupon':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'start_date_val':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'is_birthday_coupon':
-				$value = sanitize_text_field( $value );
-				break;
-
-			case 'cannot_merged':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'auto_apply':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'coupon_image_guid':
-				$value = sanitize_text_field( $value );
-				break;
-			default:
-				$value = sanitize_text_field( $value );
-		} //end switch
-
-		return $value;
-	} //end get_sanitized_coupon_field()
-
-
 
 	/**
 	 * Sanitize global extra fields.

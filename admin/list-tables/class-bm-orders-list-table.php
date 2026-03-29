@@ -207,9 +207,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 
 		// Determine the table source.
 		$table_key = 'BOOKING';
-		if ( (int) $failed_order_option === 1 ) {
-			$table_key = 'FAILED_TRANSACTIONS';
-		} elseif ( (int) $archived_order_option === 1 ) {
+		if ( (int) $archived_order_option === 1 ) {
 			$table_key = 'BOOKING_ARCHIVE';
 		}
 

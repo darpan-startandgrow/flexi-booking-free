@@ -179,7 +179,7 @@ if ( $existsting_booking_id > 0 ) {
 	<?php
 	return false; }
 
-if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) {
+
 	if ( ! empty( $flexi_booking ) && empty( $flexi_payment ) && empty( $pid ) ) {
 		if ( empty( $session_status ) ) {
 			if ( ! empty( $ordered_products ) ) {
@@ -499,25 +499,8 @@ if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) {
 		<div class="fullbox" id="main_payment_section">
 			<div class="part" id="payment_main_section_1">
 				<div class="formtable custom-formtable">
-					<form id="stripes_paymentFrm" class="hidden">
-						<div id="stripes_paymentElement"></div>
-						<div id="paymentButtonDiv">
-							<button id="paymentSubmitBtn" class="payment-form-btn payment-btn bgcolor" style="background:<?php echo esc_html( $svc_button_colour ) . '!important;'; ?>color:<?php echo esc_html( $svc_btn_txt_colour ) . '!important'; ?>">
-								<div class="spinner hidden" id="spinner"></div>
-								<span id="buttonText">
-								<?php
-									empty( $ordered_products['total'] ) ? esc_html_e( 'Free Booking', 'service-booking' ) : esc_html_e( 'Pay', 'service-booking' );
-								?>
-									&nbsp;
-									<?php
-									if ( isset( $ordered_products['total'] ) && ! empty( $ordered_products['total'] ) ) {
-										echo esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ordered_products['total'], true ) );
-									}
-									?>
-								</span>
-							</button>
-						</div>
-					</form>
+					<!-- Stripe payment form is a Pro-only feature. -->
+					<p style="padding:10px;"><?php esc_html_e( 'Online card payments require the Pro version.', 'service-booking' ); ?></p>
 				</div>
 			</div>
 			<div class="part" id="payment_main_section_2">
@@ -845,14 +828,7 @@ dataLayer.push(<?php echo wp_json_encode( $ga4_purchase_data ); ?>);
 		</div>
 		<?php
 	}
-} else {
-	?>
-	<div class="payment_info" style="background:<?php echo esc_html( $svc_button_colour ) . '!important;'; ?>color:<?php echo esc_html( $svc_btn_txt_colour ) . '!important'; ?>">
-		<div class="payment_info_div" style="cursor:pointer;">
-			<p class="error" style="text-align:center;"><?php esc_html_e( 'Payment gateway is not enabled !!', 'service-booking' ); ?></p>
-		</div>
-	</div>
-	<?php } ?>
+?>
 
 <div class="loader_modal">
 	<div class="checkout-spinner-box"><div class="checkout-spinner"></div><p><?php echo esc_html__( 'Loading...', 'service-booking' ); ?></p></div>
