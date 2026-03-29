@@ -63,57 +63,9 @@ if ( $mail_type == 'new_request' ) {
 	$mesage_subheader = esc_html__( 'A recipient has redeemed a gift voucher successfully.', 'service-booking' );
 }
 
-$coupon_discount = 0;
-
 if ( $mail_type == 'new_order' || $mail_type == 'approved_order' ) {
-	$price_module_data = $dbhandler->get_value( 'BOOKING', 'price_module_data', $order_id, 'id' );
-	$price_module_data = !empty( $price_module_data ) ? maybe_unserialize( $price_module_data ) : array();
 	$voucher_code      = $dbhandler->get_value( 'VOUCHERS', 'code', $order_id, 'booking_id' );
-	$coupons           = $dbhandler->get_value( 'BOOKING', 'coupons', $order_id, 'id' );
 	$total_discount    = $dbhandler->get_value( 'BOOKING', 'disount_amount', $order_id, 'id' );
-
-	if ( !empty( $price_module_data ) && is_array( $price_module_data ) ) {
-		$total_discounted_infants  = isset( $price_module_data['infant']['total'] ) ? intval( $price_module_data['infant']['total'] ) : 0;
-		$total_discounted_children = isset( $price_module_data['children']['total'] ) ? intval( $price_module_data['children']['total'] ) : 0;
-		$total_discounted_adults   = isset( $price_module_data['adult']['total'] ) ? intval( $price_module_data['adult']['total'] ) : 0;
-		$total_discounted_seniors  = isset( $price_module_data['senior']['total'] ) ? intval( $price_module_data['senior']['total'] ) : 0;
-
-		$infants_age_from  = isset( $price_module_data['infant']['age']['from'] ) ? intval( $price_module_data['infant']['age']['from'] ) : 0;
-		$children_age_from = isset( $price_module_data['children']['age']['from'] ) ? intval( $price_module_data['children']['age']['from'] ) : 0;
-		$adults_age_from   = isset( $price_module_data['adult']['age']['from'] ) ? intval( $price_module_data['adult']['age']['from'] ) : 0;
-		$seniors_age_from  = isset( $price_module_data['senior']['age']['from'] ) ? intval( $price_module_data['senior']['age']['from'] ) : 0;
-
-		$infants_age_to  = isset( $price_module_data['infant']['age']['to'] ) ? intval( $price_module_data['infant']['age']['to'] ) : 0;
-		$children_age_to = isset( $price_module_data['children']['age']['to'] ) ? intval( $price_module_data['children']['age']['to'] ) : 0;
-		$adults_age_to   = isset( $price_module_data['adult']['age']['to'] ) ? intval( $price_module_data['adult']['age']['to'] ) : 0;
-		$seniors_age_to  = isset( $price_module_data['senior']['age']['to'] ) ? intval( $price_module_data['senior']['age']['to'] ) : 0;
-
-		$infants_total_discount  = isset( $price_module_data['infant']['total_discount'] ) ? floatval( $price_module_data['infant']['total_discount'] ) : 0;
-		$children_total_discount = isset( $price_module_data['children']['total_discount'] ) ? floatval( $price_module_data['children']['total_discount'] ) : 0;
-		$adults_total_discount   = isset( $price_module_data['adult']['total_discount'] ) ? floatval( $price_module_data['adult']['total_discount'] ) : 0;
-		$seniors_total_discount  = isset( $price_module_data['senior']['total_discount'] ) ? floatval( $price_module_data['senior']['total_discount'] ) : 0;
-
-		$infants_total  = isset( $price_module_data['infant']['total_cost'] ) ? floatval( $price_module_data['infant']['total_cost'] ) : 0;
-		$children_total = isset( $price_module_data['children']['total_cost'] ) ? floatval( $price_module_data['children']['total_cost'] ) : 0;
-		$adults_totalt  = isset( $price_module_data['adult']['total_cost'] ) ? floatval( $price_module_data['adult']['total_cost'] ) : 0;
-		$seniors_total  = isset( $price_module_data['senior']['total_cost'] ) ? floatval( $price_module_data['senior']['total_cost'] ) : 0;
-
-		$infants_discount_type  = isset( $price_module_data['infant']['discount_type'] ) ? $price_module_data['infant']['discount_type'] : 'positive';
-		$children_discount_type = isset( $price_module_data['children']['discount_type'] ) ? $price_module_data['children']['discount_type'] : 'positive';
-		$adults_discount_type   = isset( $price_module_data['adult']['discount_type'] ) ? $price_module_data['adult']['discount_type'] : 'positive';
-		$seniors_discount_type  = isset( $price_module_data['senior']['discount_type'] ) ? $price_module_data['senior']['discount_type'] : 'positive';
-
-		$group_discount = isset( $price_module_data['group_discount'] ) ? floatval( $price_module_data['group_discount'] ) : 0;
-		$discount_type  = isset( $price_module_data['discount_type'] ) ? $price_module_data['discount_type'] : 'positive';
-	}
-
-	if ( !empty( $coupons ) ) {
-		if ( $group_discount > 0 ) {
-			$coupon_discount = $total_discount > 0 ? ( $total_discount - ( $infants_total_discount + $children_total_discount + $group_discount ) ) : 0;
-		} else {
-			$coupon_discount = $total_discount > 0 ? ( $total_discount - ( $infants_total_discount + $children_total_discount + $adults_total_discount + $seniors_total_discount ) ) : 0;
-		}
-	}
 }
 
 ?>
@@ -416,98 +368,7 @@ if ( $mail_type == 'new_order' || $mail_type == 'approved_order' ) {
                   </tr>
                </table>
                <?php
-				if ( !empty( $price_module_data ) || !empty( $coupons ) ) {
-					?>
-                   <table class="billing-shipping-notification noborder">
-                       <tr>
-                           <th>
-                           <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>    
-                           <?php esc_html_e( 'This order has', 'service-booking' ); ?></th>
-                       </tr>
-					<?php
-					if ( !empty( $price_module_data ) && is_array( $price_module_data ) ) {
-                        if ( !empty( $total_discounted_infants ) ) {
-                            $infants_total_discount = $bmrequests->bm_fetch_price_in_global_settings_format( $infants_total_discount, true );
-                            $class                  = $infants_discount_type == 'negative' ? 'negative_discount' : 'postive_price_module_discount';
-                            ?>
-                    <tr>
-                        <td class="addresstext addresstext-notic">
-                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-							<?php echo esc_html( $total_discounted_infants ) . ' ' . esc_html__( 'infant/s of the age group from ', 'service-booking' ) . esc_html( $infants_age_from ) . ' ' . esc_html__( 'to ', 'service-booking' ) . esc_html( $infants_age_to ) . ' ' . esc_html__( 'with total discount of ' ) . '<span class=' . esc_html( $class ) . '>' . esc_html( $infants_total_discount ) . '</span>'; ?>
-                        </td>
-                    </tr>
-                    <?php } ?>
-
-							 <?php
-								if ( !empty( $total_discounted_children ) ) {
-									$children_total_discount = $bmrequests->bm_fetch_price_in_global_settings_format( $children_total_discount, true );
-									$class                   = $children_discount_type == 'negative' ? 'negative_discount' : 'postive_price_module_discount';
-									?>
-                    <tr>
-                        <td class="addresstext addresstext-notic">
-                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-									<?php
-									echo esc_html( $total_discounted_children ) . ' ' . esc_html__( 'child/children of the age group from ', 'service-booking' ) . esc_html( $children_age_from ) . ' ' . esc_html__( 'to ', 'service-booking' ) . esc_html( $children_age_to ) . ' ' . esc_html__( 'with total discount of ' ) . '<span class=' . esc_html( $class ) . '>' . esc_html( $children_total_discount ) . '</span>';
-									?>
-                        </td>
-                    </tr>
-						  <?php } ?>
-
-							 <?php
-								if ( empty( $group_discount ) ) {
-									if ( !empty( $total_discounted_adults ) ) {
-										 $adults_total_discount = $bmrequests->bm_fetch_price_in_global_settings_format( $adults_total_discount, true );
-										 $class                 = $adults_discount_type == 'negative' ? 'negative_discount' : 'postive_price_module_discount';
-										?>
-                    <tr>
-                        <td class="addresstext addresstext-notic">
-                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-										 <?php echo esc_html( $total_discounted_adults ) . ' ' . esc_html__( 'adult/s of the age group from ', 'service-booking' ) . esc_html( $adults_age_from ) . ' ' . esc_html__( 'to ', 'service-booking' ) . esc_html( $adults_age_to ) . ' ' . esc_html__( 'with total discount of ' ) . '<span class=' . esc_html( $class ) . '>' . esc_html( $adults_total_discount ) . '</span>'; ?>
-                        </td>
-                    </tr>
-									 <?php }; ?>
-
-									<?php
-									if ( !empty( $total_discounted_seniors ) ) {
-										 $seniors_total_discount = $bmrequests->bm_fetch_price_in_global_settings_format( $seniors_total_discount, true );
-										 $class                  = $seniors_discount_type == 'negative' ? 'negative_discount' : 'postive_price_module_discount';
-										?>
-                    <tr>
-                        <td class="addresstext addresstext-notic">
-                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-										 <?php echo esc_html( $total_discounted_seniors ) . ' ' . esc_html__( 'senior/s of the age group from ', 'service-booking' ) . ( $seniors_age_from ) . ' ' . esc_html__( 'to ', 'service-booking' ) . ( $seniors_age_to ) . ' ' . esc_html__( 'with total discount of ' ) . '<span class=' . esc_html( $class ) . '>' . esc_html( $seniors_total_discount ) . '</span>'; ?>
-                        </td>
-                    </tr>
-										<?php
-									}
-								} else {
-									$class = $negative_group_discount == 1 ? 'negative_discount' : 'positive_discount';
-									?>
-                            <tr>
-                        <td class="addresstext addresstext-notic">
-                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-									<?php echo esc_html( $total_discounted_adults + $total_discounted_seniors ) . ' ' . esc_html__( 'adult/s and senior/s of the age group from ', 'service-booking' ) . esc_html( $adults_age_from ) . ' ' . esc_html__( 'to ', 'service-booking' ) . esc_html( $seniors_age_to ) . ' ' . esc_html__( 'with total discount of ' ) . '<span class=' . esc_html( $class ) . '>' . esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $group_discount, true ) ) . '</span>'; ?>
-                        </td>
-                    </tr>
-									<?php
-								}
-								?>
-						 <?php
-					}
-					if ( !empty( $coupons ) && $coupon_discount > 0 ) {
-						$coupon_discount = $bmrequests->bm_fetch_price_in_global_settings_format( $coupon_discount, true );
-						?>
-                        <tr>
-                           <td class="addresstext addresstext-notic">
-                           <i class="fa fa-hand-o-right" aria-hidden="true"></i>
-						<?php echo esc_html__( 'coupon/s ', 'service-booking' ) . '<strong>' . esc_html( $coupons ) . '</strong>' . ' ' . esc_html__( 'with total discount of ', 'service-booking' ) . '<span class="postive_price_module_discount">' . esc_html( $coupon_discount ) . '</span>'; ?>
-                           </td>
-                        </tr>
-						<?php
-					}
-					?>
-               </table>
-            <?php } ?>
+				?>
                <!-- <table class="footer">
                   <tr>
                      <td colspan="2" class="copyright"><img src="<?php echo esc_url( $plugin_path . 'images/logo.png' ); ?>" style="width:200px;"/><br/><?php esc_html_e( 'Copyrights Reserved ', 'service-booking' ); ?> &copy; <?php echo esc_html( gmdate( 'Y' ) ); ?></td>
