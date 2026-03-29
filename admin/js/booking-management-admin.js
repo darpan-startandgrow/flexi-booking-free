@@ -299,13 +299,6 @@ jQuery(document).on('click', '#edittemplate', function () {
 });
 
 
-// Redirect to edit process page
-jQuery(document).on('click', '#editprocess', function () {
-	var id = jQuery(this).val();
-	window.location = 'admin.php?page=bm_add_notification_process&id=' + id;
-});
-
-
 // Redirect to edit order page
 jQuery(document).on('click', '#editorder', function () {
 	var id = jQuery(this).val();
@@ -491,59 +484,6 @@ jQuery(document).on('click', '#deltemplate', function () {
 
 				jQuery(".template_records").append(templateListing);
 				jQuery(".template_pagination").append(pagination);
-			}
-		});
-	}
-});
-
-
-// Remove a process
-jQuery(document).on('click', '#delprocess', function () {
-	if (confirm(bm_normal_object.sure_remove_process)) {
-		var post = {
-			'pagenum': sessionStorage.getItem("notificationProcessPagno") != null ? sessionStorage.getItem("notificationProcessPagno") : jQuery('#notification_process_pagenum').val(),
-			'base': jQuery(location).attr("href"),
-			'limit': jQuery.trim(jQuery('#limit_count').val()),
-			'id': jQuery(this).val(),
-		}
-
-		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-		bmRestRequest('bm_remove_process', data, function (response) {
-			var jsondata = bmSafeParse(response);
-			if (jsondata.status == true) {
-				jQuery(".notification_process_records").html('');
-				jQuery(".notification_process_pagination").html('');
-				var notificationProcesses = jsondata.notification_processes ? jsondata.notification_processes : [];
-				var process_types = jsondata.process_type ? jsondata.process_type : [];
-				var pagination = jsondata.pagination ? jsondata.pagination : '';
-				var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : 1;
-				var notificationProcessListing = '';
-				var j = 0;
-
-				if (notificationProcesses.length != 0) {
-					for (var i = 0; i < notificationProcesses.length; i++) {
-						notificationProcessListing += "<tr><form role='form' method='post'>" +
-							"<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-							"<td style='text-align: center;' title=" + (notificationProcesses[i].name ? notificationProcesses[i].name : '') + ">" + (notificationProcesses[i].name ? notificationProcesses[i].name.substring(0, 80) : '') + '...' + " </td>" +
-							"<td style='text-align: center;' title=" + (process_types[i] ? process_types[i] : '') + ">" + (process_types[i] ? process_types[i].substring(0, 80) : '') + '...' + " </td>" +
-							"<td style='text-align: center;' class='bm-checkbox-td'>" +
-							"<input name='bm_process_status' type='checkbox' id='bm_process_status_" + notificationProcesses[i].id + "' data-type='" + (notificationProcesses[i].type ? notificationProcesses[i].type : -1) + "' class='regular-text auto-checkbox bm_toggle' " + (notificationProcesses[i].status == 1 ? 'checked' : '') + " onchange='bm_change_process_visibility(this)'>" +
-							"<label for='bm_process_status_" + notificationProcesses[i].id + "'></label>" +
-							"</td>" +
-							"<td style='text-align: center;'>" +
-							"<button type='button' name='editprocess' class='edit-button' id='editprocess' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + notificationProcesses[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-							"<button type='button' name='delprocess' class='delete-button' id='delprocess' title='" + bm_normal_object.remove + "' value='" + notificationProcesses[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-							"</td>" +
-							"</form></tr>";
-						current_pagenumber++;
-						j++;
-					}
-				} else {
-					location.reload();
-				}
-
-				jQuery(".notification_process_records").append(notificationProcessListing);
-				jQuery(".notification_process_pagination").append(pagination);
 			}
 		});
 	}
@@ -8991,7 +8931,7 @@ jQuery(document).ready(function ($) {
 		'admin_page_bm_add_category': 8,
 		'admin_page_bm_add_template': 9,
 		'admin_page_bm_add_external_service_price': 11,
-		'admin_page_bm_add_notification_process': 12,
+
 		'flexibooking_page_bm_email_records': 13,
 		'flexibooking_page_bm_voucher_records': 14,
 		'flexibooking_page_bm_check_ins':15,
@@ -9030,90 +8970,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-// Add event condition box in event notification page
-function bm_add_condition_box() {
-	var last = jQuery('#conditional_content td.condition_field:last').attr("id");
-	var next = Number(last.split("_")[2]) + 1;
-
-	var option_box = "<td id='condition_field_" + next + "' class='condition_field'>" +
-		"<div id='trigger_condition_div' class='bminput bm_required'>" +
-		"<button type='button' class='bm_remove_event_condition' onclick='bm_remove_condition_box(this)'><i class='fa fa-remove'></i></button>" +
-		"<select name='trigger_conditions[type][" + next + "]' id='condition_type_" + next + "' onchange='bm_fetch_event_condition_value(this)' class='regular-text emailselect' style='width:20%;max-width:100% !important'>" +
-		"<option value='0'>" + bm_normal_object.service + "</option>" +
-		"<option value='1'>" + bm_normal_object.category + "</option>" +
-		"<option value='2'>" + bm_normal_object.order_status + "</option>" +
-		"<option value='3'>" + bm_normal_object.payment_status + "</option>" +
-		"<select>&nbsp;&nbsp;" +
-		"<select name='trigger_conditions[operator][" + next + "]' id='condition_operator_" + next + "' class='regular-text emailselect' style='width:20%;'>" +
-		"<option value='1'>" + bm_normal_object.equal_to + "</option>" +
-		"<option value='0'>" + bm_normal_object.not_equal_to + "</option>" +
-		"</select>&nbsp;&nbsp;" +
-		"<select name='trigger_conditions[values][" + next + "][]' id='condition_values_" + next + "' class='notification-multiselect' style='width:300px;' multiple='multiple'></select>" +
-		"<div class='errortext'></div></div></td>";
-
-	bm_return_value_for_event_condition_type(0, next);
-	jQuery('#conditional_content td.condition_field:last').after(option_box);
-	jQuery('#conditional_content td.condition_field:last select').focus();
-}
-
-
-// Remove condition box in event notification page
-function bm_remove_condition_box(a) {
-	var total = jQuery('#conditional_content td.condition_field').length;
-
-	if (total == 1) {
-		alert(bm_normal_object.at_least_one_condition);
-	} else if (confirm(bm_normal_object.sure_remove_condition)) {
-		jQuery(a).parents('td.condition_field').remove();
-	}
-}
-
-
-jQuery(document).ready(function ($) {
-	var current_screen = bm_normal_object.current_screen;
-	if (current_screen == 'admin_page_bm_add_notification_process') {
-		if (getUrlParameter('id') == '') {
-			bm_return_value_for_event_condition_type(0, 0);
-		} else if (getUrlParameter('id') != '' && !$('#is_condition').is(':checked')) {
-			bm_return_value_for_event_condition_type(0, 0);
-		} else if (getUrlParameter('id') != '' && $('#is_condition').is(':checked')) {
-			var total = $('.condition_field').length;
-			for (var i = 0; i < total; i++) {
-				initializeMultiselect('condition_values_' + i);
-			}
-		}
-	}
-});
-
-
-// Remove condition box in event notification page
-function bm_fetch_event_condition_value(a) {
-	var id = jQuery(a).attr('id');
-	var x = jQuery('#' + id).val();
-	var y = Number(id.split("_")[2]);
-	bm_return_value_for_event_condition_type(x, y);
-}
-
-
-function bm_return_value_for_event_condition_type(a, b) {
-	var post = {
-		'type': a,
-	}
-
-	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-	bmRestRequest('bm_fetch_event_condition_value', data, function (response) {
-		var jsondata = bmSafeParse(response);
-		var status = jsondata.status ? jsondata.status : '';
-		var value = jsondata.value ? jsondata.value : '';
-
-		if (status == true) {
-			jQuery('#condition_values_' + b).html(value);
-			initializeMultiselect('condition_values_' + b);
-		} else {
-			alert(bm_error_object.event_type_value_error);
-		}
-	});
-}
 
 
 // Multiselect
@@ -9166,36 +9022,6 @@ function initializeMultiselect(a) {
 	});
 }
 
-
-// Change process visiblity
-function bm_change_process_visibility($this) {
-	var process_id = $this.id.split('_')[3];
-	var inputStatus = jQuery($this).is(':checked') ? 1 : 0;
-	var type = jQuery($this).data('type');
-
-	var post = {
-		'id': process_id,
-		'status': inputStatus,
-		'type': type,
-	}
-
-	if (confirm(bm_normal_object.change_pro_visibility)) {
-		var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-		bmRestRequest('bm_change_process_visibility', data, function (response) {
-			var jsondata = bmSafeParse(response);
-			var status = jsondata.status ? jsondata.status : '';
-			if (status == 'error') {
-				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
-				showMessage(bm_error_object.active_process_type, 'error');
-			} else if (status == false) {
-				inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
-				showMessage(bm_error_object.server_error, 'error');
-			}
-		});
-	} else {
-		inputStatus == 1 ? jQuery('#' + $this.id).prop('checked', false) : jQuery('#' + $this.id).prop('checked', true);
-	}
-}
 
 
 // Update order transaction data
@@ -9959,72 +9785,7 @@ jQuery(document).ready(function ($) {
 			bm_sort_service_listing([], pagenum ? pagenum : '1');
 		}
 	});
-
-	$(document).on('click', 'div#notification_process_records_listing a.page-numbers', function (e) {
-		e.preventDefault();
-		var id = $(this).parents('div.listing_table').attr('id');
-		var divClass = id.split('_pagination')[0];
-		var hrefString = $(this).attr('href');
-		var pagenum = getUrlVars(hrefString)["pagenum"];
-
-		sessionStorage.setItem("notificationProcessPagno", pagenum);
-
-		if (divClass == 'notification_process_records_listing') {
-			$('#notification_process_pagenum').val(pagenum ? pagenum : '1');
-			bm_fetch_notification_processes_listing(pagenum ? pagenum : '1');
-		}
-	});
 });
-
-
-// Fetch notification processes
-function bm_fetch_notification_processes_listing(pagenum = '') {
-	var post = {
-		'pagenum': pagenum != '' ? pagenum : jQuery('#notification_process_pagenum').val(),
-		'base': jQuery(location).attr("href"),
-		'limit': jQuery.trim(jQuery('#limit_count').val()),
-	}
-
-	var data = { 'post': post, 'nonce': bm_ajax_object.nonce };
-	bmRestRequest('bm_fetch_notification_processes_listing', data, function (response) {
-		var jsondata = bmSafeParse(response);
-		if (jsondata.status == true) {
-			jQuery(".notification_process_records").html('');
-			jQuery(".notification_process_pagination").html('');
-			var notificationProcesses = jsondata.notification_processes ? jsondata.notification_processes : [];
-			var process_types = jsondata.process_type ? jsondata.process_type : [];
-			var pagination = jsondata.pagination ? jsondata.pagination : '';
-			var current_pagenumber = jsondata.current_pagenumber ? jsondata.current_pagenumber : 1;
-			var notificationProcessListing = '';
-			var j = 0;
-
-			if (notificationProcesses.length != 0) {
-				for (var i = 0; i < notificationProcesses.length; i++) {
-					notificationProcessListing += "<tr><form role='form' method='post'>" +
-						"<td style='text-align: center;'>" + (current_pagenumber ? current_pagenumber : (i + 1)) + "</td>" +
-						"<td style='text-align: center;' title=" + (notificationProcesses[i].name ? notificationProcesses[i].name : '') + ">" + (notificationProcesses[i].name ? notificationProcesses[i].name.substring(0, 80) : '') + '...' + " </td>" +
-						"<td style='text-align: center;' title=" + (process_types[i] ? process_types[i] : '') + ">" + (process_types[i] ? process_types[i].substring(0, 80) : '') + '...' + " </td>" +
-						"<td style='text-align: center;' class='bm-checkbox-td'>" +
-						"<input name='bm_process_status' type='checkbox' id='bm_process_status_" + notificationProcesses[i].id + "' data-type='" + (notificationProcesses[i].type ? notificationProcesses[i].type : -1) + "' class='regular-text auto-checkbox bm_toggle' " + (notificationProcesses[i].status == 1 ? 'checked' : '') + " onchange='bm_change_process_visibility(this)'>" +
-						"<label for='bm_process_status_" + notificationProcesses[i].id + "'></label>" +
-						"</td>" +
-						"<td style='text-align: center;'>" +
-						"<button type='button' name='editprocess' class='edit-button' id='editprocess' style='margin-right:3px' title='" + bm_normal_object.edit + "' value='" + notificationProcesses[i].id + "'><i class='fa fa-edit' aria-hidden='true'></i></button>" +
-						"<button type='button' name='delprocess' class='delete-button' id='delprocess' title='" + bm_normal_object.remove + "' value='" + notificationProcesses[i].id + "'><i class='fa fa-trash' aria-hidden='true' style='color:red'></i></button>" +
-						"</td>" +
-						"</form></tr>";
-					current_pagenumber++;
-					j++;
-				}
-			} else {
-				location.reload();
-			}
-
-			jQuery(".notification_process_records").append(notificationProcessListing);
-			jQuery(".notification_process_pagination").append(pagination);
-		}
-	});
-}
 
 
 // Prevent right click on payment settings page
