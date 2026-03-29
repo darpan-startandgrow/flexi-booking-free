@@ -63,6 +63,11 @@ class BM_PDF_Templates_List_Table extends WP_List_Table {
 	 * Prepare data for the table.
 	 */
 	public function prepare_items() {
+		$columns               = $this->get_columns();
+		$hidden                = get_hidden_columns( $this->screen );
+		$sortable              = $this->get_sortable_columns();
+		$this->_column_headers = array( $columns, $hidden, $sortable );
+
 		$this->items = array(
 			array(
 				'serial'      => 1,

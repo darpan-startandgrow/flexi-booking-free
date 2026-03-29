@@ -1,5 +1,5 @@
 <?php
-$dbhandler    = new BM_DBhandler();
+$dbhandler        = new BM_DBhandler();
 $categories_table = isset( $this ) && method_exists( $this, 'get_list_table' ) ? $this->get_list_table( 'bm_all_categories' ) : null;
 if ( ! $categories_table ) {
 	$categories_table = new BM_Categories_List_Table();
@@ -32,9 +32,6 @@ $cat_ids  = ! empty( $cat_ids ) && is_array( $cat_ids ) ? implode( ',', array_me
         <?php $categories_table->display(); ?>
     </form>
 </div>
-
-<input type="hidden" id="category_pagenum" value="<?php echo esc_attr( 1 ); ?>" />
-<input type="hidden" name="limit_count" id="limit_count" value="<?php echo esc_attr( $limit ); ?>" />
 
 <div class="popup-message-overlay" id="popup-message-overlay"></div>
 <div class="popup-message-container animate__animated animate__swing" id="popup-message-container">

@@ -1,30 +1,6 @@
 // Functions By Darpan
 
 jQuery(document).ready(function ($) {
-
-	function bmRestRequest(action, data, successCallback) {
-		var routePrefix = 'admin-action/';
-		return jQuery.ajax({
-			url: bm_ajax_object.rest_url + routePrefix + action,
-			method: 'POST',
-			data: data,
-			beforeSend: function(xhr) {
-				xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
-			},
-			success: successCallback
-		});
-	}
-
-	/**
-	 * Safely parse a response that may already be an object (auto-parsed by jQuery)
-	 * or still a JSON string.
-	 */
-	function bmSafeParse(response) {
-		if ( typeof response === 'string' ) {
-			return bmSafeParse(response);
-		}
-		return response;
-	}
 	$.datepicker.setDefaults($.datepicker.regional[bm_normal_object.current_language]);
 
 	// Success and Error Messages Display Limit
@@ -192,6 +168,30 @@ jQuery(document).ready(function ($) {
 		if ($("#existing_extra_content").not(':visible')) $("#existing_extra_content").show();
 	});
 });
+
+function bmRestRequest(action, data, successCallback) {
+	var routePrefix = 'admin-action/';
+	return jQuery.ajax({
+		url: bm_ajax_object.rest_url + routePrefix + action,
+		method: 'POST',
+		data: data,
+		beforeSend: function(xhr) {
+			xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+		},
+		success: successCallback
+	});
+}
+
+/**
+ * Safely parse a response that may already be an object (auto-parsed by jQuery)
+ * or still a JSON string.
+ */
+function bmSafeParse(response) {
+	if ( typeof response === 'string' ) {
+		return bmSafeParse(response);
+	}
+	return response;
+}
 
 
 // Ajax for sorting service listing on Page Load

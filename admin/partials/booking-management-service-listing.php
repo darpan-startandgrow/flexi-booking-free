@@ -92,9 +92,6 @@ $services_table->prepare_items();
     </div>
 </div>
 
-<input type="hidden" id="service_pagenum" value="<?php echo esc_attr( 1 ); ?>" />
-<input type="hidden" name="limit_count" id="limit_count" value="<?php echo esc_attr( $limit ); ?>" />
-
 <div class="popup-message-overlay" id="popup-message-overlay"></div>
 <div class="popup-message-container animate__animated animate__shakeY" id="popup-message-container">
     <span id="popup-message"></span>
