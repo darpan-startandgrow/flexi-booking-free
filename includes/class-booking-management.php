@@ -97,8 +97,7 @@ class Booking_Management {
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		/**
-		 * SMTP and Stripe are Pro-only features.
-		 * The Pro add-on initialises these via hooks.
+		 * Pro-only features are initialised via hooks.
 		 */
 		do_action( 'sg_booking_init_pro_connections' );
 
@@ -181,7 +180,7 @@ class Booking_Management {
 		 * Fires before core dependencies are fully loaded.
 		 *
 		 * The Pro add-on hooks here to load its own class files:
-		 * Stripe gateway, SMTP, vouchers, coupons, PDF customizer, etc.
+		 * SMTP, vouchers, coupons, PDF customizer, payment gateways, etc.
 		 *
 		 * @since 1.1.0
 		 */
@@ -393,7 +392,7 @@ class Booking_Management {
 
 		/**
 		 * Fires after the Lite public hooks are registered.
-		 * The Pro add-on registers its own coupon, voucher, Stripe,
+		 * The Pro add-on registers its own coupon, voucher, payment,
 		 * QR check-in, and PDF hooks here.
 		 *
 		 * @since 1.1.0

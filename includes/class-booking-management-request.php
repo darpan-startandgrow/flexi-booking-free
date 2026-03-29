@@ -2306,7 +2306,8 @@ class BM_Request {
      * @author Darpan
      */
     public function bm_create_default_pdf_contents() {
-        $dbhandler = new BM_DBhandler();
+        // PDF_CUSTOMIZATION table removed in free version; Pro add-on handles this.
+        return;
 
         /* -------------------------
         * BOOKING PDF – ENGLISH

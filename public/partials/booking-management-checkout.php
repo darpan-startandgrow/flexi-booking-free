@@ -179,6 +179,7 @@ if ( $existsting_booking_id > 0 ) {
 	<?php
 	return false; }
 
+// Stripe payment gateway is a Pro-only feature; this check evaluates false in the free version.
 if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) {
 	if ( ! empty( $flexi_booking ) && empty( $flexi_payment ) && empty( $pid ) ) {
 		if ( empty( $session_status ) ) {
@@ -499,25 +500,8 @@ if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) {
 		<div class="fullbox" id="main_payment_section">
 			<div class="part" id="payment_main_section_1">
 				<div class="formtable custom-formtable">
-					<form id="stripes_paymentFrm" class="hidden">
-						<div id="stripes_paymentElement"></div>
-						<div id="paymentButtonDiv">
-							<button id="paymentSubmitBtn" class="payment-form-btn payment-btn bgcolor" style="background:<?php echo esc_html( $svc_button_colour ) . '!important;'; ?>color:<?php echo esc_html( $svc_btn_txt_colour ) . '!important'; ?>">
-								<div class="spinner hidden" id="spinner"></div>
-								<span id="buttonText">
-								<?php
-									empty( $ordered_products['total'] ) ? esc_html_e( 'Free Booking', 'service-booking' ) : esc_html_e( 'Pay', 'service-booking' );
-								?>
-									&nbsp;
-									<?php
-									if ( isset( $ordered_products['total'] ) && ! empty( $ordered_products['total'] ) ) {
-										echo esc_html( $bmrequests->bm_fetch_price_in_global_settings_format( $ordered_products['total'], true ) );
-									}
-									?>
-								</span>
-							</button>
-						</div>
-					</form>
+					<!-- Stripe payment form is a Pro-only feature. -->
+					<p style="padding:10px;"><?php esc_html_e( 'Online card payments require the Pro version.', 'service-booking' ); ?></p>
 				</div>
 			</div>
 			<div class="part" id="payment_main_section_2">

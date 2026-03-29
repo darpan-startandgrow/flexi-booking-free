@@ -310,7 +310,7 @@ class Booking_Management_Public {
 		$normal['is_svc_by_cat_shortcode']   = $is_svc_by_cat_shortcode;
 		$normal['is_single_svc_shortcode']   = $is_single_svc_shortcode;
 		$normal['is_svc_calendar_shortcode'] = $is_svc_calendar_shortcode;
-		$normal['flexi_public_key']          = defined( 'STRIPE_PUBLISHABLE_KEY' ) ? STRIPE_PUBLISHABLE_KEY : '';
+		$normal['flexi_public_key']          = ''; // Stripe is a Pro-only feature.
 		$normal['flexi_card_options']        = wp_json_encode( $card_options );
 		$normal['plugin_directory']          = plugin_dir_path( __DIR__ );
 		$normal['current_page_title']        = get_the_title( $post_id );
