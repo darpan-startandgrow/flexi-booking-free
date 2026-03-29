@@ -330,7 +330,6 @@ if ( filter_input( INPUT_POST, 'savefrontorder' ) ) {
                                     $order_post['total_svc_slots']     = !empty( $total_service_booked ) ? $total_service_booked : 0;
                                     $order_post['total_ext_svc_slots'] = !empty( $extra_slots_booked ) ? array_sum( explode( ',', $extra_slots_booked ) ) : 0;
                                     $order_post['disount_amount']      = isset( $order_post['service_discount'] ) ? floatval( $order_post['service_discount'] ) : 0;
-                                    $order_post['price_module_data']   = isset( $order_post['has_discount'] ) && !empty( $svc_price_module_data ) ? maybe_serialize( $svc_price_module_data ) : null;
 
 
                                     if ( isset( $order_post['billing_details'] ) ) {

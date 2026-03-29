@@ -3915,3 +3915,11 @@ pre {
 .bm-duplicate-service:hover {
     color: #135e96;
 }
+/* Newsletter status indicators */
+.sg-newsletter-yes {
+    color: #46b450;
+    font-weight: 600;
+}
+.sg-newsletter-no {
+    color: #999;
+}

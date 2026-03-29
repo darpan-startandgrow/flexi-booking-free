@@ -15379,6 +15379,7 @@ class BM_Request {
 				'order_status'      => $this->bm_fetch_order_status_key_value( $order_data->order_status ?? 'pending' ),
 				'payment_status'    => $this->bm_fetch_payment_status( $order_data->payment_status ),
 				'discount'          => $this->bm_fetch_price_in_global_settings_format( $order_data->booking_discount, true ),
+				'newsletter'        => isset( $order_data->newsletter ) ? intval( $order_data->newsletter ) : 0,
 			),
 			'ordered_products' => $this->format_ordered_products( $order_data ),
 			'subtotal'         => $this->bm_fetch_price_in_global_settings_format( $order_data->subtotal, true ),

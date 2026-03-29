@@ -79,6 +79,10 @@ if ( ! $order_details ) {
                     <span class="field-label"><?php echo esc_html__( 'Payment Status', 'service-booking' ); ?></span>
                     <span class="field-value"><?php echo esc_html( $order_details['order_details']['payment_status'] ); ?></span>
                 </div>
+                <div class="label-box">
+                    <span class="field-label"><?php echo esc_html__( 'Newsletter', 'service-booking' ); ?></span>
+                    <span class="field-value"><?php echo ! empty( $order_details['order_details']['newsletter'] ) ? '<span class="sg-newsletter-yes">&#10003; ' . esc_html__( 'Subscribed', 'service-booking' ) . '</span>' : '<span class="sg-newsletter-no">' . esc_html__( 'Not subscribed', 'service-booking' ) . '</span>'; ?></span>
+                </div>
             </div>
 
         </div>
