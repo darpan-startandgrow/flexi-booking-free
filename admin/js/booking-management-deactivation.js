@@ -48,6 +48,14 @@
 	}
 
 	/**
+	 * Disable all modal buttons and overlay click to prevent re-entry.
+	 */
+	function disableAllActions() {
+		$('.bm-btn-cancel, .bm-btn-keep, .bm-btn-delete').prop('disabled', true).off('click');
+		$('#bm-deactivation-overlay').off('click');
+	}
+
+	/**
 	 * Proceed with deactivation by navigating to the original deactivate URL.
 	 */
 	function proceedDeactivation() {
@@ -84,6 +92,7 @@
 
 		// Keep Data — just deactivate without deleting anything.
 		$(document).on('click', '.bm-btn-keep', function () {
+			disableAllActions();
 			hideModal();
 			proceedDeactivation();
 		});
@@ -94,8 +103,10 @@
 				return;
 			}
 
+			disableAllActions();
 			var $btn = $(this);
-			$btn.prop('disabled', true).text(i18n.deleting || 'Deleting data…');
+			$btn.text(i18n.deleting || 'Deleting data…');
+			hideModal();
 
 			$.post(config.ajax_url, {
 				action: 'bm_delete_all_plugin_data',

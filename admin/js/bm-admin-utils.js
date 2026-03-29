@@ -504,3 +504,24 @@ window.bm_remove_hidden_class = BMUtils.bm_remove_hidden_class;
 window.getDaysArray = BMUtils.getDaysArray;
 window.showToDate = BMUtils.showToDate;
 window.closeModal = BMUtils.closeModal;
+
+// REST API request helper
+window.bmRestRequest = function(action, data, successCallback) {
+    return jQuery.ajax({
+        url: bm_ajax_object.rest_url + action,
+        method: 'POST',
+        data: data,
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader('X-WP-Nonce', bm_ajax_object.rest_nonce);
+        },
+        success: successCallback
+    });
+};
+
+// Safe JSON parse helper
+window.bmSafeParse = function(response) {
+    if ( typeof response === 'string' ) {
+        try { return JSON.parse(response); } catch(e) { return response; }
+    }
+    return response;
+};

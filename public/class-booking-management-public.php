@@ -201,7 +201,10 @@ class Booking_Management_Public {
 		wp_enqueue_script( 'jquery-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 		wp_enqueue_script( 'jquery-timeslot-fullcalendar-custom', plugin_dir_url( __FILE__ ) . 'js/booking-management-timeslot-fullcalendar-custom.js', array( 'jquery', 'jquery-moment', 'fullcalendar-moment', 'jquery-fullcalendar', 'jquery-daterangepicker' ), $this->version, true );
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-public.js', array( 'jquery' ), $this->version, true );
+		wp_enqueue_script( 'bm-public-utils', plugin_dir_url( __FILE__ ) . 'js/bm-public-utils.js', array( 'jquery' ), $this->version, true );
+		wp_enqueue_script( 'bm-public-booking', plugin_dir_url( __FILE__ ) . 'js/bm-public-booking.js', array( 'jquery', 'bm-public-utils' ), $this->version, true );
+		wp_enqueue_script( 'bm-public-calendar', plugin_dir_url( __FILE__ ) . 'js/bm-public-calendar.js', array( 'jquery', 'bm-public-utils' ), $this->version, true );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/booking-management-public.js', array( 'jquery', 'bm-public-utils', 'bm-public-booking', 'bm-public-calendar' ), $this->version, true );
 		$original_title = get_the_title( $post_id );
 		global $sitepress;
 		if ( isset( $sitepress ) ) {

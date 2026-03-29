@@ -277,4 +277,4 @@ function run_booking_management() {
 }//end run_booking_management()
 
 
-run_booking_management();
+add_action( 'plugins_loaded', 'run_booking_management' );
