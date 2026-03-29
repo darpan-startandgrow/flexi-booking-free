@@ -18,7 +18,3 @@ $prices_data = array();
 if ( isset( $_POST['variable_svc_prices'] ) ) {
     $prices_data['variable_svc_prices'] = filter_input( INPUT_POST, 'variable_svc_prices', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
 }
-
-if ( isset( $_POST['variable_svc_price_modules'] ) ) {
-    $prices_data['variable_svc_price_modules'] = filter_input( INPUT_POST, 'variable_svc_price_modules', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-}

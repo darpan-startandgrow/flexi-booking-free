@@ -7087,7 +7087,7 @@ class Booking_Management_Admin {
     }
 
     /**
-     * Get chart data for revenue trends (gross, returns, coupons, net).
+     * Get chart data for revenue trends (gross, returns, net).
      */
     public function bm_get_revenue_chart_data_join( $date_from, $date_to ) {
         $date_range = $this->bm_generate_date_range( $date_from, $date_to );

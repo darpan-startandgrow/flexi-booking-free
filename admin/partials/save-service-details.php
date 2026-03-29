@@ -29,7 +29,6 @@ $service_details_data = array(
     'service_short_desc'     => isset( $_POST['service_short_desc'] ) ? filter_input( INPUT_POST, 'service_short_desc' ) : null,
     'service_desc'           => isset( $_POST['service_desc'] ) ? filter_input( INPUT_POST, 'service_desc' ) : null,
     'default_price'          => isset( $_POST['default_price'] ) ? filter_input( INPUT_POST, 'default_price' ) : null,
-    'external_price_module'  => isset( $_POST['external_price_module'] ) ? filter_input( INPUT_POST, 'external_price_module' ) : null,
     'service_image_guid'     => isset( $_POST['svc_image_id'] ) ? filter_input( INPUT_POST, 'svc_image_id' ) : 0,
     'is_linked_wc_product'   => isset( $_POST['is_linked_wc_product'] ) ? 1 : 0,
     'wc_product'             => isset( $_POST['is_linked_wc_product'] ) ? filter_input( INPUT_POST, 'wc_product' ) : null,
