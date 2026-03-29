@@ -834,6 +834,10 @@ class Booking_Management_Admin {
 	}
 
 
+	/**
+	 * Add Order page — Pro-only feature in the free version.
+	 * Shows the Pro upsell page. The public-side booking form (shortcode) remains available.
+	 */
 	public function bm_add_order() {
 		$this->bm_pro_upsell_page();
 	}//end bm_add_order()

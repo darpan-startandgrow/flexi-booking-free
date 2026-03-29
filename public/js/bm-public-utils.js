@@ -2,6 +2,8 @@
  * BMPublicUtils - Common utility methods for public area.
  * @since 1.1.0
  */
+var slideIndex = 1;
+
 class BMPublicUtils {
     static bmPublicRestRequest(action, data, successCallback) {
         return jQuery.ajax({
@@ -21,7 +23,7 @@ class BMPublicUtils {
      */
     static bmSafeParse(response) {
         if ( typeof response === 'string' ) {
-            return bmSafeParse(response);
+            try { return JSON.parse(response); } catch(e) { return response; }
         }
         return response;
     }
@@ -132,11 +134,11 @@ class BMPublicUtils {
     }
 
     static galleryPlusSlides(n) {
-        showGallerySlides(slideIndex += n);
+        BMPublicUtils.showGallerySlides(slideIndex += n);
     }
 
     static galleryCurrentSlide(n) {
-        showGallerySlides(slideIndex = n);
+        BMPublicUtils.showGallerySlides(slideIndex = n);
     }
 
     static showGallerySlides(n) {

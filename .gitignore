@@ -6,3 +6,4 @@ src/mail-attachments/
 src/stripe/
 src/dompdf/
 src/phpqrcode/
+__pycache__/
