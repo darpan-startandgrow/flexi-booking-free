@@ -7431,7 +7431,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-// Moved to bm-admin-orders.js
 
 
 function resetNoOfServiceSelection() {
@@ -7440,7 +7439,6 @@ function resetNoOfServiceSelection() {
 }
 
 
-// Moved to bm-admin-orders.js
 
 
 // Reset order page extra service content
@@ -7466,10 +7464,8 @@ function resetCustomerDetails() {
 }
 
 
-// Moved to bm-admin-orders.js
 
 
-// Moved to bm-admin-orders.js
 
 
 // Fetch billing details from order page
@@ -7481,7 +7477,6 @@ jQuery(document).ready(function ($) {
 });
 
 
-// Moved to bm-admin-orders.js
 
 
 //International tel input for phone form fields for backend order
@@ -7503,10 +7498,8 @@ function setIntlInputForCustomeForm() {
 }
 
 
-// Moved to bm-admin-orders.js
 
 
-// Moved to bm-admin-orders.js
 
 
 jQuery(document).ready(function ($) {
@@ -7879,16 +7872,12 @@ jQuery(document).ready(function ($) {
 });
 
 
-// Moved to bm-admin-orders.js
 
 
-// Moved to bm-admin-orders.js
 
 
-// Moved to bm-admin-orders.js
 
 
-// Moved to bm-admin-orders.js
 
 
 // Fetch order export options html
@@ -7948,7 +7937,6 @@ jQuery(document).on('click', '#exportButton', function () {
 });
 
 
-// Moved to bm-admin-orders.js
 
 
 // Fetch export data on click
@@ -7974,7 +7962,6 @@ jQuery(document).on('click', '#checkinexportButton', function () {
 });
 
 
-// Moved to bm-admin-orders.js
 
 
 // Handle special characters in export
@@ -8209,7 +8196,6 @@ function changePriceFormat(price, customLocale = '') {
 }
 
 
-// Moved to bm-admin-orders.js
 
 
 // Pagination
@@ -8455,10 +8441,8 @@ function initializeMultiselect(a) {
 
 
 
-// Moved to bm-admin-orders.js
 
 
-// Moved to bm-admin-orders.js
 
 
 // Process form Validation
@@ -8812,7 +8796,6 @@ function bm_resend_email(type='') {
 }
 
 
-// Moved to bm-admin-orders.js
 
 
 jQuery(document).ready(function () {
@@ -9477,7 +9460,6 @@ function bm_show_vocuher_recipient_info($this) {
 }
 
 
-// Moved to bm-admin-orders.js
 
 
 // Sticky header

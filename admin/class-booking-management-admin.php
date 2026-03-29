@@ -830,7 +830,7 @@ class Booking_Management_Admin {
 
 
 	public function bm_add_order() {
-		include 'partials/booking-management-add-order.php';
+		$this->bm_pro_upsell_page();
 	}//end bm_add_order()
 
 
