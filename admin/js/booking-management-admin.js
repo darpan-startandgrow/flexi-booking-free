@@ -2278,51 +2278,6 @@ class BMAdminCore {
     	jQuery('.svc_image_container').hide();
     }
 
-    // Service Form Tabs
-    static openSection(evt, sectionName) {
-
-    	// Remove Session Value If Exists
-    	if (sessionStorage.getItem("extravalue") != null) sessionStorage.removeItem("extravalue");
-    	if (sessionStorage.getItem("galleryvalue") != null) sessionStorage.removeItem("galleryvalue");
-    	if (sessionStorage.getItem("variableprice") != null) sessionStorage.removeItem("variableprice");
-    	if (sessionStorage.getItem("variablehour") != null) sessionStorage.removeItem("variablehour");
-    	if (sessionStorage.getItem("variablesaleswitch") != null) sessionStorage.removeItem("variablesaleswitch");
-    	if (sessionStorage.getItem("variablecapacity") != null) sessionStorage.removeItem("variablecapacity");
-    	if (sessionStorage.getItem("variabletimeslot") != null) sessionStorage.removeItem("variabletimeslot");
-    	if (sessionStorage.getItem("svcsettingstab") != null) sessionStorage.removeItem("svcsettingstab");
-
-
-    	// Remove Success/Error Messgaes If Exists
-    	jQuery('.calendar_errortext').hide();
-    	jQuery('.stopsales_errortext').hide();
-    	jQuery('.saleswitch_errortext').hide();
-    	jQuery('.capacity_calendar_errortext').hide();
-    	jQuery('.price_update_successtext').hide();
-    	jQuery('.stopsales_update_successtext').hide();
-    	jQuery('.saleswitch_update_successtext').hide();
-    	jQuery('.capacity_update_successtext').hide();
-    	jQuery('.calendar_errortext').html(' ');
-    	jQuery('.stopsales_errortext').html(' ');
-    	jQuery('.saleswitch_errortext').html(' ');
-    	jQuery('.capacity_calendar_errortext').html('');
-    	jQuery('.price_update_successtext').html('');
-    	jQuery('.stopsales_update_successtext').html('');
-    	jQuery('.saleswitch_update_successtext').html('');
-    	jQuery('.capacity_update_successtext').html('');
-
-    	// Tab Switch
-    	var i, tabcontent, tablinks;
-    	tabcontent = document.getElementsByClassName("tabcontent");
-    	for (i = 0; i < tabcontent.length; i++) {
-    		tabcontent[i].style.display = "none";
-    	}
-    	tablinks = document.getElementsByClassName("tablinks");
-    	for (i = 0; i < tablinks.length; i++) {
-    		tablinks[i].className = tablinks[i].className.replace("active", "");
-    	}
-    	document.getElementById(sectionName).style.display = "block";
-    	evt.currentTarget.className += " active";
-    }
 
     // Service Gallery Image Remove
     static svc_gallery_remove($this) {
@@ -2344,10 +2299,6 @@ class BMAdminCore {
     	jQuery($this).parent('span').hide();
     }
 
-    // Add Session Value on Extra Service Edit, Update, Delete
-    static extraUpdate() {
-    	if (sessionStorage.getItem("extravalue") == null) sessionStorage.setItem("extravalue", 1);
-    }
 
     // Form Validation
     static add_form_validation(type = '') {
@@ -7748,84 +7699,6 @@ class BMAdminCore {
     	});
     }
 
-    // Check validity of age values entered in service
-    static checkServiceAgeValue($this) {
-    	var index = Number($this.id.split("_")[2]);
-    	var fieldId = $this.id;
-    	var val = parseInt($this.value);
-
-    	if (fieldId.startsWith('age_from_')) {
-    		var toFieldId = jQuery('#age_to_' + index);
-    		var toFieldValue = parseInt(jQuery(toFieldId).val());
-    		var preToField = jQuery('#age_to_' + Number(index - 1));
-    		var preToFieldValue = parseInt(jQuery(preToField).val());
-    		var nextfromField = jQuery('#age_from_' + Number(index + 1));
-    		var nextfromFieldValue = parseInt(jQuery(nextfromField).val());
-
-    		if (jQuery(preToField).length > 0) {
-    			if (!isNaN(preToFieldValue) && (val <= preToFieldValue)) {
-    				jQuery($this).val('');
-    				showMessage(bm_error_object.must_be_greater_than + preToFieldValue, 'error');
-    				return false;
-    			}
-    		}
-
-    		if (jQuery(nextfromField).length > 0) {
-    			if (!isNaN(nextfromFieldValue) && (val >= nextfromFieldValue)) {
-    				jQuery($this).val('');
-    				showMessage(bm_error_object.must_be_less_than_field, 'error');
-    				return false;
-    			}
-    		}
-
-    		if (!isNaN(toFieldValue) && (val >= toFieldValue)) {
-    			jQuery($this).val('');
-    			showMessage(bm_error_object.must_be_less_than + toFieldValue, 'error');
-    			return false;
-    		}
-
-    		if (isNaN(toFieldValue)) {
-    			jQuery(toFieldId).val((val + 1));
-    			jQuery(toFieldId).attr('value', (val + 1));
-    			jQuery(toFieldId).attr('min', (val + 1));
-    		}
-    	} else if (fieldId.startsWith('age_to_')) {
-    		var fromField = jQuery('#age_from_' + index);
-    		var fromFieldValue = parseInt(jQuery(fromField).val());
-    		var nextfromField = jQuery('#age_from_' + Number(index + 1));
-    		var nextfromFieldValue = parseInt(jQuery(nextfromField).val());
-    		var preToField = jQuery('#age_to_' + Number(index - 1));
-    		var preToFieldValue = parseInt(jQuery(preToField).val());
-
-    		if (!isNaN(fromFieldValue) && (val <= fromFieldValue)) {
-    			jQuery($this).val('');
-    			showMessage(bm_error_object.must_be_greater_than + fromFieldValue, 'error');
-    			return false;
-    		}
-
-    		if (jQuery(preToField).length > 0) {
-    			if (!isNaN(preToFieldValue) && (val <= preToFieldValue)) {
-    				jQuery($this).val('');
-    				showMessage(bm_error_object.must_be_greater_than_field, 'error');
-    				return false;
-    			}
-    		}
-
-    		if (jQuery(nextfromField).length > 0) {
-    			if (!isNaN(nextfromFieldValue) && (val >= nextfromFieldValue)) {
-    				jQuery($this).val('');
-    				showMessage(bm_error_object.must_be_less_than + nextfromFieldValue, 'error');
-    				return false;
-    			}
-    		}
-
-    		if (isNaN(fromFieldValue)) {
-    			jQuery(fromField).val((val - 1));
-    			jQuery(fromField).attr('value', (val - 1));
-    			jQuery(fromField).attr('max', (val - 1));
-    		}
-    	}
-    }
 
     // Multiselect
     static initializeMultiselect(a) {
@@ -8614,9 +8487,9 @@ window.BMAdmin.Core = BMAdminCore;
 window.bmAdminCore = new BMAdminCore();
 
 window.svc_remove_image = BMAdminCore.svc_remove_image;
-window.openSection = BMAdminCore.openSection;
+window.openSection = BMServiceManager.openSection;
 window.svc_gallery_remove = BMAdminCore.svc_gallery_remove;
-window.extraUpdate = BMAdminCore.extraUpdate;
+window.extraUpdate = BMServiceManager.extraUpdate;
 window.add_form_validation = BMAdminCore.add_form_validation;
 window.bm_open_close_tab = BMAdminCore.bm_open_close_tab;
 window.field_remove_image = BMAdminCore.field_remove_image;
@@ -8710,7 +8583,7 @@ window.resetNoOfServiceSelection = BMAdminCore.resetNoOfServiceSelection;
 window.resetExtraContent = BMAdminCore.resetExtraContent;
 window.resetTimeSlots = BMAdminCore.resetTimeSlots;
 window.setIntlInputForCustomeForm = BMAdminCore.setIntlInputForCustomeForm;
-window.checkServiceAgeValue = BMAdminCore.checkServiceAgeValue;
+window.checkServiceAgeValue = BMServiceManager.checkServiceAgeValue;
 window.initializeMultiselect = BMAdminCore.initializeMultiselect;
 window.add_process_form_validation = BMAdminCore.add_process_form_validation;
 window.bm_show_mail_details = BMAdminCore.bm_show_mail_details;
@@ -8729,3 +8602,4 @@ window.bm_show_vocuher_recipient_info = BMAdminCore.bm_show_vocuher_recipient_in
 window.bm_remove_availability_period = BMAdminCore.bm_remove_availability_period;
 window.bm_remove_global_unavailable_range = BMAdminCore.bm_remove_global_unavailable_range;
 window.bm_remove_pdf_logo = BMAdminCore.bm_remove_pdf_logo;
+window.remove_pdf_logo = BMAdminCore.bm_remove_pdf_logo;
