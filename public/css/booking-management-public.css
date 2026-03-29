@@ -3140,7 +3140,15 @@ textarea:focus, input[type=email]:focus, input[type=number]:focus, input[type=pa
     padding: 0px;
     display: inline-block;
     margin-bottom: 16px;
+    border-radius: var(--bm-border-radius, 8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
 
+.service-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
 }
 
 .service-card .productimg {
@@ -3226,7 +3234,7 @@ textarea:focus, input[type=email]:focus, input[type=number]:focus, input[type=pa
 .main-parent .category-tag {
     border: 1px solid #B8BEC3;
     padding: 3px 6px;
-    border-radius: 0px;
+    border-radius: 4px;
     color: #2B445A;
     font-weight: 600;
     font-size: 12px;
@@ -3245,14 +3253,20 @@ textarea:focus, input[type=email]:focus, input[type=number]:focus, input[type=pa
 
 .service-card .booknowbtn {
     font-weight: 600;
-    font-size: 18px;
-    padding: 6px 10px;
+    font-size: 16px;
+    padding: 10px 16px;
     width: 100%;
     float: right;
     text-align: center;
-    border-radius: 0px;
+    border-radius: 0 0 var(--bm-border-radius, 8px) var(--bm-border-radius, 8px);
     margin-top: 0px;
     background: #000;
+    transition: opacity 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.service-card .booknowbtn:hover {
+    opacity: 0.9;
 }
 
 .service-card .price-btn {
