@@ -72,13 +72,9 @@ class Booking_Management_Activator {
 		`service_short_desc` text DEFAULT NULL,
 		`service_desc` longtext DEFAULT NULL,
 		`default_price` float(50) DEFAULT NULL,
-		`external_price_module` int(11) DEFAULT NULL,
-		`variable_svc_prices` longtext DEFAULT NULL,
 		`variable_svc_price_modules` longtext DEFAULT NULL,
 		`variable_saleswitch` longtext DEFAULT NULL,
 		`variable_stopsales` longtext DEFAULT NULL,
-		`variable_max_cap` longtext DEFAULT NULL,
-		`variable_time_slots` longtext DEFAULT NULL,
 		`service_unavailability` longtext DEFAULT NULL,
 		`service_image_guid` int(11) DEFAULT 0,
 		`is_linked_wc_product` int(11) DEFAULT 0,
@@ -290,32 +286,6 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
-		$table_name = $this->get_db_table_name( 'MANAGECOLUMNS' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-		`language` varchar(100) DEFAULT NULL,
-		`user_id` int(11) DEFAULT NULL,
-		`default_columns` longtext DEFAULT NULL,
-		`screen_options` longtext DEFAULT NULL,
-		`is_admin` int(11) DEFAULT NULL,
-		`view_type` varchar(255) DEFAULT NULL,
-		`mc_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
-		$table_name = $this->get_db_table_name( 'SAVESEARCH' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-		`user_id` int(11) DEFAULT NULL,
-		`search_data` longtext DEFAULT NULL,
-		`is_admin` int(11) DEFAULT NULL,
-		`module` varchar(255) DEFAULT NULL,
-		`search_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
 		$table_name = $this->get_db_table_name( 'EMAIL_TMPL' );
 		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -335,7 +305,6 @@ class Booking_Management_Activator {
 		$table_name = $this->get_db_table_name( 'CUSTOMERS' );
 		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
         `id` int(11) NOT NULL AUTO_INCREMENT,
-		`stripe_id` varchar(600) DEFAULT NULL,
 		`customer_name` varchar(255) DEFAULT NULL,
 		`customer_email` varchar(255) DEFAULT NULL,
         `billing_details` longtext DEFAULT NULL,
@@ -384,45 +353,6 @@ class Booking_Management_Activator {
         PRIMARY KEY (`id`))$charset_collate;";
 		dbDelta( $sql );
 
-		$table_name = $this->get_db_table_name( 'FAILED_TRANSACTIONS' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-		`customer_id` int(11) DEFAULT NULL,
-        `transaction_id` varchar(600) DEFAULT NULL,
-		`stripe_customer_id` varchar(600) DEFAULT NULL,
-		`amount` float(50) DEFAULT NULL,
-        `amount_currency` varchar(100) DEFAULT NULL,
-		`booking_data` longtext DEFAULT NULL,
-		`customer_data` longtext DEFAULT NULL,
-		`gift_data` longtext DEFAULT NULL,
-		`is_refunded` int(11) DEFAULT NULL,
-		`refund_id` varchar(600) DEFAULT NULL,
-		`payment_status` varchar(255) DEFAULT NULL,
-		`refund_status` varchar(255) DEFAULT NULL,
-		`booking_key` varchar(255) DEFAULT NULL,
-		`checkout_key` varchar(255) DEFAULT NULL,
-		`mail_sent` int(11) DEFAULT NULL,
-		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		`updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`),
-		KEY `idx_failed_txn_booking_key` (`booking_key`),
-		KEY `idx_failed_txn_payment_status` (`payment_status`),
-		KEY `idx_failed_txn_customer_id` (`customer_id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
-		$table_name = $this->get_db_table_name( 'EXTERNAL_SERVICE_PRICE_MODULE' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `module_name` varchar(255) DEFAULT NULL,
-		`module_values` longtext DEFAULT NULL,
-		`status` int(11) NOT NULL DEFAULT 1,
-		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		`updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
 		$table_name = $this->get_db_table_name( 'EMAILS' );
 		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -440,21 +370,6 @@ class Booking_Management_Activator {
 		`mail_body` longtext DEFAULT NULL,
 		`mail_lang` varchar(100) DEFAULT NULL,
 		`status` int(11) DEFAULT NULL,
-		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		`updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
-		$table_name = $this->get_db_table_name( 'EVENTNOTIFICATION' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-		`name` varchar(255) DEFAULT NULL,
-        `type` int(11) DEFAULT NULL,
-		`trigger_conditions` longtext DEFAULT NULL,
-		`time_offset` longtext DEFAULT NULL,
-		`template_id` int(11) DEFAULT NULL,
-		`status` int(11) NOT NULL DEFAULT 1,
 		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`updated_at` datetime DEFAULT NULL,
         PRIMARY KEY (`id`)
@@ -500,62 +415,6 @@ class Booking_Management_Activator {
 			KEY `idx_checkin_booking_id` (`booking_id`),
 			KEY `idx_checkin_qr_token` (`qr_token`),
 			KEY `idx_checkin_status` (`status`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
-		$table_name = $this->get_db_table_name( 'PDF_CUSTOMIZATION' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `booking_pdf_en` longtext DEFAULT NULL,
-		`booking_pdf_it` longtext DEFAULT NULL,
-		`voucher_pdf_en` longtext DEFAULT NULL,
-		`voucher_pdf_it` longtext DEFAULT NULL,
-		`customer_info_pdf_en` longtext DEFAULT NULL,
-		`customer_info_pdf_it` longtext DEFAULT NULL,
-		`pdf_logo_guid` int(11) DEFAULT 0,
-		`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		`updated_at` datetime DEFAULT NULL,
-        PRIMARY KEY (`id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
-		$table_name = $this->get_db_table_name( 'COUPON' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-		`coupon_code` varchar(255) NOT NULL,
-		`discount_type` varchar(255) NOT NULL, 
-		`discount_amount` float(50) NOT NULL,
-	    `coupon_description` longtext DEFAULT NULL,
-		`wc_order_id` int(11) DEFAULT NULL,
-		`booking_id` int(11) DEFAULT NULL,
-		`usage_limit` float(50) DEFAULT NULL,
-		`expiry_date` date DEFAULT NULL,
-		`coupon_unavailability` longtext DEFAULT NULL, 
-		`unavailable_slot` longtext DEFAULT NULL, 
-		`min_spend` float(50) DEFAULT NULL,	
-		`max_spend` float(50) DEFAULT NULL,	
-		`is_individual_use` int(11) DEFAULT NULL,
-		`per_person_used_once` int(11) DEFAULT NULL,
-		`overall_used_once` int(11) DEFAULT NULL,
-		`used_per_coupon_per_service` int(11) DEFAULT NULL,
-		`is_exclude_service` int(11) DEFAULT NULL,
-		`is_exclude_category` int(11) DEFAULT NULL,
-		`is_email_exclude` int(11) DEFAULT NULL,
-		`excluded_conditions` longtext DEFAULT NULL,
-		`is_geographic_restrictions` int(11) DEFAULT NULL,
-		`geographic_restriction` longtext DEFAULT NULL, 
-		`is_active` int(11) DEFAULT NULL,
-		`coupon_used_count` int(11) DEFAULT NULL,
-		`coupon_used_data` longtext DEFAULT NULL, 
-		`is_event_coupon` int(11) DEFAULT NULL,
-		`start_date_val` longtext DEFAULT NULL, 
-		`is_birthday_coupon` int(11) DEFAULT NULL,
-		`is_service_included` int(11) DEFAULT NULL,
-		`included_services` longtext DEFAULT NULL,
-		`cannot_merged` int(11) DEFAULT NULL,
-		`auto_apply` int(11) DEFAULT NULL,
-		`coupon_image_guid` int(11) DEFAULT 0,
-        PRIMARY KEY (`id`)
 		)$charset_collate;";
 		dbDelta( $sql );
 
@@ -623,7 +482,6 @@ class Booking_Management_Activator {
 		$this->add_error_column_to_emails();
 		$this->create_default_form_fields();
 		$this->create_default_email_templates();
-		$this->create_default_pdf_contents();
 		$this->add_default_options();
 		$this->bm_create_custom_pages();
 	} //end create_table()
@@ -670,12 +528,6 @@ class Booking_Management_Activator {
 			case 'EMAIL_TMPL':
 				$table_name = $plugin_prefix . 'email_template';
 				break;
-			case 'MANAGECOLUMNS':
-				$table_name = $plugin_prefix . 'manage_columns';
-				break;
-			case 'SAVESEARCH':
-				$table_name = $plugin_prefix . 'saved_search';
-				break;
 			case 'CUSTOMERS':
 				$table_name = $plugin_prefix . 'customers';
 				break;
@@ -685,29 +537,14 @@ class Booking_Management_Activator {
 			case 'BOOKING_ARCHIVE':
 				$table_name = $plugin_prefix . 'booking_archive';
 				break;
-			case 'FAILED_TRANSACTIONS':
-				$table_name = $plugin_prefix . 'failed_transactions';
-				break;
-			case 'EXTERNAL_SERVICE_PRICE_MODULE':
-				$table_name = $plugin_prefix . 'external_svc_price_module';
-				break;
 			case 'EMAILS':
 				$table_name = $plugin_prefix . 'email_records';
-				break;
-			case 'EVENTNOTIFICATION':
-				$table_name = $plugin_prefix . 'notification_events';
 				break;
 			case 'VOUCHERS':
 				$table_name = $plugin_prefix . 'vouchers';
 				break;
 			case 'CHECKIN':
 				$table_name = $plugin_prefix . 'checkin';
-				break;
-			case 'PDF_CUSTOMIZATION':
-				$table_name = $plugin_prefix . 'pdf_content_customization';
-				break;
-			case 'COUPON':
-				$table_name = $plugin_prefix . 'coupon';
 				break;
 			case 'AVAILABILITY_PERIOD':
 				$table_name = $plugin_prefix . 'availability_periods';
@@ -773,12 +610,6 @@ class Booking_Management_Activator {
 			case 'EMAIL_TMPL':
 				$unique_field_name = 'id';
 				break;
-			case 'MANAGECOLUMNS':
-				$unique_field_name = 'id';
-				break;
-			case 'SAVESEARCH':
-				$unique_field_name = 'id';
-				break;
 			case 'CUSTOMERS':
 				$unique_field_name = 'id';
 				break;
@@ -788,28 +619,13 @@ class Booking_Management_Activator {
 			case 'BOOKING_ARCHIVE':
 				$unique_field_name = 'id';
 				break;
-			case 'FAILED_TRANSACTIONS':
-				$unique_field_name = 'id';
-				break;
-			case 'EXTERNAL_SERVICE_PRICE_MODULE':
-				$unique_field_name = 'id';
-				break;
 			case 'EMAILS':
-				$unique_field_name = 'id';
-				break;
-			case 'EVENTNOTIFICATION':
 				$unique_field_name = 'id';
 				break;
 			case 'VOUCHERS':
 				$unique_field_name = 'id';
 				break;
 			case 'CHECKIN':
-				$unique_field_name = 'id';
-				break;
-			case 'COUPON':
-				$unique_field_name = 'id';
-				break;
-			case 'PDF_CUSTOMIZATION':
 				$unique_field_name = 'id';
 				break;
 			case 'AVAILABILITY_PERIOD':
@@ -882,9 +698,6 @@ class Booking_Management_Activator {
 			case 'default_stopsales':
 				$format = '%f';
 				break;
-			case 'external_price_module':
-				$format = '%d';
-				break;
 			case 'is_only_book_on_request':
 				$format = '%d';
 				break;
@@ -909,9 +722,6 @@ class Booking_Management_Activator {
 			case 'default_price':
 				$format = '%f';
 				break;
-			case 'variable_svc_prices':
-				$format = '%s';
-				break;
 			case 'variable_svc_price_modules':
 				$format = '%s';
 				break;
@@ -919,12 +729,6 @@ class Booking_Management_Activator {
 				$format = '%s';
 				break;
 			case 'variable_stopsales':
-				$format = '%s';
-				break;
-			case 'variable_max_cap':
-				$format = '%s';
-				break;
-			case 'variable_time_slots':
 				$format = '%s';
 				break;
 			case 'service_image_guid':
@@ -1370,69 +1174,10 @@ class Booking_Management_Activator {
 	} //end get_field_format_type_EMAIL_TMPL()
 
 
-	public function get_field_format_type_MANAGECOLUMNS( $field ) {
-		switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'language':
-				$format = '%s';
-				break;
-			case 'user_id':
-				$format = '%d';
-				break;
-			case 'default_columns':
-				$format = '%s';
-				break;
-			case 'screen_options':
-				$format = '%s';
-				break;
-			case 'is_admin':
-				$format = '%d';
-				break;
-			case 'view_type':
-				$format = '%s';
-				break;
-			default:
-				$format = '%s';
-		}
-
-		return $format;
-	} //end get_field_format_type_MANAGECOLUMNS()
-
-
-	public function get_field_format_type_SAVESEARCH( $field ) {
-        switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'user_id':
-				$format = '%d';
-				break;
-			case 'search_data':
-				$format = '%s';
-				break;
-			case 'is_admin':
-				$format = '%d';
-				break;
-			case 'module':
-				$format = '%s';
-				break;
-			default:
-				$format = '%s';
-		}
-
-		return $format;
-	} //end get_field_format_type_SAVESEARCH()
-
-
 	public function get_field_format_type_CUSTOMERS( $field ) {
 		switch ( $field ) {
 			case 'id':
 				$format = '%d';
-				break;
-			case 'stripe_id':
-				$format = '%s';
 				break;
 			case 'customer_name':
 				$format = '%s';
@@ -1537,81 +1282,6 @@ class Booking_Management_Activator {
 	} //end get_field_format_type_BOOKING_ARCHIVE()
 
 
-	public function get_field_format_type_FAILED_TRANSACTIONS( $field ) {
-		switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'transaction_id':
-				$format = '%s';
-				break;
-			case 'stripe_customer_id':
-				$format = '%s';
-				break;
-			case 'amount':
-				$format = '%f';
-				break;
-			case 'amount_currency':
-				$format = '%s';
-				break;
-			case 'booking_data':
-				$format = '%s';
-				break;
-			case 'customer_data':
-				$format = '%s';
-				break;
-			case 'gift_data':
-				$format = '%s';
-				break;
-			case 'is_refunded':
-				$format = '%d';
-				break;
-			case 'refund_id':
-				$format = '%s';
-				break;
-			case 'payment_status':
-				$format = '%s';
-				break;
-			case 'refund_status':
-				$format = '%s';
-				break;
-			case 'booking_key':
-				$format = '%s';
-				break;
-			case 'checkout_key':
-				$format = '%s';
-				break;
-			case 'mail_sent':
-				$format = '%d';
-				break;
-			default:
-				$format = '%s';
-		}
-
-		return $format;
-	} //end get_field_format_type_FAILED_TRANSACTIONS()
-
-	public function get_field_format_type_EXTERNAL_SERVICE_PRICE_MODULE( $field ) {
-		switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'module_name':
-				$format = '%s';
-				break;
-			case 'module_values':
-				$format = '%s';
-				break;
-			case 'status':
-				$format = '%d';
-				break;
-			default:
-				$format = '%s';
-		} //end switch
-
-		return $format;
-	} //end get_field_format_type_EXTERNAL_SERVICE_PRICE_MODULE()
-
 	public function get_field_format_type_EMAILS( $field ) {
         switch ( $field ) {
 			case 'id':
@@ -1665,36 +1335,6 @@ class Booking_Management_Activator {
 
 		return $format;
 	} //end get_field_format_type_EMAILS()
-
-	public function get_field_format_type_EVENTNOTIFICATION( $field ) {
-		switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'name':
-				$format = '%s';
-				break;
-			case 'type':
-				$format = '%d';
-				break;
-			case 'trigger_conditions':
-				$format = '%s';
-				break;
-			case 'time_offset':
-				$format = '%s';
-				break;
-			case 'template_id':
-				$format = '%d';
-				break;
-			case 'status':
-				$format = '%d';
-				break;
-			default:
-				$format = '%s';
-		} //end switch
-
-		return $format;
-	} //end get_field_format_type_EVENTNOTIFICATION()
 
 	public function get_field_format_type_VOUCHERS( $field ) {
 		switch ( $field ) {
@@ -1764,124 +1404,6 @@ class Booking_Management_Activator {
 
 		return $format;
 	} //end get_field_format_type_CHECKIN()
-
-	public function get_field_format_type_PDF_CUSTOMIZATION( $field ) {
-		switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'pdf_logo_guid':
-				$format = '%d';
-				break;
-			default:
-				$format = '%s';
-		} //end switch
-
-		return $format;
-	} //end get_field_format_type_EVENTNOTIFICATION()
-
-	public function get_field_format_type_COUPON( $field ) {
-        switch ( $field ) {
-			case 'id':
-				$format = '%d';
-				break;
-			case 'coupon_code':
-				$format = '%s';
-				break;
-			case 'discount_type':
-				$format = '%s';
-				break;
-			case 'discount_amount':
-				$format = '%f';
-				break;
-			case 'coupon_description':
-				$format = '%s';
-				break;
-			case 'wc_order_id':
-				$format = '%d';
-				break;
-			case 'booking_id':
-				$format = '%d';
-				break;
-			case 'usage_limit':
-				$format = '%d';
-				break;
-			case 'expiry_date':
-				$format = '%d';
-				break;
-			case 'coupon_unavailability':
-				$format = '%s';
-				break;
-			case 'min_spend':
-				$format = '%s';
-				break;
-			case 'max_spend':
-				$format = '%d';
-				break;
-			case 'is_individual_use':
-				$format = '%d';
-				break;
-			case 'per_person_used_once':
-				$format = '%d';
-				break;
-			case 'overall_used_once':
-				$format = '%d';
-				break;
-			case 'used_per_coupon_per_service':
-				$format = '%d';
-				break;
-			case 'is_email_exclude':
-				$format = '%d';
-				break;
-			case 'excluded_conditions':
-				$format = '%s';
-				break;
-			case 'is_service_included':
-				$format = '%d';
-				break;
-			case 'included_services':
-				$format = '%s';
-				break;
-			case 'is_geographic_restrictions':
-				$format = '%d';
-				break;
-			case 'geographic_restriction':
-				$format = '%s';
-				break;
-			case 'is_active':
-				$format = '%d';
-				break;
-			case 'coupon_used_count':
-				$format = '%d';
-				break;
-			case 'coupon_used_data':
-				$format = '%s';
-				break;
-			case 'is_event_coupon':
-				$format = '%d';
-				break;
-			case 'start_date_val':
-				$format = '%s';
-				break;
-			case 'is_birthday_coupon':
-				$format = '%d';
-				break;
-			case 'cannot_merged':
-				$format = '%d';
-				break;
-			case 'auto_apply':
-				$format = '%d';
-				break;
-			case 'coupon_image_guid':
-				$format = '%d';
-				break;
-			default:
-				$format = '%s';
-		}
-
-		return $format;
-	} //end get_field_format_type_COUPON()
-
 
 	public function get_field_format_type_GLOBAL_EXTRA( $field ) {
 		switch ( $field ) {
@@ -2033,17 +1555,6 @@ class Booking_Management_Activator {
 		}
 	}
 
-	private function add_error_column_to_failed_transactions() {
-		global $wpdb;
-		$table_name = $this->get_db_table_name( 'FAILED_TRANSACTIONS' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Schema migration
-		$row = $wpdb->get_results( $wpdb->prepare( 'SHOW COLUMNS FROM `' . esc_sql( $table_name ) . '` LIKE %s', 'error_message' ) );
-		if ( empty( $row ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time schema migration
-			$wpdb->query( 'ALTER TABLE `' . esc_sql( $table_name ) . '` ADD `error_message` text NULL AFTER `refund_status`' );
-		}
-	}
-
 	public function create_default_form_fields() {
 		$dbhandler  = new BM_DBhandler();
 		$bmrequest  = new BM_Request();
@@ -2114,17 +1625,6 @@ class Booking_Management_Activator {
 	} //end create_default_email_templates()
 
 
-	public function create_default_pdf_contents() {
-		$dbhandler  = new BM_DBhandler();
-		$bmrequest  = new BM_Request();
-		$is_created = $dbhandler->get_global_option_value( 'bm_pdf_contents_created', '0' );
-		$resutls    = $dbhandler->get_all_result( 'PDF_CUSTOMIZATION', '*', 1, 'results' );
-		if ( $is_created == '0' || empty( $resutls ) ) {
-			$bmrequest->bm_create_default_pdf_contents();
-		}
-	} //end create_default_pdf_contents()
-
-
 	public function add_default_options() {
 		$bmrequests    = new BM_Request();
 		$primary_color = $bmrequests->bm_get_theme_color( 'primary' ) ?? '#000000';
@@ -2180,10 +1680,8 @@ class Booking_Management_Activator {
 		add_option( 'bm_categories_per_page', '10' );
 		add_option( 'bm_templates_per_page', '10' );
 		add_option( 'bm_price_modules_per_page', '10' );
-		add_option( 'bm_notification_processes_per_page', '10' );
 		add_option( 'bm_email_records_per_page', '10' );
 		add_option( 'bm_voucher_records_per_page', '10' );
-		add_option( 'bm_coupon_per_page', '10' );
 		add_option( 'bm_minimum_image_size', '100' );
 		add_option( 'bm_maximum_image_size', '2097152000' );
 		add_option( 'bm_minimum_image_width', '100' );
