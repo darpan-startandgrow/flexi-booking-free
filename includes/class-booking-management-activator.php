@@ -286,6 +286,18 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
+		$table_name = $this->get_db_table_name( 'SAVESEARCH' );
+		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+		`user_id` int(11) DEFAULT NULL,
+		`search_data` longtext DEFAULT NULL,
+		`is_admin` int(11) DEFAULT NULL,
+		`module` varchar(255) DEFAULT NULL,
+		`search_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`)
+		)$charset_collate;";
+		dbDelta( $sql );
+
 		$table_name = $this->get_db_table_name( 'EMAIL_TMPL' );
 		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
         `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -528,6 +540,12 @@ class Booking_Management_Activator {
 			case 'EMAIL_TMPL':
 				$table_name = $plugin_prefix . 'email_template';
 				break;
+			case 'MANAGECOLUMNS':
+				$table_name = $plugin_prefix . 'manage_columns';
+				break;
+			case 'SAVESEARCH':
+				$table_name = $plugin_prefix . 'saved_search';
+				break;
 			case 'CUSTOMERS':
 				$table_name = $plugin_prefix . 'customers';
 				break;
@@ -557,6 +575,15 @@ class Booking_Management_Activator {
 				break;
 			case 'SERVICE_CATEGORY_MAP':
 				$table_name = $plugin_prefix . 'service_category_map';
+				break;
+			case 'EXTERNAL_SERVICE_PRICE_MODULE':
+				$table_name = $plugin_prefix . 'external_svc_price_module';
+				break;
+			case 'COUPON':
+				$table_name = $plugin_prefix . 'coupon';
+				break;
+			case 'PDF_CUSTOMIZATION':
+				$table_name = $plugin_prefix . 'pdf_content_customization';
 				break;
 			default:
 				$classname = "BM_Helper_$identifier";
@@ -610,6 +637,12 @@ class Booking_Management_Activator {
 			case 'EMAIL_TMPL':
 				$unique_field_name = 'id';
 				break;
+			case 'MANAGECOLUMNS':
+				$unique_field_name = 'id';
+				break;
+			case 'SAVESEARCH':
+				$unique_field_name = 'id';
+				break;
 			case 'CUSTOMERS':
 				$unique_field_name = 'id';
 				break;
@@ -635,6 +668,15 @@ class Booking_Management_Activator {
 				$unique_field_name = 'id';
 				break;
 			case 'SERVICE_GLOBAL_EXTRA':
+				$unique_field_name = 'id';
+				break;
+			case 'EXTERNAL_SERVICE_PRICE_MODULE':
+				$unique_field_name = 'id';
+				break;
+			case 'COUPON':
+				$unique_field_name = 'id';
+				break;
+			case 'PDF_CUSTOMIZATION':
 				$unique_field_name = 'id';
 				break;
 			default:
@@ -1172,6 +1214,31 @@ class Booking_Management_Activator {
 
 		return $format;
 	} //end get_field_format_type_EMAIL_TMPL()
+
+
+	public function get_field_format_type_SAVESEARCH( $field ) {
+        switch ( $field ) {
+			case 'id':
+				$format = '%d';
+				break;
+			case 'user_id':
+				$format = '%d';
+				break;
+			case 'search_data':
+				$format = '%s';
+				break;
+			case 'is_admin':
+				$format = '%d';
+				break;
+			case 'module':
+				$format = '%s';
+				break;
+			default:
+				$format = '%s';
+		}
+
+		return $format;
+	} //end get_field_format_type_SAVESEARCH()
 
 
 	public function get_field_format_type_CUSTOMERS( $field ) {

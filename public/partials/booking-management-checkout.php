@@ -179,8 +179,7 @@ if ( $existsting_booking_id > 0 ) {
 	<?php
 	return false; }
 
-// Stripe payment gateway is a Pro-only feature; this check evaluates false in the free version.
-if ( $dbhandler->get_global_option_value( 'bm_enable_stripe', 0 ) == 1 ) {
+
 	if ( ! empty( $flexi_booking ) && empty( $flexi_payment ) && empty( $pid ) ) {
 		if ( empty( $session_status ) ) {
 			if ( ! empty( $ordered_products ) ) {
@@ -829,14 +828,7 @@ dataLayer.push(<?php echo wp_json_encode( $ga4_purchase_data ); ?>);
 		</div>
 		<?php
 	}
-} else {
-	?>
-	<div class="payment_info" style="background:<?php echo esc_html( $svc_button_colour ) . '!important;'; ?>color:<?php echo esc_html( $svc_btn_txt_colour ) . '!important'; ?>">
-		<div class="payment_info_div" style="cursor:pointer;">
-			<p class="error" style="text-align:center;"><?php esc_html_e( 'Payment gateway is not enabled !!', 'service-booking' ); ?></p>
-		</div>
-	</div>
-	<?php } ?>
+?>
 
 <div class="loader_modal">
 	<div class="checkout-spinner-box"><div class="checkout-spinner"></div><p><?php echo esc_html__( 'Loading...', 'service-booking' ); ?></p></div>

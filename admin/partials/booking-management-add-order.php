@@ -479,7 +479,6 @@ if ( ( filter_input( INPUT_POST, 'saveorder' ) ) ) {
                                         }//end if
 
                                         $customer_data = array(
-                                            'stripe_id' => null,
                                             'customer_name' => $customer_name,
                                             'customer_email' => $customer_email,
                                             'billing_details' => $billing_details,
@@ -566,23 +565,6 @@ if ( ( filter_input( INPUT_POST, 'saveorder' ) ) ) {
                                         }
                                     } else {
                                         $checkout_data = $dbhandler->bm_fetch_data_from_transient( $checkout_key );
-
-                                        $failed_transaction_data = array(
-                                            'amount'       => $order_post['total_cost'],
-                                            'amount_currency' => $dbhandler->get_global_option_value( 'bm_booking_currency', 'EUR' ),
-                                            'booking_data' => $dbhandler->bm_fetch_data_from_transient( $booking_key ),
-                                            'customer_data' => isset( $checkout_data['checkout'] ) ? $checkout_data['checkout'] : array(),
-                                            'booking_key'  => $booking_key,
-                                            'checkout_key' => $checkout_key,
-                                            'is_refunded'  => 0,
-                                            'payment_status' => isset( $total_cost ) && empty( $total_cost ) ? 'free' : 'pending',
-                                        );
-
-                                        $failed_transaction = $bmrequests->sanitize_request( $failed_transaction_data, 'FAILED_TRANSACTIONS' );
-
-                                        if ( $failed_transaction != false && $failed_transaction != null ) {
-                                            $failed_transaction_id = $dbhandler->insert_row( 'FAILED_TRANSACTIONS', $failed_transaction );
-                                        }
 
                                         echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
                                         echo esc_html__( 'Booking data could not be saved !!', 'service-booking' );

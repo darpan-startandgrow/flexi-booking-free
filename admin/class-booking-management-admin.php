@@ -2867,23 +2867,8 @@ class Booking_Management_Admin {
 			return;
 		}
 
-		$dbhandler = new BM_DBhandler();
-		$id        = filter_input( INPUT_POST, 'id', FILTER_VALIDATE_INT );
-		$data      = array( 'status' => false );
-
-		if ( $id === false || $id === null ) {
-			wp_send_json_error( esc_html__( 'Invalid order ID', 'service-booking' ) );
-			return;
-		}
-
-		$order_data    = $dbhandler->get_row( 'FAILED_TRANSACTIONS', $id );
-		$order_deleted = $dbhandler->remove_row( 'FAILED_TRANSACTIONS', 'id', $id, '%d' );
-
-		if ( $order_deleted ) {
-			$data['status'] = true;
-		}
-
-		wp_send_json_success( $data );
+		// FAILED_TRANSACTIONS table removed in free version.
+		wp_send_json_success( array( 'status' => false ) );
 	}//end bm_remove_failed_order()
 
 
@@ -11047,95 +11032,8 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_add_data_to_failed_transaction_table( $booking_id, $transaction_id ) {
-		$dbhandler             = new BM_DBhandler();
-		$bmrequests            = new BM_Request();
-		$status                = 0;
-		$failed_transaction_id = 0;
-		$failed_booking_data   = array();
-
-		if ( empty( $booking_id ) ) {
-			return $status;
-		}
-
-		$customer_id = $dbhandler->get_value( 'TRANSACTIONS', 'customer_id', $booking_id, 'booking_id' );
-		$customer    = $dbhandler->get_row( 'CUSTOMERS', $customer_id, 'id' );
-		$booking_key        = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
-		$checkout_key       = $dbhandler->get_value( 'BOOKING', 'checkout_key', $booking_id, 'id' );
-		$refund_id          = $dbhandler->bm_fetch_data_from_transient( 'refund_id_before_update_' . $booking_id );
-		$gift_key           = base64_encode( $booking_key );
-		$gift_data          = $dbhandler->bm_fetch_data_from_transient( $gift_key );
-		$failed_customer_data = array();
-
-		if ( $dbhandler->get_global_option_value( 'discount_' . $booking_key ) == 1 ) {
-			$failed_booking_data = $dbhandler->bm_fetch_data_from_transient( 'discounted_' . $booking_key );
-		} else {
-			$failed_booking_data = $dbhandler->bm_fetch_data_from_transient( $booking_key );
-		}
-
-		if ( empty( $failed_booking_data ) ) {
-			$booking = $dbhandler->get_row( 'BOOKING', $booking_id, 'id' );
-
-			if ( ! empty( $booking ) ) {
-				$extra_svc_booked         = isset( $booking->extra_svc_booked ) ? explode( ',', $booking->extra_svc_booked ) : '';
-				$extra_svc_booked         = count( $extra_svc_booked );
-				$total_extra_slots_booked = $dbhandler->get_all_result( 'EXTRASLOTCOUNT', 'slots_booked', array( 'booking_id' => 2 ), 'results' );
-				$total_extra_slots_booked = ! empty( $total_extra_slots_booked ) ? array_sum( array_column( $total_extra_slots_booked, 'slots_booked' ) ) : 0;
-				$service_id               = isset( $booking->service_id ) ? $booking->service_id : 0;
-				$service_price_module_id  = $dbhandler->get_value( 'SERVICE', 'external_price_module', $service_id, 'id' );
-
-				$failed_booking_data = array(
-					'service_id'               => $service_id,
-					'booking_slots'            => isset( $booking->booking_slots ) ? maybe_unserialize( $booking->booking_slots ) : array(),
-					'booking_date'             => isset( $booking->booking_date ) ? $booking->booking_date : '',
-					'service_name'             => $bmrequests->bm_fetch_service_name_by_service_id( $service_id ),
-					'total_service_booking'    => $dbhandler->get_value( 'SLOTCOUNT', 'current_total_booking', $booking_id, 'booking_id' ),
-					'extra_svc_booked'         => $extra_svc_booked,
-					'total_extra_slots_booked' => $total_extra_slots_booked,
-					'base_svc_price'           => isset( $booking->base_svc_price ) ? $booking->base_svc_price : 0,
-					'service_cost'             => isset( $booking->service_cost ) ? $booking->service_cost : 0,
-					'svc_price_module_id'      => $service_price_module_id,
-					'extra_svc_cost'           => isset( $booking->extra_svc_cost ) ? $booking->extra_svc_cost : 0,
-					'total_cost'               => isset( $booking->total_cost ) ? $booking->total_cost : 0,
-				);
-			}
-		}
-
-		if ( ! empty( $customer ) ) {
-			$failed_customer_data['billing_details']  = isset( $customer->billing_details ) ? maybe_unserialize( $customer->billing_details ) : array();
-			$failed_customer_data['shipping_details'] = isset( $customer->shipping_details ) ? maybe_unserialize( $customer->shipping_details ) : array();
-
-			$failed_customer_data['other_data']['shipping_same_as_billing'] = isset( $customer->shipping_same_as_billing ) ? $customer->shipping_same_as_billing : -1;
-		}
-
-		$failed_transaction_data = array(
-			'customer_id'        => $customer_id,
-			'transaction_id'     => $transaction_id,
-			'stripe_customer_id' => '', // Empty string maintains DB schema compatibility; free version does not use Stripe.
-			'amount'             => $dbhandler->bm_fetch_data_from_transient( 'paid_amount_before_update_' . $booking_id ),
-			'amount_currency'    => $dbhandler->bm_fetch_data_from_transient( 'paid_currency_before_update_' . $booking_id ),
-			'booking_data'       => $failed_booking_data,
-			'customer_data'      => $failed_customer_data,
-			'gift_data'          => $gift_data,
-			'is_refunded'        => ! empty( $refund_id ) ? 1 : 0,
-			'refund_id'          => $refund_id,
-			'payment_status'     => 'failed',
-			'refund_status'      => ! empty( $refund_id ) ? 'succeeded' : '',
-			'booking_key'        => $booking_key,
-			'checkout_key'       => $checkout_key,
-		);
-
-		$failed_transaction_data = $bmrequests->sanitize_request( $failed_transaction_data, 'FAILED_TRANSACTIONS' );
-
-		if ( $failed_transaction_data != false ) {
-			$failed_transaction_data['created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-			$failed_transaction_id                 = $dbhandler->insert_row( 'FAILED_TRANSACTIONS', $failed_transaction_data );
-		}
-
-		if ( ! empty( $failed_transaction_id ) ) {
-			$status = 1;
-		}
-
-		return $status;
+		// FAILED_TRANSACTIONS table removed in free version.
+		return 0;
 	}//end bm_flexibooking_add_data_to_failed_transaction_table()
 
 
@@ -11216,22 +11114,8 @@ class Booking_Management_Admin {
 	 * @author Darpan
 	 */
 	public function bm_flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table( $booking_id ) {
-		$dbhandler   = new BM_DBhandler();
-		$status      = 1;
-		$booking_key = $dbhandler->get_value( 'BOOKING', 'booking_key', $booking_id, 'id' );
-
-		if ( empty( $booking_key ) ) {
-			return 0;
-		}
-
-		$failed_transaction         = $dbhandler->get_row( 'FAILED_TRANSACTIONS', $booking_key, 'booking_key' );
-		$removed_failed_transaction = $dbhandler->remove_row( 'FAILED_TRANSACTIONS', 'booking_key', $booking_key, '%s' );
-
-		if ( ! empty( $failed_transaction ) && is_wp_error( $removed_failed_transaction ) ) {
-			$status = 0;
-		}
-
-		return $status;
+		// FAILED_TRANSACTIONS table removed in free version.
+		return 1;
 	}//end bm_flexibooking_check_and_remove_duplicate_record_in_failed_transaction_table()
 
 
