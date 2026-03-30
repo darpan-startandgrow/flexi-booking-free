@@ -83,7 +83,46 @@ if ( ! function_exists( 'apply_filters' ) ) {
 
 if ( ! function_exists( 'do_action' ) ) {
 	function do_action( $tag ) {
-		// No-op stub.
+		global $wp_test_actions;
+		$wp_test_actions[ $tag ] = true;
+	}
+}
+
+// ── Cron stubs ──────────────────────────────────────────────────────────────
+
+global $wp_test_scheduled_hooks, $wp_test_cleared_hooks;
+$wp_test_scheduled_hooks = array();
+$wp_test_cleared_hooks   = array();
+
+if ( ! function_exists( 'wp_next_scheduled' ) ) {
+	function wp_next_scheduled( $hook ) {
+		global $wp_test_scheduled_hooks;
+		return isset( $wp_test_scheduled_hooks[ $hook ] ) ? $wp_test_scheduled_hooks[ $hook ] : false;
+	}
+}
+
+if ( ! function_exists( 'wp_unschedule_event' ) ) {
+	function wp_unschedule_event( $timestamp, $hook ) {
+		global $wp_test_scheduled_hooks;
+		unset( $wp_test_scheduled_hooks[ $hook ] );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_clear_scheduled_hook' ) ) {
+	function wp_clear_scheduled_hook( $hook ) {
+		global $wp_test_scheduled_hooks, $wp_test_cleared_hooks;
+		unset( $wp_test_scheduled_hooks[ $hook ] );
+		$wp_test_cleared_hooks[] = $hook;
+		return 0;
+	}
+}
+
+if ( ! function_exists( 'wp_schedule_event' ) ) {
+	function wp_schedule_event( $timestamp, $recurrence, $hook ) {
+		global $wp_test_scheduled_hooks;
+		$wp_test_scheduled_hooks[ $hook ] = $timestamp;
+		return true;
 	}
 }
 

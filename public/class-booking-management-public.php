@@ -2461,95 +2461,112 @@ class Booking_Management_Public {
 
 
 	/**
-	 * Fetch data from checkout form and redirect to payment
+	 * Fetch data from checkout form and redirect to WooCommerce checkout.
 	 *
-	 * @author Darpan
+	 * In the free version every booking (paid or free) is routed through
+	 * WooCommerce checkout. The method validates the service, stores
+	 * checkout and gift data in transients, adds the service product to
+	 * the WooCommerce cart, and returns the checkout URL.
+	 *
+	 * @since 1.0.0
 	 */
 	public function bm_fetch_checkout_data_redirect_to_payment() {
-			$nonce = filter_input( INPUT_POST, 'nonce' );
+		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
 			die( esc_html__( 'Failed security check', 'service-booking' ) );
 		}
 
-		$bmrequests      = new BM_Request();
-		$dbhandler       = new BM_DBhandler();
-		$post            = filter_input( INPUT_POST, 'post', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
-		$resp            = '';
-		$data            = array();
-		$billing_details = array();
-		$transient_data  = array();
+		$bmrequests         = new BM_Request();
+		$dbhandler          = new BM_DBhandler();
+		$woocommerceservice = new WooCommerceService();
+		$post               = filter_input( INPUT_POST, 'post', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+		$data               = array();
+		$billing_details    = array();
+		$transient_data     = array();
 
-		if ( $post != false && $post != null ) {
-			if ( ! empty( $post ) && isset( $post['checkout_data'] ) && ! empty( $post['checkout_data'] ) && isset( $post['booking_data'] ) && ! empty( $post['booking_data'] ) ) {
-				$booking_fields = $dbhandler->bm_fetch_data_from_transient( $post['booking_data'] );
+		if ( empty( $post ) || empty( $post['checkout_data'] ) || empty( $post['booking_data'] ) ) {
+			$data['status'] = 'error';
+			$data['data']   = '<div class="textcenter">' . esc_html__( 'Error Fetching Booking Info !!', 'service-booking' ) . '</div>';
+			echo wp_json_encode( $data );
+			die;
+		}
 
-				if ( ! empty( $booking_fields ) ) {
-					$id   = isset( $booking_fields['service_id'] ) ? $booking_fields['service_id'] : 0;
-					$date = isset( $booking_fields['booking_date'] ) ? $booking_fields['booking_date'] : '';
+		$booking_fields = $dbhandler->bm_fetch_data_from_transient( $post['booking_data'] );
 
-					if ( ! empty( $id ) && ! empty( $date ) ) {
-						if ( $bmrequests->bm_service_is_bookable( $id, $date ) ) {
-							if ( isset( $post['checkout_data']['other_data']['terms_conditions'] ) ) {
-								unset( $post['checkout_data']['other_data']['terms_conditions'] );
-							}
+		if ( empty( $booking_fields ) ) {
+			$data['status'] = 'error';
+			$data['data']   = '<div class="textcenter">' . esc_html__( 'Error Fetching Booking Info !!', 'service-booking' ) . '</div>';
+			echo wp_json_encode( $data );
+			die;
+		}
 
-							if ( isset( $post['checkout_data']['billing_details'] ) ) {
-								$checkout_string = $bmrequests->bm_generate_unique_code( '', 'FLEXIC', 15 );
+		$id   = isset( $booking_fields['service_id'] ) ? (int) $booking_fields['service_id'] : 0;
+		$date = isset( $booking_fields['booking_date'] ) ? $booking_fields['booking_date'] : '';
 
-								$transient_data['billing'] = $post['checkout_data']['billing_details'];
+		if ( empty( $id ) || empty( $date ) ) {
+			$data['status'] = 'error';
+			$data['data']   = '<div class="textcenter">' . esc_html__( 'Error Fetching Booking Info !!', 'service-booking' ) . '</div>';
+			echo wp_json_encode( $data );
+			die;
+		}
 
-								if ( is_array( $post['checkout_data']['billing_details'] ) ) {
-									foreach ( $post['checkout_data']['billing_details'] as $key => $value ) {
-										$field_name = $dbhandler->get_value( 'FIELDS', 'field_name', $key, 'field_key' );
+		if ( ! $bmrequests->bm_service_is_bookable( $id, $date ) ) {
+			$data['status'] = 'error';
+			$data['data']   = '<div class="textcenter">' . esc_html__( 'Service is Not Bookable !!', 'service-booking' ) . '</div>';
+			echo wp_json_encode( $data );
+			die;
+		}
 
-										if ( ! empty( $field_name ) ) {
-											$billing_details[ $field_name ] = $value;
-										}
-									}
+		// Remove terms_conditions from checkout data.
+		if ( isset( $post['checkout_data']['other_data']['terms_conditions'] ) ) {
+			unset( $post['checkout_data']['other_data']['terms_conditions'] );
+		}
 
-									if ( ! empty( $billing_details ) ) {
-										$post['checkout_data']['billing_details'] = $billing_details;
-									}
-								}
-							}
+		// Resolve billing field keys to field names.
+		if ( isset( $post['checkout_data']['billing_details'] ) && is_array( $post['checkout_data']['billing_details'] ) ) {
+			$checkout_string           = $bmrequests->bm_generate_unique_code( '', 'FLEXIC', 15 );
+			$transient_data['billing'] = $post['checkout_data']['billing_details'];
 
-							$transient_data['checkout'] = $post['checkout_data'];
-							$dbhandler->bm_save_data_to_transient( $checkout_string, $transient_data, 72 );
-
-							$gift_data = isset( $post['checkout_data']['gift_details'] ) ? $post['checkout_data']['gift_details'] : array();
-
-							if ( isset( $post['checkout_data']['other_data']['is_gift'] ) ) {
-								$gift_data['is_gift'] = $post['checkout_data']['other_data']['is_gift'];
-								unset( $post['checkout_data']['other_data']['is_gift'] );
-							}
-
-							$gift_key = base64_encode( $post['booking_data'] );
-							$dbhandler->bm_save_data_to_transient( $gift_key, $gift_data, 72 );
-
-							$resp = '<div class="textcenter">' . esc_html__( 'Payment Gateway Not Enabled !!', 'service-booking' ) . '</div>';
-
-							$data['status'] = 'error';
-							$data['data']   = $resp;
-						} else {
-							$resp = '<div class="textcenter">' . esc_html__( 'Service is Not Bookable !!', 'service-booking' ) . '</div>';
-
-							$data['status'] = 'error';
-							$data['data']   = $resp;
-						}
-					} else {
-						$resp = '<div class="textcenter">' . esc_html__( 'Error Fetching Booking Info !!', 'service-booking' ) . '</div>';
-
-						$data['status'] = 'error';
-						$data['data']   = $resp;
-					}
-				} else {
-					$resp = '<div class="textcenter">' . esc_html__( 'Error Fetching Booking Info !!', 'service-booking' ) . '</div>';
-
-					$data['status'] = 'error';
-					$data['data']   = $resp;
+			foreach ( $post['checkout_data']['billing_details'] as $key => $value ) {
+				$field_name = $dbhandler->get_value( 'FIELDS', 'field_name', $key, 'field_key' );
+				if ( ! empty( $field_name ) ) {
+					$billing_details[ $field_name ] = $value;
 				}
-			} //end if
-		} //end if
+			}
+
+			if ( ! empty( $billing_details ) ) {
+				$post['checkout_data']['billing_details'] = $billing_details;
+			}
+		}
+
+		// Store checkout data in transient.
+		$transient_data['checkout'] = $post['checkout_data'];
+		$dbhandler->bm_save_data_to_transient( $checkout_string, $transient_data, 72 );
+
+		// Store gift data in transient.
+		$gift_data = isset( $post['checkout_data']['gift_details'] ) ? $post['checkout_data']['gift_details'] : array();
+		if ( isset( $post['checkout_data']['other_data']['is_gift'] ) ) {
+			$gift_data['is_gift'] = $post['checkout_data']['other_data']['is_gift'];
+			unset( $post['checkout_data']['other_data']['is_gift'] );
+		}
+		$gift_key = base64_encode( sanitize_text_field( $post['booking_data'] ) );
+		$dbhandler->bm_save_data_to_transient( $gift_key, $gift_data, 72 );
+
+		// Free version: Add to WooCommerce cart and redirect to checkout.
+		if ( $woocommerceservice->is_enabled() ) {
+			$added = $woocommerceservice->add_to_cart( $booking_fields, $post['booking_data'] );
+
+			if ( $added ) {
+				$data['status']       = 'success';
+				$data['redirect_url'] = $woocommerceservice->get_woo_commerce_checkout_url();
+			} else {
+				$data['status'] = 'error';
+				$data['data']   = '<div class="textcenter">' . esc_html__( 'Could not add booking to cart. Please try again.', 'service-booking' ) . '</div>';
+			}
+		} else {
+			$data['status'] = 'error';
+			$data['data']   = '<div class="textcenter">' . esc_html__( 'WooCommerce is required for checkout. Please contact the site administrator.', 'service-booking' ) . '</div>';
+		}
 
 		echo wp_json_encode( $data );
 		die;
