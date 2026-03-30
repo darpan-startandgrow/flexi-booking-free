@@ -53,6 +53,26 @@ if ( ! function_exists( 'delete_option' ) ) {
 	}
 }
 
+// ── Transient stubs ──────────────────────────────────────────────────────────
+
+global $wp_test_transients;
+$wp_test_transients = array();
+
+if ( ! function_exists( 'get_transient' ) ) {
+	function get_transient( $transient ) {
+		global $wp_test_transients;
+		return isset( $wp_test_transients[ $transient ] ) ? $wp_test_transients[ $transient ] : false;
+	}
+}
+
+if ( ! function_exists( 'set_transient' ) ) {
+	function set_transient( $transient, $value, $expiration = 0 ) {
+		global $wp_test_transients;
+		$wp_test_transients[ $transient ] = $value;
+		return true;
+	}
+}
+
 // ── Hooks stubs ──────────────────────────────────────────────────────────────
 
 global $wp_test_actions, $wp_test_filters;
@@ -362,6 +382,20 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 		}
 
 		public function display() {}
+
+		protected function get_items_per_page( $option, $default = 20 ) {
+			return $default;
+		}
+
+		public function get_pagenum() {
+			return 1;
+		}
+
+		protected function set_pagination_args( $args ) {}
+
+		public function current_action() {
+			return false;
+		}
 	}
 }
 
@@ -369,6 +403,20 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 
 if ( ! class_exists( 'BM_DBhandler' ) ) {
 	class BM_DBhandler {
+		/**
+		 * In-memory row store for testing.
+		 *
+		 * @var array<string, array<int, object>>
+		 */
+		public $store = array();
+
+		/**
+		 * Auto-increment counter per table.
+		 *
+		 * @var array<string, int>
+		 */
+		private $auto_id = array();
+
 		public function get_global_option_value( $option, $default = '' ) {
 			return get_option( $option, $default );
 		}
@@ -378,19 +426,74 @@ if ( ! class_exists( 'BM_DBhandler' ) ) {
 		}
 
 		public function insert_row( $identifier, $data, $format = array() ) {
-			return 1;
+			if ( ! isset( $this->auto_id[ $identifier ] ) ) {
+				$this->auto_id[ $identifier ] = 1;
+			}
+			$id        = $this->auto_id[ $identifier ]++;
+			$data['id'] = $id;
+			$this->store[ $identifier ][ $id ] = (object) $data;
+			return $id;
 		}
 
 		public function update_row( $identifier, $unique_field, $unique_field_value, $data, $format = array(), $where_format = array() ) {
+			if ( isset( $this->store[ $identifier ][ $unique_field_value ] ) ) {
+				foreach ( $data as $k => $v ) {
+					$this->store[ $identifier ][ $unique_field_value ]->$k = $v;
+				}
+			}
 			return 1;
 		}
 
 		public function get_row( $identifier, $unique_field_value, $unique_field = null, $output_type = OBJECT ) {
+			return isset( $this->store[ $identifier ][ $unique_field_value ] ) ? $this->store[ $identifier ][ $unique_field_value ] : null;
+		}
+
+		public function get_value( $identifier, $column, $value, $field = 'id' ) {
+			if ( ! empty( $this->store[ $identifier ] ) ) {
+				foreach ( $this->store[ $identifier ] as $row ) {
+					if ( isset( $row->$field ) && $row->$field == $value && isset( $row->$column ) ) {
+						return $row->$column;
+					}
+				}
+			}
 			return null;
 		}
 
 		public function get_all_result( $identifier, $column = '*', $where = '', $result_type = OBJECT, $offset = 0, $limit = 0, $sort_by = '', $descending = true, $additional = '', $output = '', $distinct = false ) {
-			return array();
+			if ( empty( $this->store[ $identifier ] ) ) {
+				return array();
+			}
+			$rows = array_values( $this->store[ $identifier ] );
+			if ( is_array( $where ) ) {
+				$rows = array_filter(
+					$rows,
+					function ( $row ) use ( $where ) {
+						foreach ( $where as $k => $v ) {
+							if ( ! isset( $row->$k ) || $row->$k != $v ) {
+								return false;
+							}
+						}
+						return true;
+					}
+				);
+				$rows = array_values( $rows );
+			}
+			if ( $result_type === 'var' && ! empty( $rows ) ) {
+				$col = $column;
+				return isset( $rows[0]->$col ) ? $rows[0]->$col : null;
+			}
+			return $rows;
+		}
+
+		public function remove_row( $identifier, $field, $value, $format = '' ) {
+			if ( ! empty( $this->store[ $identifier ] ) ) {
+				foreach ( $this->store[ $identifier ] as $id => $row ) {
+					if ( isset( $row->$field ) && $row->$field == $value ) {
+						unset( $this->store[ $identifier ][ $id ] );
+					}
+				}
+			}
+			return 1;
 		}
 
 		public function bm_count( $identifier, $where = '', $data_specifiers = '' ) {
@@ -407,6 +510,10 @@ if ( ! class_exists( 'BM_DBhandler' ) ) {
 
 		public function get_activator() {
 			return new Booking_Management_Activator();
+		}
+
+		public function bm_fetch_data_from_transient( $key ) {
+			return get_transient( $key );
 		}
 	}
 }

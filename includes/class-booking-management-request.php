@@ -3719,6 +3719,22 @@ class BM_Request {
 						$total_extra_rows = $extra_rows;
 					} //end if
 
+					// Include shared extras linked via the junction table.
+					$shared_extras = $this->bm_fetch_linked_global_extras_for_service( $service_id );
+					if ( ! empty( $shared_extras ) ) {
+						$shared_extras = array_filter(
+							$shared_extras,
+							function ( $ge ) {
+								return isset( $ge->is_extra_service_front ) && (int) $ge->is_extra_service_front === 1;
+							}
+						);
+						if ( ! empty( $shared_extras ) ) {
+							$total_extra_rows = isset( $total_extra_rows ) && ! empty( $total_extra_rows )
+								? array_merge( $total_extra_rows, array_values( $shared_extras ) )
+								: array_values( $shared_extras );
+						}
+					}
+
 					$resp .= '<div class="extra_service_results">';
 					$resp .= '<h4 class="heading_choose_extra">' . $extra_label . '</h4>';
 					if ( isset( $total_extra_rows ) && ! empty( $total_extra_rows ) ) {
@@ -7053,6 +7069,11 @@ class BM_Request {
 
 		if ( isset( $extra_service_id ) && ! empty( $extra_service_id ) ) {
 			$extra_service = $dbhandler->get_row( 'EXTRA', $extra_service_id, 'id' );
+
+			// Fallback to GLOBAL_EXTRA table for shared extras.
+			if ( empty( $extra_service ) ) {
+				$extra_service = $dbhandler->get_row( 'GLOBAL_EXTRA', $extra_service_id, 'id' );
+			}
 		}
 
 		if ( isset( $extra_service ) && ! empty( $extra_service ) ) {

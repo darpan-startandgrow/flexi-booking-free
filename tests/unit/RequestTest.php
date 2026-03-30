@@ -5,7 +5,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-require_once dirname( __DIR__, 2 ) . '/includes/class-booking-management-request.php';
+// BM_Request is already provided by the bootstrap stub.
 
 class RequestTest extends TestCase {
 

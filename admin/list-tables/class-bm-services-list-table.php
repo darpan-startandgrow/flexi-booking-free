@@ -63,6 +63,7 @@ class BM_Services_List_Table extends WP_List_Table {
 			'serial'            => esc_html__( 'Serial No', 'service-booking' ),
 			'service_name'      => esc_html__( 'Name', 'service-booking' ),
 			'category'          => esc_html__( 'Category', 'service-booking' ),
+			'extras'            => esc_html__( 'Extras', 'service-booking' ),
 			'is_service_front'  => esc_html__( 'Show in frontend', 'service-booking' ),
 			'shortcodes'        => esc_html__( 'Service Shortcodes', 'service-booking' ),
 			'actions'           => esc_html__( 'Actions', 'service-booking' ),
@@ -282,6 +283,9 @@ class BM_Services_List_Table extends WP_List_Table {
 					esc_html( mb_strimwidth( $item['category'], 0, 40, '...' ) )
 				);
 
+			case 'extras':
+				return $this->render_extras_count( $item['id'] );
+
 			case 'is_service_front':
 				$checked = checked( $item['is_service_front'], '1', false );
 				return sprintf(
@@ -326,6 +330,34 @@ class BM_Services_List_Table extends WP_List_Table {
 			default:
 				return '';
 		}
+	}
+
+	/**
+	 * Render extras count badge for a service.
+	 *
+	 * @param int $service_id Service ID.
+	 * @return string HTML output.
+	 */
+	private function render_extras_count( $service_id ) {
+		$own_extras    = $this->dbhandler->get_all_result( 'EXTRA', 'id', array( 'service_id' => $service_id ), 'results' );
+		$own_count     = is_array( $own_extras ) ? count( $own_extras ) : 0;
+
+		$shared_links  = $this->dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', 'id', array( 'service_id' => $service_id ), 'results' );
+		$shared_count  = is_array( $shared_links ) ? count( $shared_links ) : 0;
+
+		$parts = array();
+		if ( $own_count > 0 ) {
+			$parts[] = sprintf( esc_html__( '%d own', 'service-booking' ), $own_count );
+		}
+		if ( $shared_count > 0 ) {
+			$parts[] = sprintf( esc_html__( '%d shared', 'service-booking' ), $shared_count );
+		}
+
+		if ( empty( $parts ) ) {
+			return '<span style="color:#999;">&mdash;</span>';
+		}
+
+		return esc_html( implode( ', ', $parts ) );
 	}
 
 	/**

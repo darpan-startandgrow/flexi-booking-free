@@ -9,3 +9,4 @@ src/phpqrcode/
 __pycache__/
 vendor/
 .phpunit.result.cache
+vendor/
