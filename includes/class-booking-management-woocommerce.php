@@ -1,61 +1,78 @@
 <?php
 
 /**
- * Class WooCommerceService
+ * WooCommerce integration service for FlexiBooking.
+ *
+ * Handles adding booking items to the WooCommerce cart,
+ * creating WC products from services/extras, and managing
+ * product pricing.
+ *
+ * @since      1.0.0
+ * @package    Booking_Management
+ * @subpackage Booking_Management/includes
  */
 class WooCommerceService {
 
 
-
     /**
-     * Get WooCommerce Cart
+     * Get WooCommerce Cart instance.
+     *
+     * @since 1.0.0
+     * @return WC_Cart|null Cart object or null when unavailable.
      */
     public function bm_get_woo_commerce_cart() {
-         return wc()->cart;
-
+        return function_exists( 'wc' ) && wc()->cart ? wc()->cart : null;
     }//end bm_get_woo_commerce_cart()
 
 
     /**
-     * Is WooCommerce enabled
+     * Check whether WooCommerce is active.
      *
-     * @return boolean
+     * @since 1.0.0
+     * @return bool
      */
     public function is_enabled() {
-         return class_exists( 'WooCommerce' );
-
+        return class_exists( 'WooCommerce' );
     }//end is_enabled()
 
 
     /**
-     * Get WooCommerce Cart URL
+     * Get WooCommerce Cart URL.
+     *
+     * @since 1.0.0
+     * @return string
      */
     public function get_woo_commerce_cart_url() {
-         return wc_get_cart_url();
-
+        return function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '';
     }//end get_woo_commerce_cart_url()
 
 
     /**
-     * Get WooCommerce Checkout URL
+     * Get WooCommerce Checkout URL.
+     *
+     * @since 1.0.0
+     * @return string
      */
     public function get_woo_commerce_checkout_url() {
-         return wc_get_checkout_url();
-
+        return function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : '';
     }//end get_woo_commerce_checkout_url()
 
 
     /**
-     * Add service booking to woocommerce cart
+     * Add a service booking to the WooCommerce cart.
      *
-     * @param array    $order_data
+     * Clears the existing cart, then adds the main service product
+     * and any extra-service products based on the booking data.
      *
-     * @return boolean
+     * @since 1.0.0
+     * @param array  $data             Booking data array (service_id, booking_date, etc.).
+     * @param string $flexi_order_key  The FlexiBooking order key.
+     * @return bool True on success, false on failure.
      */
     public function add_to_cart( $data = array(), $flexi_order_key = '' ) {
         $wooCommerceCart = $this->bm_get_woo_commerce_cart();
 
-        if ( !$wooCommerceCart ) {
+        if ( ! $wooCommerceCart ) {
             return false;
         }
 
@@ -64,224 +81,196 @@ class WooCommerceService {
          *
          * @since 1.2.0
          * @param array  $data             Cart data (service_id, booking_date, etc.).
-         * @param string $flexi_order_key   The FlexiBooking order key.
+         * @param string $flexi_order_key  The FlexiBooking order key.
          */
         do_action( 'sg_booking_before_wc_add_to_cart', $data, $flexi_order_key );
 
         try {
+            // Clear existing cart items.
             foreach ( $wooCommerceCart->get_cart() as $wc_key => $wc_item ) {
                 $wooCommerceCart->remove_cart_item( $wc_key );
             }
 
-            if ( !empty( $data ) && !empty( $flexi_order_key ) ) {
-                $dbhandler  = new BM_DBhandler();
-                $service_id = $data['service_id'] ?? 0;
-                $date       = $data['booking_date'] ?? '';
-                $product_id = $dbhandler->get_value( 'SERVICE', 'wc_product', $service_id, 'id' );
-                $svc_price  = $data['base_svc_price'] ?? -1;
+            if ( empty( $data ) || empty( $flexi_order_key ) ) {
+                return false;
+            }
 
-                if ( $service_id > 0 && !empty( $date ) && $product_id > 0 ) {
-                    $total_service_booked = $data['total_service_booking'] ?? 0;
-                    $extra_service_ids    = $data['extra_svc_booked'] ?? '';
-                    $extra_slots_booked   = $data['total_extra_slots_booked'] ?? 0;
+            $dbhandler  = new BM_DBhandler();
+            $service_id = isset( $data['service_id'] ) ? (int) $data['service_id'] : 0;
+            $date       = isset( $data['booking_date'] ) ? $data['booking_date'] : '';
+            $product_id = (int) $dbhandler->get_value( 'SERVICE', 'wc_product', $service_id, 'id' );
+            $svc_price  = isset( $data['base_svc_price'] ) ? $data['base_svc_price'] : -1;
 
-                    /** $service = $dbhandler->get_row('SERVICE', $service_id); */
-                    /**if ($product_id == 0 || !in_array($service->service_name, array_column(self::get_all_products([]), 'name'))) {
-                    $product_id = self::create_woo_product($service_id, $date);
-                    } else if ($product_id == 0 && in_array($service->service_name, array_column(self::get_all_products([]), 'name'))) {
-                    $product_id = self::get_wc_product_id_by_title($service->service_name);
-                    $dbhandler->update_row('SERVICE', 'id', $service_id, ['is_linked_wc_product' => 1, 'wc_product' => $product_id], '', '%d');
-                    }*/
+            if ( $service_id <= 0 || empty( $date ) || $product_id <= 0 ) {
+                return false;
+            }
 
-                    /**
-                     * Filters the WooCommerce cart item data for a FlexiBooking order.
-                     *
-                     * @since 1.2.0
-                     * @param array  $cart_item_data  Cart item data array.
-                     * @param array  $data            The original booking data.
-                     * @param string $flexi_order_key The FlexiBooking order key.
-                     */
-                    $cart_item_data = apply_filters( 'sg_booking_wc_cart_item_data', array(
-                        'added_by_flexibooking' => true,
-                        'flexi_booking_key'     => $flexi_order_key,
-                        'flexi_checkout_key'    => ( new BM_Request() )->bm_generate_unique_code( '', 'FLEXIC', 15 ),
-                    ), $data, $flexi_order_key );
+            $total_service_booked = isset( $data['total_service_booking'] ) ? (int) $data['total_service_booking'] : 0;
+            $extra_service_ids    = isset( $data['extra_svc_booked'] ) ? $data['extra_svc_booked'] : '';
+            $extra_slots_booked   = isset( $data['total_extra_slots_booked'] ) ? $data['total_extra_slots_booked'] : 0;
 
-                    if ( $svc_price != -1 ) {
-                        $cart_item_data['flexi_svc_price'] = $svc_price;
-                    }
+            /**
+             * Filters the WooCommerce cart item data for a FlexiBooking order.
+             *
+             * @since 1.2.0
+             * @param array  $cart_item_data  Cart item data array.
+             * @param array  $data            The original booking data.
+             * @param string $flexi_order_key The FlexiBooking order key.
+             */
+            $cart_item_data = apply_filters( 'sg_booking_wc_cart_item_data', array(
+                'added_by_flexibooking' => true,
+                'flexi_booking_key'     => $flexi_order_key,
+                'flexi_checkout_key'    => ( new BM_Request() )->bm_generate_unique_code( '', 'FLEXIC', 15 ),
+            ), $data, $flexi_order_key );
 
-                    $wooCommerceCart->add_to_cart( $product_id, $total_service_booked, 0, array(), $cart_item_data );
+            if ( $svc_price != -1 ) {
+                $cart_item_data['flexi_svc_price'] = $svc_price;
+            }
 
-                    if ( !empty( $extra_service_ids ) && !empty( $extra_slots_booked ) ) {
-                        $extra_slots_booked = explode( ',', $extra_slots_booked );
-                        $additional         = "id in($extra_service_ids)";
-                        $extras             = $dbhandler->get_all_result( 'EXTRA', '*', 1, 'results', 0, false, null, false, $additional );
+            $wooCommerceCart->add_to_cart( $product_id, $total_service_booked, 0, array(), $cart_item_data );
 
-                        if ( !empty( $extras ) ) {
-                            foreach ( $extras as $key => $extra ) {
-                                $product_id      = $extra->svcextra_wc_product ?? 0;
-                                $extra_svc_price = $extra->extra_price ?? 0;
+            // Add extra services to the cart.
+            if ( ! empty( $extra_service_ids ) && ! empty( $extra_slots_booked ) ) {
+                $extra_slots_booked = explode( ',', $extra_slots_booked );
+                $additional         = 'id in(' . esc_sql( $extra_service_ids ) . ')';
+                $extras             = $dbhandler->get_all_result( 'EXTRA', '*', 1, 'results', 0, false, null, false, $additional );
 
-                                $cart_item_data['flexi_extra_svc_price'][ $key ] = $extra_svc_price;
+                if ( ! empty( $extras ) ) {
+                    foreach ( $extras as $key => $extra ) {
+                        $extra_product_id = isset( $extra->svcextra_wc_product ) ? (int) $extra->svcextra_wc_product : 0;
+                        $extra_svc_price  = isset( $extra->extra_price ) ? $extra->extra_price : 0;
 
-                                /**if ($product_id == 0 || !in_array($extra->extra_name, array_column(self::get_all_products([]), 'name'))) {
-                                $product_id = self::create_woo_product($extra->id, $date, 'extra');
-                                } else if ($product_id == 0 && in_array($extra->extra_name, array_column(self::get_all_products([]), 'name'))) {
-                                $product_id = self::get_wc_product_id_by_title($extra->extra_name);
-                                $dbhandler->update_row('EXTRA', 'id', $extra->id, ['is_linked_wc_extrasvc' => 1, 'svcextra_wc_product' => $product_id], '', '%d');
-                                }*/
+                        $cart_item_data['flexi_extra_svc_price'][ $key ] = $extra_svc_price;
 
-                                if ( $product_id > 0 ) {
-                                    $wooCommerceCart->add_to_cart( $product_id, $extra_slots_booked[ $key ], 0, array(), $cart_item_data );
-                                }
-                            }
+                        if ( $extra_product_id > 0 ) {
+                            $wooCommerceCart->add_to_cart( $extra_product_id, $extra_slots_booked[ $key ], 0, array(), $cart_item_data );
                         }
-                    }//end if
-
-                    /**
-                     * Fires after FlexiBooking successfully adds items to the WooCommerce cart.
-                     *
-                     * @since 1.2.0
-                     * @param array  $data            The booking data.
-                     * @param string $flexi_order_key The FlexiBooking order key.
-                     * @param int    $service_id      The service ID.
-                     */
-                    do_action( 'sg_booking_after_wc_add_to_cart', $data, $flexi_order_key, $service_id );
-                    return true;
+                    }
                 }
             }//end if
+
+            /**
+             * Fires after FlexiBooking successfully adds items to the WooCommerce cart.
+             *
+             * @since 1.2.0
+             * @param array  $data            The booking data.
+             * @param string $flexi_order_key The FlexiBooking order key.
+             * @param int    $service_id      The service ID.
+             */
+            do_action( 'sg_booking_after_wc_add_to_cart', $data, $flexi_order_key, $service_id );
+            return true;
         } catch ( Exception $e ) {
-            error_log( print_r( $e->getmessage(), true ) );
+            error_log( 'FlexiBooking WC add_to_cart error: ' . $e->getMessage() );
             return false;
         }
-
-        return false;
-
     }//end add_to_cart()
 
 
     /**
-     * Create new woocommerce product if does not exist.
+     * Create a new WooCommerce product for a service or extra.
      *
-     * @param int|null $id
-     * @param string   $date
-     * @param string   $type
-     *
-     * @return int
+     * @since 1.0.0
+     * @param int    $id   Service or extra ID.
+     * @param string $date Booking date.
+     * @param string $type 'service' or 'extra'.
+     * @return int Product ID on success, 0 on failure.
      */
     private static function create_woo_product( $id = 0, $date = '', $type = 'service' ) {
-        if ( !empty( $id ) && !empty( $date ) ) {
-            $dbhandler  = new BM_DBhandler();
-            $bmrequests = new BM_Request();
-            $data       = array();
+        if ( empty( $id ) || empty( $date ) ) {
+            return 0;
+        }
 
-            switch ( $type ) {
-				case 'service':
-					$service        = $dbhandler->get_row( 'SERVICE', $id );
-					$category_id    = isset( $service->service_category ) && !empty( $service->service_category ) ? esc_attr( $service->service_category ) : 0;
-					$category_title = $bmrequests->bm_fetch_category_name_by_service_id( $id );
+        $dbhandler  = new BM_DBhandler();
+        $bmrequests = new BM_Request();
+        $data       = array();
 
-					if ( !empty( $service ) ) {
-						$data['image']         = isset( $service->service_image_guid ) && $service->service_image_guid !== 0 ? esc_attr( $service->service_image_guid ) : 0;
-						$data['name']          = isset( $service->service_name ) && !empty( $service->service_name ) ? esc_html( $service->service_name ) : '';
-						$data['slug']          = isset( $service->service_name ) && !empty( $service->service_name ) ? $bmrequests->bm_create_slug( $service->service_name ) : '';
-						$data['long_desc']     = isset( $service->service_desc ) && !empty( $service->service_desc ) ? wp_kses_post( stripslashes( $service->service_desc ) ) : '';
-						$data['price']         = str_replace( '&euro;', '', $bmrequests->bm_fetch_service_price_by_service_id_and_date( $service->id, $date, 'global_format' ) );
-						$data['category']      = !empty( $category_title ) ? self::get_wc_product_category_id_by_title( $category_title ) : -1;
-						$data['default_price'] = isset( $service->default_price ) && !empty( $service->default_price ) ? esc_attr( $service->default_price ) : 0;
-
-						if ( $data['category'] == 0 ) {
-							$data['category'] = self::create_woo_product_category( $category_id );
-						}
-					}
-                    break;
-
-				case 'extra':
-					$extra = $dbhandler->get_row( 'EXTRA', $id );
-
-					if ( !empty( $extra ) ) {
-						$data['image']     = 0;
-						$data['name']      = isset( $extra->extra_name ) && !empty( $extra->extra_name ) ? esc_html( $extra->extra_name ) : '';
-						$data['slug']      = isset( $extra->extra_name ) && !empty( $extra->extra_name ) ? $bmrequests->bm_create_slug( $extra->extra_name ) : '';
-						$data['long_desc'] = isset( $extra->extra_desc ) && !empty( $extra->extra_desc ) ? wp_kses_post( stripslashes( $extra->extra_desc ) ) : '';
-						$data['price']     = isset( $extra->extra_price ) && !empty( $extra->extra_price ) ? esc_attr( $extra->extra_price ) : '';
-						$data['category']  = 0;
-					}
-                    break;
-
-				default:
-                    break;
-            }//end switch
-
-            if ( !empty( $data ) ) {
-                $product = new WC_Product_Simple();
-                $product->set_name( $data['name'] );
-                $product->set_slug( $data['slug'] );
-
-                if ( isset( $data['default_price'] ) ) {
-                    if ( $data['price'] < $data['default_price'] ) {
-                        $product->set_regular_price( $data['default_price'] );
-                        $product->set_sale_price( $data['price'] );
-                    } else {
-                        $product->set_regular_price( $data['price'] );
-                    }
-                } else {
-                    $product->set_regular_price( $data['price'] );
+        switch ( $type ) {
+            case 'service':
+                $service = $dbhandler->get_row( 'SERVICE', $id );
+                if ( empty( $service ) ) {
+                    return 0;
                 }
+                $category_id    = ! empty( $service->service_category ) ? (int) $service->service_category : 0;
+                $category_title = $bmrequests->bm_fetch_category_name_by_service_id( $id );
+                $data['image']         = ! empty( $service->service_image_guid ) ? (int) $service->service_image_guid : 0;
+                $data['name']          = ! empty( $service->service_name ) ? esc_html( $service->service_name ) : '';
+                $data['slug']          = ! empty( $service->service_name ) ? $bmrequests->bm_create_slug( $service->service_name ) : '';
+                $data['long_desc']     = ! empty( $service->service_desc ) ? wp_kses_post( stripslashes( $service->service_desc ) ) : '';
+                $data['price']         = str_replace( '&euro;', '', $bmrequests->bm_fetch_service_price_by_service_id_and_date( $service->id, $date, 'global_format' ) );
+                $data['default_price'] = ! empty( $service->default_price ) ? (float) $service->default_price : 0;
+                $data['category']      = ! empty( $category_title ) ? self::get_wc_product_category_id_by_title( $category_title ) : -1;
 
-                $product->set_description( $data['long_desc'] );
-                $product->set_image_id( $data['image'] );
-                $product->set_category_ids( array( $data['category'] ) );
-                $product->set_stock_status( 'instock' );
-                $product->save();
-
-                if ( !empty( $product ) ) {
-                    if ( $type == 'service' ) {
-                        $dbhandler->update_row(
-                            'SERVICE',
-                            'id',
-                            $id,
-                            array(
-								'is_linked_wc_product' => 1,
-								'wc_product'           => $product->get_id(),
-                            ),
-                            '',
-                            '%d'
-                        );
-                    } elseif ( $type == 'extra' ) {
-                        $dbhandler->update_row(
-                            'EXTRA',
-                            'id',
-                            $id,
-                            array(
-								'is_linked_wc_extrasvc' => 1,
-								'svcextra_wc_product'   => $product->get_id(),
-                            ),
-                            '',
-                            '%d'
-                        );
-                    }
+                if ( 0 === $data['category'] && $category_id > 0 ) {
+                    $data['category'] = self::create_woo_product_category( $category_id );
                 }
-            }//end if
-        }//end if
+                break;
 
-        return isset( $product ) && !empty( $product ) ? $product->get_id() : 0;
+            case 'extra':
+                $extra = $dbhandler->get_row( 'EXTRA', $id );
+                if ( empty( $extra ) ) {
+                    return 0;
+                }
+                $data['image']     = 0;
+                $data['name']      = ! empty( $extra->extra_name ) ? esc_html( $extra->extra_name ) : '';
+                $data['slug']      = ! empty( $extra->extra_name ) ? $bmrequests->bm_create_slug( $extra->extra_name ) : '';
+                $data['long_desc'] = ! empty( $extra->extra_desc ) ? wp_kses_post( stripslashes( $extra->extra_desc ) ) : '';
+                $data['price']     = ! empty( $extra->extra_price ) ? (float) $extra->extra_price : 0;
+                $data['category']  = 0;
+                break;
 
+            default:
+                return 0;
+        }//end switch
+
+        if ( empty( $data ) || empty( $data['name'] ) ) {
+            return 0;
+        }
+
+        $product = new WC_Product_Simple();
+        $product->set_name( $data['name'] );
+        $product->set_slug( $data['slug'] );
+
+        if ( isset( $data['default_price'] ) && $data['price'] < $data['default_price'] ) {
+            $product->set_regular_price( $data['default_price'] );
+            $product->set_sale_price( $data['price'] );
+        } else {
+            $product->set_regular_price( $data['price'] );
+        }
+
+        $product->set_description( $data['long_desc'] );
+        $product->set_image_id( $data['image'] );
+        if ( ! empty( $data['category'] ) && $data['category'] > 0 ) {
+            $product->set_category_ids( array( $data['category'] ) );
+        }
+        $product->set_stock_status( 'instock' );
+        $product->save();
+
+        $product_id = $product->get_id();
+
+        if ( ! empty( $product_id ) ) {
+            $update_data = ( 'service' === $type )
+                ? array( 'is_linked_wc_product' => 1, 'wc_product' => $product_id )
+                : array( 'is_linked_wc_extrasvc' => 1, 'svcextra_wc_product' => $product_id );
+            $table = ( 'service' === $type ) ? 'SERVICE' : 'EXTRA';
+            $dbhandler->update_row( $table, 'id', $id, $update_data, '', '%d' );
+        }
+
+        return $product_id;
     }//end create_woo_product()
 
 
     /**
-     * Get all woocommerce products
+     * Get all WooCommerce products.
      *
-     * @param  array $params
-     * @return array
+     * @since 1.0.0
+     * @param array $params WP_Query args override.
+     * @return array Array of arrays with 'id' and 'name' keys.
      */
-    private static function get_all_products( $params ) {
+    private static function get_all_products( $params = array() ) {
         $params = array_merge(
             array(
-				'post_type'      => 'product',
-				'posts_per_page' => -1,
+                'post_type'      => 'product',
+                'posts_per_page' => -1,
             ),
             $params
         );
@@ -296,17 +285,17 @@ class WooCommerceService {
         }
 
         return $products;
-
     }//end get_all_products()
 
 
     /**
-     * Get all woocommerce product categories
+     * Get all WooCommerce product categories.
      *
-     * @param  array $params
-     * @return array
+     * @since 1.0.0
+     * @param array $params get_categories() args override.
+     * @return array Array of arrays with 'id' and 'name' keys.
      */
-    private static function get_all_product_categories( $params ) {
+    private static function get_all_product_categories( $params = array() ) {
         $params = array_merge( array( 'taxonomy' => 'product_cat' ), $params );
 
         $categories = array();
@@ -319,102 +308,112 @@ class WooCommerceService {
         }
 
         return $categories;
-
     }//end get_all_product_categories()
 
 
     /**
-     * Create new woocommerce product category if does not exist.
+     * Create a WooCommerce product category from a booking category.
      *
-     * @param  int $category_id
-     * @return int
+     * @since 1.0.0
+     * @param int $category_id Booking category ID.
+     * @return int WC term ID on success, 0 on failure.
      */
     private static function create_woo_product_category( $category_id = 0 ) {
-        if ( !empty( $category_id ) ) {
-            $dbhandler  = new BM_DBhandler();
-            $bmrequests = new BM_Request();
-            $category   = $dbhandler->get_row( 'CATEGORY', $category_id );
+        if ( empty( $category_id ) ) {
+            return 0;
+        }
 
-            if ( !empty( $category ) ) {
-                $name = isset( $category->cat_name ) && !empty( $category->cat_name ) ? esc_html( $category->cat_name ) : '';
-                $slug = !empty( $name ) ? $bmrequests->bm_create_slug( $name ) : '';
+        $dbhandler  = new BM_DBhandler();
+        $bmrequests = new BM_Request();
+        $category   = $dbhandler->get_row( 'CATEGORY', $category_id );
 
-                $category = wp_insert_term(
-                    $name,
-                    'product_cat',
-                    array(
-                        'description' => '',
-                        'slug'        => $slug,
-                    )
-                );
-            }
+        if ( empty( $category ) ) {
+            return 0;
+        }
 
-            return isset( $category ) && !empty( $category ) ? $category->term_id : 0;
-        }//end if
+        $name = ! empty( $category->cat_name ) ? esc_html( $category->cat_name ) : '';
+        $slug = ! empty( $name ) ? $bmrequests->bm_create_slug( $name ) : '';
 
-        return 0;
+        $result = wp_insert_term(
+            $name,
+            'product_cat',
+            array(
+                'description' => '',
+                'slug'        => $slug,
+            )
+        );
 
+        if ( is_wp_error( $result ) ) {
+            // Term may already exist; look it up.
+            $existing = get_term_by( 'slug', $slug, 'product_cat' );
+            return $existing ? $existing->term_id : 0;
+        }
+
+        return isset( $result['term_id'] ) ? (int) $result['term_id'] : 0;
     }//end create_woo_product_category()
 
 
     /**
-     * Get woocommerce product id by post title
+     * Get a WooCommerce product ID by its title.
      *
-     * @param  string $title
-     * @return int
+     * @since 1.0.0
+     * @param string $title Product title.
+     * @return int Product ID on success, 0 on failure.
      */
     private static function get_wc_product_id_by_title( $title = '' ) {
-        if ( !empty( $title ) ) {
-            global $wpdb;
-            $post_title = strval( $title );
-            $post_table = $wpdb->prefix . 'posts';
+        if ( empty( $title ) ) {
+            return 0;
+        }
 
-            $result = $wpdb->get_col(
-                $wpdb->prepare(
-                    'SELECT ID FROM %s WHERE post_title LIKE %s AND post_type LIKE %s',
-                    $post_table,
-                    $post_title,
-                    'product'
-                )
-            );
+        global $wpdb;
 
-            if ( empty( $result[0] ) ) {
-                return 0;
-            } else {
-                $product = wc_get_product( intval( $result[0] ) );
-                return !empty( $product ) ? $product->get_id() : 0;
-            }
-        }//end if
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $result = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s LIMIT 1",
+                $title,
+                'product'
+            )
+        );
 
-        return 0;
+        if ( empty( $result ) ) {
+            return 0;
+        }
 
+        $product = wc_get_product( (int) $result );
+        return ! empty( $product ) ? $product->get_id() : 0;
     }//end get_wc_product_id_by_title()
 
 
     /**
-     * Get woocommerce product category id by category title
+     * Get a WooCommerce product category ID by its name.
      *
-     * @param  string $title
-     * @return int
+     * @since 1.0.0
+     * @param string $title Category name.
+     * @return int Term ID on success, 0 on failure.
      */
     private static function get_wc_product_category_id_by_title( $title = '' ) {
-        if ( !empty( $title ) ) {
-            $result = get_term_by( 'name', $title, 'product_cat' );
-            return !empty( $result ) ? $result->term_id : 0;
+        if ( empty( $title ) ) {
+            return 0;
         }
 
-        return 0;
-
+        $result = get_term_by( 'name', $title, 'product_cat' );
+        return ! empty( $result ) ? $result->term_id : 0;
     }//end get_wc_product_category_id_by_title()
 
 
     /**
-     * Set woocommerce product price
+     * Set a WooCommerce product's regular price.
      *
-     * @param  int $product_id
-     * @param  float $price
+     * @since 1.0.0
+     * @param int   $product_id WC product ID.
+     * @param float $price      New regular price.
      */
     public function set_wc_product_regular_price( $product_id, $price ) {
+        if ( empty( $product_id ) ) {
+            return;
+        }
+
         $product = wc_get_product( $product_id );
 
         if ( $product ) {
@@ -422,17 +421,21 @@ class WooCommerceService {
             $product->set_price( $price );
             $product->save();
         }
-
     }//end set_wc_product_regular_price()
 
 
     /**
-     * Set woocommerce product sale price
+     * Set a WooCommerce product's sale price.
      *
-     * @param  int $product_id
-     * @param  float $price
+     * @since 1.0.0
+     * @param int   $product_id WC product ID.
+     * @param float $price      New sale price.
      */
     public function set_wc_product_sale_price( $product_id, $price ) {
+        if ( empty( $product_id ) ) {
+            return;
+        }
+
         $product = wc_get_product( $product_id );
 
         if ( $product ) {

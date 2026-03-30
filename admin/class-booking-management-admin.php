@@ -9104,14 +9104,14 @@ class Booking_Management_Admin {
 		if ( ! isset( $schedules['per_minute'] ) ) {
 			$schedules['per_minute'] = array(
 				'interval' => 60,
-				'display'  => __( 'Once every minute', 'service-booking' ),
+				'display'  => 'Once every minute',
 			);
 		}
 
 		if ( ! isset( $schedules['per_5_minute'] ) ) {
 			$schedules['per_5_minute'] = array(
 				'interval' => 300,
-				'display'  => __( 'Every 5 Minutes', 'service-booking' ),
+				'display'  => 'Every 5 Minutes',
 			);
 		}
 

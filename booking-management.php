@@ -49,8 +49,8 @@ function activate_booking_management() {
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'SG Flexi Booking Lite requires WooCommerce to be installed and active. Please install WooCommerce first.', 'service-booking' ),
-			esc_html__( 'Plugin Activation Error', 'service-booking' ),
+			'SG Flexi Booking Lite requires WooCommerce to be installed and active. Please install WooCommerce first.',
+			'Plugin Activation Error',
 			array( 'back_link' => true )
 		);
 	}

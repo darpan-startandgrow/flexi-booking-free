@@ -240,65 +240,67 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
         $service_post = $bmrequests->sanitize_request( $data, $svc_identifier, $exclude );
 
-        if ( $service_post != false ) {
-
+        if ( $service_post === false ) {
+            echo '<div id="errorMessage" class="bm-notice bm-error">';
+            echo esc_html__( 'Service Data could not be Processed !!', 'service-booking' );
+            echo '</div>';
+        } else {
             $service_post['service_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
             $service_id                         = $dbhandler->insert_row( $svc_identifier, $service_post );
-        } else {
-            echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
-            echo esc_html_e( 'Service Data could not be Processed !!', 'service-booking' );
-            echo ( '</div>' );
         }
 
-        if ( $service_id ) {
-            if ( isset( $service_post['default_price'] ) && $service_post['wc_product'] > 0 && $woocommerceservice->is_enabled() ) {
+        if ( ! empty( $service_id ) ) {
+            // Sync WooCommerce product price.
+            if ( isset( $service_post['default_price'] ) && ! empty( $service_post['wc_product'] ) && $woocommerceservice->is_enabled() ) {
                 $woocommerceservice->set_wc_product_regular_price( $service_post['wc_product'], $service_post['default_price'] );
-			}
+            }
 
-			if ( ( filter_input( INPUT_POST, 'if_extra_svc' ) == '1' ) ) {
-				$extrafields['service_id'] = isset( $_POST['is_global'] ) ? 0 : esc_attr( $service_id );
-				$extra_service_post        = $bmrequests->sanitize_request( $extrafields, $extra_identifier, $exclude );
+            // Save extra service.
+            if ( filter_input( INPUT_POST, 'if_extra_svc' ) === '1' ) {
+                $extrafields['service_id'] = isset( $_POST['is_global'] ) ? 0 : absint( $service_id );
+                $extra_service_post        = $bmrequests->sanitize_request( $extrafields, $extra_identifier, $exclude );
 
-				if ( $extra_service_post != false ) {
-					$extra_service_post['extras_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-					$extra_svc_id                            = $dbhandler->insert_row( $extra_identifier, $extra_service_post );
+                if ( $extra_service_post !== false ) {
+                    $extra_service_post['extras_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+                    $extra_svc_id                            = $dbhandler->insert_row( $extra_identifier, $extra_service_post );
 
-                    if ( !empty( $extra_svc_id ) ) {
-                        if ( isset( $extra_service_post['extra_price'] ) && $extra_service_post['svcextra_wc_product'] > 0 && $woocommerceservice->is_enabled() ) {
-                            $woocommerceservice->set_wc_product_regular_price( $extra_service_post['svcextra_wc_product'], $extra_service_post['extra_price'] );
-                        }
+                    if ( ! empty( $extra_svc_id ) && isset( $extra_service_post['extra_price'] ) && ! empty( $extra_service_post['svcextra_wc_product'] ) && $woocommerceservice->is_enabled() ) {
+                        $woocommerceservice->set_wc_product_regular_price( $extra_service_post['svcextra_wc_product'], $extra_service_post['extra_price'] );
                     }
-				}
-			}
+                }
+            }
 
-			if ( ( filter_input( INPUT_POST, 'is_gallery_image' ) == '1' ) ) {
-				$svc_gallery['module_id'] = esc_attr( $service_id );
-				$gallery_post             = $bmrequests->sanitize_request( $svc_gallery, $gallery_identifier, $exclude );
+            // Save gallery.
+            if ( filter_input( INPUT_POST, 'is_gallery_image' ) === '1' ) {
+                $svc_gallery['module_id'] = absint( $service_id );
+                $gallery_post             = $bmrequests->sanitize_request( $svc_gallery, $gallery_identifier, $exclude );
 
-				if ( $gallery_post != false ) {
-					$gallery_post['gallery_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-					$svc_gallery_id                     = $dbhandler->insert_row( $gallery_identifier, $gallery_post );
-				}
-			}
+                if ( $gallery_post !== false ) {
+                    $gallery_post['gallery_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+                    $dbhandler->insert_row( $gallery_identifier, $gallery_post );
+                }
+            }
 
-			if ( filter_input( INPUT_POST, 'total_time_slots' ) != '0' ) {
-				$time_data['service_id'] = esc_attr( $service_id );
-				$time_post               = $bmrequests->sanitize_request( $time_data, $time_identifier, $exclude );
+            // Save time slots.
+            if ( filter_input( INPUT_POST, 'total_time_slots' ) !== '0' ) {
+                $time_data['service_id'] = absint( $service_id );
+                $time_post               = $bmrequests->sanitize_request( $time_data, $time_identifier, $exclude );
 
-				if ( $time_post != false ) {
-					$time_post['time_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-					$time_post_id                 = $dbhandler->insert_row( $time_identifier, $time_post );
-				}
-			}
+                if ( $time_post !== false ) {
+                    $time_post['time_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+                    $dbhandler->insert_row( $time_identifier, $time_post );
+                }
+            }
 
+            // Update shortcode category filter.
             $category_id_added = isset( $service_post['service_category'] ) ? $service_post['service_category'] : 0;
 
-			if ( !in_array( $category_id_added, $frontend_all_services_shortcode_selected_cat_ids ) ) {
-				$frontend_all_services_shortcode_selected_cat_ids = array_merge( $frontend_all_services_shortcode_selected_cat_ids, array( $category_id_added ) );
-				$dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
-			}
+            if ( ! in_array( $category_id_added, $frontend_all_services_shortcode_selected_cat_ids ) ) {
+                $frontend_all_services_shortcode_selected_cat_ids[] = $category_id_added;
+                $dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
+            }
 
-            // Save availability periods for newly created service.
+            // Save availability periods.
             bm_save_availability_periods( $service_id, $availability_periods_new, $availability_periods_existing );
 
             // Save service categories mapping.
@@ -307,104 +309,110 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
             wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_all_services' ) );
             exit;
-		} else {
-			echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
-			echo esc_html__( 'Service Could not be Added !!', 'service-booking' );
-			echo ( '</div>' );
-		}
-	}
+        } else {
+            echo '<div id="errorMessage" class="bm-notice bm-error">';
+            echo esc_html__( 'Service Could not be Added !!', 'service-booking' );
+            echo '</div>';
+        }
+    }
 
-	if ( ( filter_input( INPUT_POST, 'upsvc' ) ) ) {
-		if ( $id != 0 ) {
-			if ( filter_input( INPUT_POST, 'default_price' ) != filter_input( INPUT_POST, 'old_default_price' ) ) {
-				$new_wc_price                = 1;
-				$data['variable_svc_prices'] = null;
+    if ( ( filter_input( INPUT_POST, 'upsvc' ) ) ) {
+        if ( $id != 0 ) {
+            // Clear variable data when defaults change to keep them in sync.
+            if ( filter_input( INPUT_POST, 'default_price' ) != filter_input( INPUT_POST, 'old_default_price' ) ) {
+                $new_wc_price                = 1;
+                $data['variable_svc_prices'] = null;
+            }
+            if ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) {
+                $data['variable_max_cap'] = null;
+            }
+            if ( filter_input( INPUT_POST, 'total_time_slots' ) != filter_input( INPUT_POST, 'old_total_time_slots' ) ) {
+                $data['variable_time_slots'] = null;
+            }
 
-			}
-			if ( ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) ) {
-				$data['variable_max_cap'] = null;
-			}
-			if ( ( filter_input( INPUT_POST, 'total_time_slots' ) != filter_input( INPUT_POST, 'old_total_time_slots' ) ) ) {
-				$data['variable_time_slots'] = null;
-			}
-			$data['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-			$service_post               = $bmrequests->sanitize_request( $data, $svc_identifier, $exclude );
+            $data['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+            $service_post               = $bmrequests->sanitize_request( $data, $svc_identifier, $exclude );
+            $svc_updated                = false;
 
-			if ( $service_post != false ) {
-				$svc_updated = $dbhandler->update_row( $svc_identifier, 'id', $id, $service_post, '', '%d' );
-			} else {
-				echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
-				echo esc_html__( 'Service Data could not be Processed !!', 'service-booking' );
-				echo ( '</div>' );
-			}
+            if ( $service_post !== false ) {
+                $svc_updated = $dbhandler->update_row( $svc_identifier, 'id', $id, $service_post, '', '%d' );
+            } else {
+                echo '<div id="errorMessage" class="bm-notice bm-error">';
+                echo esc_html__( 'Service Data could not be Processed !!', 'service-booking' );
+                echo '</div>';
+            }
 
-			if ( $svc_updated ) {
-                if ( isset( $service_post['default_price'] ) && $service_post['wc_product'] > 0 && $woocommerceservice->is_enabled() ) {
+            if ( $svc_updated ) {
+                // Sync WooCommerce product price.
+                if ( isset( $service_post['default_price'] ) && ! empty( $service_post['wc_product'] ) && $woocommerceservice->is_enabled() ) {
                     $woocommerceservice->set_wc_product_regular_price( $service_post['wc_product'], $service_post['default_price'] );
                 }
 
-				if ( ( filter_input( INPUT_POST, 'is_gallery_image' ) == '1' ) ) {
-					$svc_gallery['module_id'] = esc_attr( $id );
-					$gallery_post             = $bmrequests->sanitize_request( $svc_gallery, $gallery_identifier, $exclude );
+                // Save gallery (insert or update).
+                if ( filter_input( INPUT_POST, 'is_gallery_image' ) === '1' ) {
+                    $svc_gallery['module_id'] = absint( $id );
+                    $gallery_post             = $bmrequests->sanitize_request( $svc_gallery, $gallery_identifier, $exclude );
 
-					if ( $gallery_post != false ) {
-						if ( isset( $svc_gallery_images ) && !empty( $svc_gallery_images ) ) {
-							$gallery_post['gallery_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-							$svc_gallery_updated                = $dbhandler->update_row( $gallery_identifier, 'module_id', $id, $gallery_post, '', '%d' );
-						} else {
-							$svc_gallery_id = $dbhandler->insert_row( $gallery_identifier, $gallery_post );
-						}
-					}
-				}
+                    if ( $gallery_post !== false ) {
+                        if ( isset( $svc_gallery_images ) && ! empty( $svc_gallery_images ) ) {
+                            $gallery_post['gallery_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+                            $dbhandler->update_row( $gallery_identifier, 'module_id', $id, $gallery_post, '', '%d' );
+                        } else {
+                            $dbhandler->insert_row( $gallery_identifier, $gallery_post );
+                        }
+                    }
+                }
 
-				if ( ( filter_input( INPUT_POST, 'if_extra_svc' ) == '1' ) ) {
-					$extrafields['service_id'] = isset( $_POST['is_global'] ) ?  0 : esc_attr( $id );
-					$extra_service_post        = $bmrequests->sanitize_request( $extrafields, $extra_identifier, $exclude );
+                // Save extra service.
+                if ( filter_input( INPUT_POST, 'if_extra_svc' ) === '1' ) {
+                    $extrafields['service_id'] = isset( $_POST['is_global'] ) ? 0 : absint( $id );
+                    $extra_service_post        = $bmrequests->sanitize_request( $extrafields, $extra_identifier, $exclude );
 
-					if ( $extra_service_post != false ) {
-						$extra_service_post['extras_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-						$extra_svc_id                            = $dbhandler->insert_row( $extra_identifier, $extra_service_post );
-					}
-				}
+                    if ( $extra_service_post !== false ) {
+                        $extra_service_post['extras_created_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+                        $dbhandler->insert_row( $extra_identifier, $extra_service_post );
+                    }
+                }
 
-				if ( filter_input( INPUT_POST, 'total_time_slots' ) != '0' ) {
-					$time_data['service_id']      = esc_attr( $id );
-					$time_data['time_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
-					$time_post                    = $bmrequests->sanitize_request( $time_data, $time_identifier, $exclude );
+                // Save time slots.
+                if ( filter_input( INPUT_POST, 'total_time_slots' ) !== '0' ) {
+                    $time_data['service_id']      = absint( $id );
+                    $time_data['time_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
+                    $time_post                    = $bmrequests->sanitize_request( $time_data, $time_identifier, $exclude );
 
-					if ( $time_post != false ) {
-						$time_post_updated = $dbhandler->update_row( $time_identifier, 'service_id', $id, $time_post, '', '%d' );
-					}
-				}
+                    if ( $time_post !== false ) {
+                        $dbhandler->update_row( $time_identifier, 'service_id', $id, $time_post, '', '%d' );
+                    }
+                }
 
+                // Update shortcode category filter.
+                $category_id_updated = isset( $service_post['service_category'] ) ? $service_post['service_category'] : 0;
 
-				$category_id_updated = isset( $service_post['service_category'] ) ? $service_post['service_category'] : 0;
+                if ( ! in_array( $category_id_updated, $frontend_all_services_shortcode_selected_cat_ids ) ) {
+                    $frontend_all_services_shortcode_selected_cat_ids[] = $category_id_updated;
+                    $dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
+                }
 
-				if ( !in_array( $category_id_updated, $frontend_all_services_shortcode_selected_cat_ids ) ) {
-					$frontend_all_services_shortcode_selected_cat_ids = array_merge( $frontend_all_services_shortcode_selected_cat_ids, array( $category_id_updated ) );
-					$dbhandler->update_global_option_value( 'bm_front_svc_search_shortcode_cat_ids', $frontend_all_services_shortcode_selected_cat_ids );
-				}
-
-                // Save availability periods for updated service.
+                // Save availability periods.
                 bm_save_availability_periods( $id, $availability_periods_new, $availability_periods_existing );
 
                 // Save service categories mapping.
                 $category_ids = isset( $_POST['service_category'] ) ? array_map( 'absint', (array) $_POST['service_category'] ) : array();
                 $bmrequests->bm_save_service_categories( $id, $category_ids );
 
-				wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_add_service&id=' . esc_attr( $id ) ) );
-				exit;
-			} else {
-				echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
-				echo esc_html__( 'Service Could not be Updated !!', 'service-booking' );
-				echo ( '</div>' );
-			}
-		} else {
-			echo ( '<div id="errorMessage" class="bm-notice bm-error">' );
-			echo esc_html__( 'Service Id could not fetched !!', 'service-booking' );
-			echo ( '</div>' );
-		}
-	}
+                wp_safe_redirect( esc_url_raw( 'admin.php?page=bm_add_service&id=' . absint( $id ) ) );
+                exit;
+            } else {
+                echo '<div id="errorMessage" class="bm-notice bm-error">';
+                echo esc_html__( 'Service Could not be Updated !!', 'service-booking' );
+                echo '</div>';
+            }
+        } else {
+            echo '<div id="errorMessage" class="bm-notice bm-error">';
+            echo esc_html__( 'Service Id could not fetched !!', 'service-booking' );
+            echo '</div>';
+        }
+    }
 }
 
 if ( filter_input( INPUT_POST, 'editsvc_extra' ) ) {

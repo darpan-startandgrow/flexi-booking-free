@@ -93,7 +93,7 @@ class SG_Async_Queue {
 		if ( ! isset( $schedules['sg_every_minute'] ) ) {
 			$schedules['sg_every_minute'] = array(
 				'interval' => 60,
-				'display'  => __( 'Every Minute (SG Queue)', 'service-booking' ),
+				'display'  => 'Every Minute (SG Queue)',
 			);
 		}
 		return $schedules;
