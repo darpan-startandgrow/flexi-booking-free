@@ -5284,10 +5284,6 @@ class BM_Request {
 					$undiscounted_svcs = intval( $total_booking ) - intval( $total_discountable );
 					$additional_price  = $this->bm_fetch_total_price( $base_price, $undiscounted_svcs );
 					$additional_price  = ! empty( $total_extra_svc_cost ) ? ( $additional_price + $total_extra_svc_cost ) : $additional_price;
-
-					if ( ! empty( $service_id ) && ! empty( $module_id ) && ! empty( $total_booking ) ) {
-						// Price module discount logic removed (pro feature).
-					}
 				} else {
 					$status = 'excess';
 				}
@@ -5363,10 +5359,6 @@ class BM_Request {
 				$undiscounted_svcs = intval( $total_booking ) - intval( $total_discountable );
 				$additional_price  = $this->bm_fetch_total_price( $base_price, $undiscounted_svcs );
 				$additional_price  = ! empty( $total_extra_svc_cost ) ? ( $additional_price + $total_extra_svc_cost ) : $additional_price;
-
-				if ( ! empty( $service_id ) && ! empty( $module_id ) && ! empty( $total_booking ) ) {
-					// Price module discount logic removed (pro feature).
-				}
 			} else {
 				$status = 'excess';
 			}

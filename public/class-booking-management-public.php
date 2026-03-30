@@ -2682,7 +2682,7 @@ class Booking_Management_Public {
 		$dbhandler = new BM_DBhandler();
 		$data      = array( 'status' => false );
 
-		if ( $id != false || $id != null ) {
+		if ( $id != false && $id != null ) {
 			$service = $dbhandler->get_row( 'SERVICE', $id );
 
 			if ( ! empty( $service ) ) {

@@ -508,7 +508,7 @@ window.closeModal = BMUtils.closeModal;
 // REST API request helper
 window.bmRestRequest = function(action, data, successCallback) {
     return jQuery.ajax({
-        url: bm_ajax_object.rest_url + action,
+        url: bm_ajax_object.rest_url + 'admin-action/' + action,
         method: 'POST',
         data: data,
         beforeSend: function(xhr) {

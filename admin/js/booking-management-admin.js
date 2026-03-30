@@ -1036,7 +1036,7 @@ class BMAdminCore {
 
 
         	// Get loader on ajax load
-        	$body = $("body");
+        	var $body = $("body");
 
         	$(document).on({
         		ajaxStart: function () { $body.addClass("loading"); },
