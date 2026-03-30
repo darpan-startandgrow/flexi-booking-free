@@ -664,6 +664,27 @@ class Booking_Management_Admin {
 						'network_error' => __( 'Network error. Please try again.', 'service-booking' ),
 						'loading'       => __( 'Loading…', 'service-booking' ),
 						'preview_error' => __( 'Could not load preview.', 'service-booking' ),
+						'field_added'   => __( 'Field added successfully.', 'service-booking' ),
+						'field_removed' => __( 'Field removed successfully.', 'service-booking' ),
+						'confirm_remove' => __( 'Are you sure you want to remove this field?', 'service-booking' ),
+						'template_applied' => __( 'Template applied successfully.', 'service-booking' ),
+						'conditional_logic' => __( 'Conditional Logic', 'service-booking' ),
+						'show_field_when'   => __( 'Show this field when', 'service-booking' ),
+						'select_field'      => __( 'Select a field', 'service-booking' ),
+						'is_equal_to'       => __( 'is equal to', 'service-booking' ),
+						'is_not_equal_to'   => __( 'is not equal to', 'service-booking' ),
+						'is_empty'          => __( 'is empty', 'service-booking' ),
+						'is_not_empty'      => __( 'is not empty', 'service-booking' ),
+						'enter_value'       => __( 'Enter value', 'service-booking' ),
+						'validation_rules'  => __( 'Validation Rules', 'service-booking' ),
+						'min_length'        => __( 'Minimum Length', 'service-booking' ),
+						'max_length'        => __( 'Maximum Length', 'service-booking' ),
+						'pattern'           => __( 'Pattern (Regex)', 'service-booking' ),
+						'custom_error'      => __( 'Custom Error Message', 'service-booking' ),
+						'consent_text'      => __( 'Consent Text', 'service-booking' ),
+						'gdpr_default_text' => __( 'I consent to the storage and processing of my personal data.', 'service-booking' ),
+						'pro_only'          => __( 'Pro', 'service-booking' ),
+						'upgrade_to_pro'    => __( 'Upgrade to Pro', 'service-booking' ),
 					)
 				);
 			}
@@ -3956,6 +3977,17 @@ class Booking_Management_Admin {
 
 			$common_data = isset( $data['common_data'] ) ? $data['common_data'] : array();
 			$conditional = isset( $data['conditional'] ) ? $data['conditional'] : array();
+
+			// Support direct format: post[common_data] and post[conditional].
+			if ( empty( $common_data ) && isset( $post['common_data'] ) ) {
+				$common_data = $post['common_data'];
+			}
+			if ( empty( $conditional ) && isset( $post['conditional'] ) ) {
+				$conditional = $post['conditional'];
+			}
+			if ( empty( $id ) && isset( $common_data['id'] ) ) {
+				$id = $common_data['id'];
+			}
 
 			if ( ! empty( $common_data ) && ! empty( $conditional ) ) {
 				$type = isset( $common_data['field_type'] ) ? $common_data['field_type'] : '';

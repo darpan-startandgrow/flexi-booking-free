@@ -65,6 +65,29 @@ class Booking_Management_Limits {
 	);
 
 	/**
+	 * Field types available in the free version.
+	 *
+	 * @since 1.3.0
+	 */
+	const FREE_FIELD_TYPES = array(
+		'text',
+		'email',
+		'tel',
+		'textarea',
+		'select',
+		'checkbox',
+		'radio',
+		'number',
+		'date',
+		'time',
+		'url',
+		'file',
+		'hidden',
+		'password',
+		'gdpr_consent',
+	);
+
+	/**
 	 * Hardcoded order listing columns for the free version.
 	 */
 	const FREE_ORDER_COLUMNS = array(
@@ -136,6 +159,33 @@ class Booking_Management_Limits {
 	 */
 	public static function can_add_custom_field() {
 		return self::is_pro_active();
+	}
+
+	/**
+	 * Check if a basic field can be added in the free version.
+	 *
+	 * Free version: can add fields from FREE_FIELD_TYPES via the form builder.
+	 * Pro version: can add any field type.
+	 *
+	 * @since 1.3.0
+	 * @param string $field_type The field type to check.
+	 * @return bool
+	 */
+	public static function can_add_basic_field( $field_type = '' ) {
+		if ( self::is_pro_active() ) {
+			return true;
+		}
+		return in_array( $field_type, self::FREE_FIELD_TYPES, true );
+	}
+
+	/**
+	 * Get the list of field types available in the free version.
+	 *
+	 * @since 1.3.0
+	 * @return array
+	 */
+	public static function get_free_field_types() {
+		return self::FREE_FIELD_TYPES;
 	}
 
 	/**
@@ -476,6 +526,18 @@ class Booking_Management_Limits {
 			'payment_logs'           => __( 'Payment logs are a Pro feature. Upgrade to Pro for payment logging.', 'service-booking' ),
 			'smtp'                   => __( 'SMTP configuration is a Pro feature. Basic mail settings are available in the free version.', 'service-booking' ),
 			'voucher_redemption'     => __( 'Voucher redemption is a Pro feature. The free version shows voucher listings only.', 'service-booking' ),
+			'multi_page_forms'       => __( 'Multi-page conversational forms are a Pro feature. Upgrade to Pro for multi-step form experiences.', 'service-booking' ),
+			'payment_integration'    => __( 'Payment integration (Stripe, PayPal) is a Pro feature. Upgrade to Pro to accept payments directly.', 'service-booking' ),
+			'advanced_conditional'   => __( 'Advanced conditional logic is a Pro feature. Basic show/hide rules are available in the free version.', 'service-booking' ),
+			'ai_fields'              => __( 'AI-generated fields are a Pro feature. Upgrade to Pro to auto-generate form fields with AI.', 'service-booking' ),
+			'captcha'                => __( 'CAPTCHA spam protection is a Pro feature. Upgrade to Pro for CAPTCHA support.', 'service-booking' ),
+			'crm_integrations'       => __( 'CRM and email tool integrations are a Pro feature. Upgrade to Pro for HubSpot, Mailchimp, and more.', 'service-booking' ),
+			'workflow_automation'    => __( 'Workflow automation is a Pro feature. Upgrade to Pro to automate booking workflows.', 'service-booking' ),
+			'premium_templates'      => __( '2,000+ premium templates are a Pro feature. Basic templates are available in the free version.', 'service-booking' ),
+			'offline_forms'          => __( 'Offline forms are a Pro feature. Upgrade to Pro for offline form support.', 'service-booking' ),
+			'digital_signatures'     => __( 'Digital signatures are a Pro feature. Upgrade to Pro for signature fields.', 'service-booking' ),
+			'surveys'                => __( 'Survey creation is a Pro feature. Upgrade to Pro for survey forms.', 'service-booking' ),
+			'multi_site'             => __( 'Multi-site licenses are a Pro feature. Upgrade to Pro for multi-site support.', 'service-booking' ),
 		);
 
 		return isset( $messages[ $feature ] ) ? $messages[ $feature ] : __( 'This feature requires SG Flexi Booking Pro.', 'service-booking' );
