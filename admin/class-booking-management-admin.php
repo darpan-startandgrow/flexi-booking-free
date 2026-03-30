@@ -12528,6 +12528,20 @@ class Booking_Management_Admin {
 			}
 		}
 
+		// Duplicate shared extras links (SERVICE_GLOBAL_EXTRA junction).
+		$sge_links = $dbhandler->get_all_result( 'SERVICE_GLOBAL_EXTRA', '*', array( 'service_id' => $service_id ), 'results' );
+		if ( ! empty( $sge_links ) ) {
+			foreach ( $sge_links as $sge_link ) {
+				$dbhandler->insert_row(
+					'SERVICE_GLOBAL_EXTRA',
+					array(
+						'service_id'      => $new_service_id,
+						'global_extra_id' => $sge_link->global_extra_id,
+					)
+				);
+			}
+		}
+
 		// Duplicate AVAILABILITY_PERIOD entries.
 		$periods = $dbhandler->get_all_result( 'AVAILABILITY_PERIOD', '*', array( 'service_id' => $service_id ), 'results' );
 		if ( ! empty( $periods ) ) {

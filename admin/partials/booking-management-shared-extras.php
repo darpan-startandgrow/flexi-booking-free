@@ -91,6 +91,45 @@ if ( isset( $_POST['bm_link_services'] ) ) {
 	exit;
 }
 
+// ── Handle import extras from a service ──────────────────────────────────
+if ( isset( $_POST['bm_import_extras_from_service'] ) ) {
+	if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'bm_import_extras_nonce' ) ) {
+		wp_die( esc_html__( 'Security check failed.', 'service-booking' ) );
+	}
+	$source_service_id = absint( $_POST['import_source_service_id'] ?? 0 );
+	if ( $source_service_id > 0 ) {
+		$service_extras = $dbhandler->get_all_result( 'EXTRA', '*', array( 'service_id' => $source_service_id ), 'results' );
+		$imported       = 0;
+		if ( ! empty( $service_extras ) ) {
+			foreach ( $service_extras as $se ) {
+				$new_global = array(
+					'extra_name'             => $se->extra_name,
+					'extra_desc'             => isset( $se->extra_desc ) ? $se->extra_desc : '',
+					'extra_price'            => isset( $se->extra_price ) ? $se->extra_price : 0,
+					'extra_duration'         => isset( $se->extra_duration ) ? $se->extra_duration : 0,
+					'extra_operation'        => isset( $se->extra_operation ) ? $se->extra_operation : 0,
+					'extra_max_cap'          => isset( $se->extra_max_cap ) ? $se->extra_max_cap : 1,
+					'is_extra_service_front' => isset( $se->is_extra_service_front ) ? $se->is_extra_service_front : 1,
+					'is_linked_wc_extrasvc'  => isset( $se->is_linked_wc_extrasvc ) ? $se->is_linked_wc_extrasvc : 0,
+					'svcextra_wc_product'    => isset( $se->svcextra_wc_product ) ? $se->svcextra_wc_product : null,
+				);
+				$new_id = $dbhandler->insert_row( 'GLOBAL_EXTRA', $new_global );
+				if ( $new_id ) {
+					// Auto-link back to the source service.
+					$dbhandler->insert_row( 'SERVICE_GLOBAL_EXTRA', array( 'service_id' => $source_service_id, 'global_extra_id' => $new_id ) );
+					++$imported;
+				}
+			}
+		}
+		if ( $imported > 0 ) {
+			wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bm_shared_extras&imported=' . $imported ) ) );
+		} else {
+			wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=bm_shared_extras&import_empty=1' ) ) );
+		}
+		exit;
+	}
+}
+
 // ── Load edit data if editing ────────────────────────────────────────────
 $edit_row = null;
 if ( 'edit' === $action && $global_extra_id > 0 ) {
@@ -109,6 +148,10 @@ if ( isset( $_GET['saved'] ) ) {
 	echo '<div class="bm-notice bm-success">' . esc_html__( 'Shared Extra deleted successfully.', 'service-booking' ) . '</div>';
 } elseif ( isset( $_GET['linked'] ) ) {
 	echo '<div class="bm-notice bm-success">' . esc_html__( 'Service associations updated.', 'service-booking' ) . '</div>';
+} elseif ( isset( $_GET['imported'] ) ) {
+	echo '<div class="bm-notice bm-success">' . sprintf( esc_html__( '%d extra(s) imported as shared extras.', 'service-booking' ), absint( $_GET['imported'] ) ) . '</div>';
+} elseif ( isset( $_GET['import_empty'] ) ) {
+	echo '<div class="bm-notice bm-warning">' . esc_html__( 'No extras found on the selected service to import.', 'service-booking' ) . '</div>';
 }
 ?>
 
@@ -277,8 +320,28 @@ if ( isset( $_GET['saved'] ) ) {
 		</div>
 
 		<p>
-			<button type="button" class="button button-primary" onclick="document.getElementById('bm-shared-extra-create-section').style.display='block';"><?php esc_html_e( 'Create Shared Extra', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></button>
+			<button type="button" class="button button-primary" onclick="document.getElementById('bm-shared-extra-create-section').style.display='block';document.getElementById('bm-shared-extra-import-section').style.display='none';"><?php esc_html_e( 'Create Shared Extra', 'service-booking' ); ?>&nbsp;<i class="fa fa-plus" aria-hidden="true"></i></button>
+			<button type="button" class="button button-secondary" onclick="document.getElementById('bm-shared-extra-import-section').style.display='block';document.getElementById('bm-shared-extra-create-section').style.display='none';"><?php esc_html_e( 'Import from Service', 'service-booking' ); ?>&nbsp;<i class="fa fa-download" aria-hidden="true"></i></button>
 		</p>
+
+		<!-- Import extras from a service (collapsible) -->
+		<div id="bm-shared-extra-import-section" style="display:none;margin-bottom:20px;background:#f9f9f9;padding:15px;border:1px solid #ddd;">
+			<h3><?php esc_html_e( 'Import Extras from a Service', 'service-booking' ); ?></h3>
+			<p><?php esc_html_e( 'Select a service to import its extras as new shared extras. Each imported extra will be auto-linked to the source service.', 'service-booking' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=bm_shared_extras' ) ); ?>">
+				<?php wp_nonce_field( 'bm_import_extras_nonce' ); ?>
+				<select name="import_source_service_id" class="regular-text" required>
+					<option value=""><?php esc_html_e( '— Select a service —', 'service-booking' ); ?></option>
+					<?php if ( ! empty( $all_services ) ) : ?>
+						<?php foreach ( $all_services as $svc ) : ?>
+							<option value="<?php echo esc_attr( $svc->id ); ?>"><?php echo esc_html( $svc->service_name ); ?></option>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</select>
+				<input type="submit" name="bm_import_extras_from_service" class="button button-primary" value="<?php esc_attr_e( 'Import', 'service-booking' ); ?>" />
+				<button type="button" class="button button-secondary" onclick="document.getElementById('bm-shared-extra-import-section').style.display='none';"><?php esc_html_e( 'Cancel', 'service-booking' ); ?></button>
+			</form>
+		</div>
 
 		<?php
 		$global_extras_table = new BM_Global_Extras_List_Table();
