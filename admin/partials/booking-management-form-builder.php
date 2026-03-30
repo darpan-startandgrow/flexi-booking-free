@@ -353,9 +353,4 @@ $templates = array(
 <input type="hidden" id="bm-fb-rest-url" value="<?php echo esc_url( rest_url( 'sg-booking/v1/' ) ); ?>" />
 <input type="hidden" id="bm-fb-rest-nonce" value="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>" />
 
-<!-- Template data for JS -->
-<script type="text/javascript">
-var bmFbTemplates = <?php echo wp_json_encode( $templates ); ?>;
-</script>
-
 <div class="loader_modal"></div>

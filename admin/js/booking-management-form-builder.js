@@ -108,8 +108,8 @@
 			// Template cards.
 			$(document).on('click', '.bm-fb-template-card', function () {
 				var tplKey = $(this).data('template');
-				if (tplKey && typeof bmFbTemplates !== 'undefined' && bmFbTemplates[tplKey]) {
-					BmFormBuilder.applyTemplate(bmFbTemplates[tplKey]);
+				if (tplKey && typeof bmFbTemplatesData !== 'undefined' && bmFbTemplatesData[tplKey]) {
+					BmFormBuilder.applyTemplate(bmFbTemplatesData[tplKey]);
 				}
 			});
 
@@ -192,7 +192,7 @@
 				form_id: BmFormBuilder.formId,
 				field_type: type,
 				field_label: label,
-				field_name: type + '_' + Date.now(),
+				field_name: type + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
 				field_desc: '',
 				is_required: (type === 'gdpr_consent') ? 1 : 0,
 				is_editable: 1,

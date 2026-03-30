@@ -687,6 +687,37 @@ class Booking_Management_Admin {
 						'upgrade_to_pro'    => __( 'Upgrade to Pro', 'service-booking' ),
 					)
 				);
+
+				// Template data (passed via localize to avoid inline script XSS).
+				wp_localize_script(
+					'bm-form-builder',
+					'bmFbTemplatesData',
+					array(
+						'contact' => array(
+							'name'   => __( 'Contact Form', 'service-booking' ),
+							'fields' => array(
+								array( 'type' => 'text',     'label' => __( 'Full Name', 'service-booking' ),  'required' => 1, 'width' => 'full' ),
+								array( 'type' => 'email',    'label' => __( 'Email Address', 'service-booking' ), 'required' => 1, 'width' => 'half' ),
+								array( 'type' => 'tel',      'label' => __( 'Phone Number', 'service-booking' ), 'required' => 0, 'width' => 'half' ),
+								array( 'type' => 'textarea', 'label' => __( 'Message', 'service-booking' ),     'required' => 1, 'width' => 'full' ),
+								array( 'type' => 'gdpr_consent', 'label' => __( 'Privacy Consent', 'service-booking' ), 'required' => 1, 'width' => 'full' ),
+							),
+						),
+						'booking' => array(
+							'name'   => __( 'Booking Form', 'service-booking' ),
+							'fields' => array(
+								array( 'type' => 'text',     'label' => __( 'First Name', 'service-booking' ),  'required' => 1, 'width' => 'half' ),
+								array( 'type' => 'text',     'label' => __( 'Last Name', 'service-booking' ),   'required' => 1, 'width' => 'half' ),
+								array( 'type' => 'email',    'label' => __( 'Email', 'service-booking' ),        'required' => 1, 'width' => 'half' ),
+								array( 'type' => 'tel',      'label' => __( 'Phone', 'service-booking' ),        'required' => 0, 'width' => 'half' ),
+								array( 'type' => 'date',     'label' => __( 'Preferred Date', 'service-booking' ), 'required' => 1, 'width' => 'half' ),
+								array( 'type' => 'time',     'label' => __( 'Preferred Time', 'service-booking' ), 'required' => 0, 'width' => 'half' ),
+								array( 'type' => 'textarea', 'label' => __( 'Additional Notes', 'service-booking' ), 'required' => 0, 'width' => 'full' ),
+								array( 'type' => 'gdpr_consent', 'label' => __( 'GDPR Consent', 'service-booking' ), 'required' => 1, 'width' => 'full' ),
+							),
+						),
+					)
+				);
 			}
 		} //end if
 	}//end enqueue_scripts()
