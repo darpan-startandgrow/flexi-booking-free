@@ -70,6 +70,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 			'extra_svc_cost'    => esc_html__( 'Extra Service Cost', 'service-booking' ),
 			'disount_amount'    => esc_html__( 'Discount', 'service-booking' ),
 			'total_cost'        => esc_html__( 'Total Cost', 'service-booking' ),
+			'newsletter'        => esc_html__( 'Newsletter', 'service-booking' ),
 			'order_status'      => esc_html__( 'Order Status', 'service-booking' ),
 			'payment_status'    => esc_html__( 'Payment Status', 'service-booking' ),
 			'actions'           => esc_html__( 'Actions', 'service-booking' ),
@@ -280,6 +281,7 @@ class BM_Orders_List_Table extends WP_List_Table {
 					'extra_svc_cost'      => isset( $row->extra_svc_cost ) ? $row->extra_svc_cost : '0',
 					'disount_amount'      => isset( $row->disount_amount ) ? $row->disount_amount : '0',
 					'total_cost'          => isset( $row->total_cost ) ? $row->total_cost : '0',
+					'newsletter'          => isset( $row->newsletter ) ? $row->newsletter : 0,
 					'order_status'        => isset( $row->order_status ) ? $row->order_status : '',
 					'payment_status'      => isset( $row->payment_status ) ? $row->payment_status : '',
 					'booking_type'        => isset( $row->booking_type ) ? $row->booking_type : '',
@@ -342,6 +344,11 @@ class BM_Orders_List_Table extends WP_List_Table {
 			case 'disount_amount':
 			case 'total_cost':
 				return esc_html( $item[ $column_name ] );
+
+			case 'newsletter':
+				return ! empty( $item['newsletter'] )
+					? '<span class="sg-newsletter-yes" title="' . esc_attr__( 'Subscribed', 'service-booking' ) . '">&#10003;</span>'
+					: '<span class="sg-newsletter-no" title="' . esc_attr__( 'Not subscribed', 'service-booking' ) . '">&mdash;</span>';
 
 			case 'order_status':
 				$status_label = $this->bmrequests->bm_fetch_order_status_name( $item['order_status'] );

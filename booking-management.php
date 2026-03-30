@@ -210,7 +210,6 @@ function bm_delete_all_plugin_data() {
 		'availability_periods',
 		'global_extras',
 		'service_global_extras',
-		'service_category_map',
 	);
 
 	foreach ( $tables as $table ) {

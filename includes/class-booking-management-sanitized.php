@@ -166,15 +166,6 @@ class BM_Sanitizer {
 			case 'service_operation':
 				$value = sanitize_text_field( $value );
 				break;
-			case 'default_saleswitch':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'default_stopsales':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'external_price_module':
-				$value = sanitize_text_field( $value );
-				break;
 			case 'is_only_book_on_request':
 				$value = sanitize_text_field( $value );
 				break;
@@ -203,15 +194,6 @@ class BM_Sanitizer {
 				$value = sanitize_text_field( $value );
 				break;
 			case 'variable_svc_prices':
-				$value = $value;
-				break;
-			case 'variable_svc_price_modules':
-				$value = $value;
-				break;
-			case 'variable_saleswitch':
-				$value = $value;
-				break;
-			case 'variable_stopsales':
 				$value = $value;
 				break;
 			case 'variable_max_cap':
@@ -283,9 +265,6 @@ class BM_Sanitizer {
 				break;
 			case 'total_ext_svc_slots':
 				$value = sanitize_text_field( $value );
-				break;
-			case 'coupons':
-				$value = $value;
 				break;
 			case 'wc_coupons':
 				$value = $value;
@@ -565,12 +544,6 @@ class BM_Sanitizer {
 			case 'bm_payment_session_time':
 				$value = sanitize_text_field( $value );
 				break;
-			case 'bm_allowed_stopsales':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'bm_allowed_saleswitch':
-				$value = sanitize_text_field( $value );
-				break;
 			case 'bm_orders_per_page':
 				$value = sanitize_text_field( $value );
 				break;
@@ -581,9 +554,6 @@ class BM_Sanitizer {
 				$value = sanitize_text_field( $value );
 				break;
 			case 'bm_templates_per_page':
-				$value = sanitize_text_field( $value );
-				break;
-			case 'bm_price_modules_per_page':
 				$value = sanitize_text_field( $value );
 				break;
 			case 'bm_email_records_per_page':

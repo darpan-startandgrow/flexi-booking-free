@@ -64,17 +64,12 @@ class Booking_Management_Activator {
 		`service_duration` float(24) DEFAULT NULL,
 		`service_operation` float(24) DEFAULT NULL,
 		`default_max_cap` int(100) NOT NULL DEFAULT 1,
-		`default_saleswitch` float(24) DEFAULT NULL,
-		`default_stopsales` float(24) DEFAULT NULL,
 		`is_only_book_on_request` int(11) DEFAULT NULL,
 		`is_service_front` int(11) NOT NULL DEFAULT 1,
 		`show_stopsales_data` int(11) NOT NULL DEFAULT 1,
 		`service_short_desc` text DEFAULT NULL,
 		`service_desc` longtext DEFAULT NULL,
 		`default_price` float(50) DEFAULT NULL,
-		`variable_svc_price_modules` longtext DEFAULT NULL,
-		`variable_saleswitch` longtext DEFAULT NULL,
-		`variable_stopsales` longtext DEFAULT NULL,
 		`service_unavailability` longtext DEFAULT NULL,
 		`service_image_guid` int(11) DEFAULT 0,
 		`is_linked_wc_product` int(11) DEFAULT 0,
@@ -200,7 +195,6 @@ class Booking_Management_Activator {
 		`extra_svc_booked` longtext DEFAULT NULL,
 		`total_svc_slots` int(11) DEFAULT NULL,
 		`total_ext_svc_slots` int(11) DEFAULT NULL,
-        `coupons` longtext DEFAULT NULL,
 		`wc_coupons` longtext DEFAULT NULL,
 		`vouchers` longtext DEFAULT NULL,
 		`base_svc_price` float(50) DEFAULT NULL,
@@ -216,7 +210,6 @@ class Booking_Management_Activator {
         `newsletter` int(11) NOT NULL DEFAULT '0',
 		`mail_sent` int(11) NOT NULL DEFAULT '0',
 		`booking_type` varchar(100) DEFAULT NULL,
-		`price_module_data` longtext DEFAULT NULL,
 		`is_active` int(11) DEFAULT NULL,
 		`booking_created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		`booking_updated_at` datetime DEFAULT NULL,
@@ -474,19 +467,6 @@ class Booking_Management_Activator {
 		)$charset_collate;";
 		dbDelta( $sql );
 
-		// --- Service-Category mapping (many-to-many) ---
-		$table_name = $this->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
-		$sql        = "CREATE TABLE IF NOT EXISTS $table_name (
-		`id` int(11) NOT NULL AUTO_INCREMENT,
-		`service_id` int(11) NOT NULL,
-		`category_id` int(11) NOT NULL,
-		PRIMARY KEY (`id`),
-		UNIQUE KEY `idx_svc_cat` (`service_id`, `category_id`),
-		KEY `idx_svc_cat_svc` (`service_id`),
-		KEY `idx_svc_cat_cat` (`category_id`)
-		)$charset_collate;";
-		dbDelta( $sql );
-
 		$this->create_default_form_fields();
 		$this->create_default_email_templates();
 		$this->add_default_options();
@@ -567,15 +547,6 @@ class Booking_Management_Activator {
 				break;
 			case 'SERVICE_GLOBAL_EXTRA':
 				$table_name = $plugin_prefix . 'service_global_extras';
-				break;
-			case 'SERVICE_CATEGORY_MAP':
-				$table_name = $plugin_prefix . 'service_category_map';
-				break;
-			case 'EXTERNAL_SERVICE_PRICE_MODULE':
-				$table_name = $plugin_prefix . 'external_svc_price_module';
-				break;
-			case 'COUPON':
-				$table_name = $plugin_prefix . 'coupon';
 				break;
 			case 'PDF_CUSTOMIZATION':
 				$table_name = $plugin_prefix . 'pdf_content_customization';
@@ -665,12 +636,6 @@ class Booking_Management_Activator {
 			case 'SERVICE_GLOBAL_EXTRA':
 				$unique_field_name = 'id';
 				break;
-			case 'EXTERNAL_SERVICE_PRICE_MODULE':
-				$unique_field_name = 'id';
-				break;
-			case 'COUPON':
-				$unique_field_name = 'id';
-				break;
 			case 'PDF_CUSTOMIZATION':
 				$unique_field_name = 'id';
 				break;
@@ -729,12 +694,6 @@ class Booking_Management_Activator {
 			case 'default_max_cap':
 				$format = '%d';
 				break;
-			case 'default_saleswitch':
-				$format = '%f';
-				break;
-			case 'default_stopsales':
-				$format = '%f';
-				break;
 			case 'is_only_book_on_request':
 				$format = '%d';
 				break;
@@ -758,15 +717,6 @@ class Booking_Management_Activator {
 				break;
 			case 'default_price':
 				$format = '%f';
-				break;
-			case 'variable_svc_price_modules':
-				$format = '%s';
-				break;
-			case 'variable_saleswitch':
-				$format = '%s';
-				break;
-			case 'variable_stopsales':
-				$format = '%s';
 				break;
 			case 'service_image_guid':
 				$format = '%d';
@@ -1002,9 +952,6 @@ class Booking_Management_Activator {
 			case 'total_ext_svc_slots':
 				$format = '%d';
 				break;
-			case 'coupons':
-				$format = '%s';
-				break;
 			case 'wc_coupons':
 				$format = '%s';
 				break;
@@ -1048,9 +995,6 @@ class Booking_Management_Activator {
 				$format = '%d';
 				break;
 			case 'booking_type':
-				$format = '%s';
-				break;
-			case 'price_module_data':
 				$format = '%s';
 				break;
 			case 'is_active':
@@ -1690,8 +1634,6 @@ class Booking_Management_Activator {
 		add_option( 'bm_booking_currency', 'EUR' );
 		add_option( 'bm_currency_position', 'before' );
 		add_option( 'bm_payment_session_time', '3' );
-		add_option( 'bm_allowed_stopsales', '24' );
-		add_option( 'bm_allowed_saleswitch', '24' );
 		add_option( 'bm_book_on_request_expiry', '7' );
 		add_option( 'bm_voucher_expiry', '30' );
 		add_option( 'bm_date_field_label_font', '20' );
@@ -1706,7 +1648,6 @@ class Booking_Management_Activator {
 		add_option( 'bm_services_per_page', '10' );
 		add_option( 'bm_categories_per_page', '10' );
 		add_option( 'bm_templates_per_page', '10' );
-		add_option( 'bm_price_modules_per_page', '10' );
 		add_option( 'bm_email_records_per_page', '10' );
 		add_option( 'bm_voucher_records_per_page', '10' );
 		add_option( 'bm_minimum_image_size', '100' );

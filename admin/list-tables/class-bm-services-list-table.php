@@ -195,11 +195,8 @@ class BM_Services_List_Table extends WP_List_Table {
 
 		if ( isset( $_REQUEST['category_filter'] ) && '' !== $_REQUEST['category_filter'] ) {
 			$cat_id     = absint( $_REQUEST['category_filter'] );
-			$activator  = new Booking_Management_Activator();
-			$map_table  = $activator->get_db_table_name( 'SERVICE_CATEGORY_MAP' );
 			$additional .= $GLOBALS['wpdb']->prepare(
-				" AND (service_category = %d OR id IN (SELECT service_id FROM `{$map_table}` WHERE category_id = %d))",
-				$cat_id,
+				' AND service_category = %d',
 				$cat_id
 			);
 		}

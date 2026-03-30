@@ -75,7 +75,6 @@ $service_extra_id   = filter_input( INPUT_POST, 'svc_extra_id', FILTER_VALIDATE_
 $extra_id           = filter_input( INPUT_GET, 'extra_id', FILTER_VALIDATE_INT );
 $currency_symbol    = $bmrequests->bm_get_currency_symbol( $dbhandler->get_global_option_value( 'bm_booking_currency', 'EUR' ) );
 $new_wc_price       = 0;
-$price_modules      = $dbhandler->get_all_result( 'EXTERNAL_SERVICE_PRICE_MODULE', '*', 1, 'results' );
 $image_quality      = intval( $dbhandler->get_global_option_value( 'bm_image_quality', '90' ) );
 
 $woocommrce_integration = $dbhandler->get_global_option_value( 'bm_enable_woocommerce_checkout', 0 );
@@ -321,7 +320,6 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 				$new_wc_price                = 1;
 				$data['variable_svc_prices'] = null;
 
-				$data['variable_svc_price_modules'] = null;
 			}
 			if ( ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) ) {
 				$data['variable_max_cap'] = null;
@@ -1418,37 +1416,19 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                                             <tr>
                                                                 <td><?php esc_html_e( 'Price', 'service-booking' ); ?></td>
                                                                 <td><input name="variable_price" type="text" id="variable_price" style="width:180px; max-width:145px !important;" placeholder="<?php esc_html_e( 'price', 'service-booking' ); ?>" autocomplete="off">
-                                                                    <select name="variable_external_price_module" id="variable_external_price_module" style="width:180px;display:none; max-width:145px !important;">
-                                                                        <?php
-                                                                        if ( !empty( $price_modules ) ) {
-                                                                            foreach ( $price_modules as $price_module ) {
-																				?>
-                                                                                <option value="<?php echo esc_attr( $price_module->id ) ?? ''; ?>"><?php echo esc_html( $price_module->module_name ) ?? ''; ?></option>
-																				<?php
-                                                                            }
-                                                                        } else {
-                                                                            ?>
-                                                                            <option value=""><?php esc_html_e( 'No Price Modules Found', 'service-booking' ); ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
                                                                 </td>
                                                             </tr>
 
                                                             <tr>
                                                                 <td colspan="2">
 
-
                                                                     <i class="fa fa-refresh fa-spin bm-set_price-spiner" style="display: none;"></i>
-                                                                    <input name="link_external_price_module" type="checkbox" id="link_external_price_module" class="regular-text bm_toggle" onclick="bm_open_close_tab('variable_external_price_module')">
-
-                                                                    <?php esc_html_e( 'Link Price Module ?', 'service-booking' ); ?>
                                                                     <span class="variable_errortext"></span>
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="2">
                                                                     <input type="button" name="up_svc_price" id="up_svc_price" class="button button-primary" value="<?php !isset( $svc_row ) ? esc_html_e( 'Save', 'service-booking' ) : esc_attr_e( 'Update', 'service-booking' ); ?>" onclick="variable_price_validation_submit()">
-                                                                    <input type="button" name="up_svc_price_module" id="up_svc_price_module" class="button button-primary" style="display:none;" value="<?php !isset( $svc_row ) ? esc_html_e( 'Save', 'service-booking' ) : esc_attr_e( 'Update', 'service-booking' ); ?>" onclick="variable_price_module_validation_submit()">
                                                                     <a href="javascript:void(0)" name="cancel_svc_price" id="cancel_svc_price" class="button button-secondary" onclick="bm_open_close_tab('svc_price_modal')"><?php esc_attr_e( 'Cancel', 'service-booking' ); ?>&nbsp;</a>
                                                                 </td>
                                                             </tr>
@@ -1492,36 +1472,16 @@ if ( filter_input( INPUT_POST, 'delsvc_extra' ) ) {
                                                                         <input type="text" name="bulk_variable_price" id="bulk_variable_price" style="width:180px; max-width:145px !important;" placeholder="<?php echo esc_html_e( 'please enter price', 'service-booking' ); ?>" autocomplete="off">
                                                                         <span class="bulk_errortext"></span>
                                                                     </span>
-                                                                    <span class="bulk_bm_required">
-                                                                        <select name="bulk_variable_external_price_module" id="bulk_variable_external_price_module" style="width:180px;max-width:145px !important;display:none;">
-                                                                            <?php
-                                                                            if ( !empty( $price_modules ) ) {
-                                                                                foreach ( $price_modules as $price_module ) {
-																					?>
-                                                                                    <option value="<?php echo esc_attr( $price_module->id ) ?? ''; ?>"><?php echo esc_html( $price_module->module_name ) ?? ''; ?></option>
-																					<?php
-                                                                                }
-                                                                            } else {
-                                                                                ?>
-                                                                                <option value=""><?php esc_html_e( 'No Price Modules Found', 'service-booking' ); ?></option>
-                                                                            <?php } ?>
-                                                                        </select>
-                                                                        <span class="bulk_errortext"></span>
-                                                                    </span>
                                                                 </td>
                                                             </tr>
                                                             <tr>
 
                                                                 <td colspan="2">
-
-                                                                    <input name="bulk_link_external_price_module" type="checkbox" id="bulk_link_external_price_module" class="regular-text bm_toggle" onclick="bm_open_close_tab('bulk_variable_external_price_module')">
-                                                                    <?php esc_html_e( 'Link Price Module ?', 'service-booking' ); ?>
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="2">
                                                                     <input type="button" name="up_bulk_svc_price" id="up_bulk_svc_price" class="button button-primary" value="<?php !isset( $svc_row ) ? esc_html_e( 'Save', 'service-booking' ) : esc_attr_e( 'Update', 'service-booking' ); ?>" onclick="bulk_price_validation_submit()">
-                                                                    <input type="button" name="up_bulk_vc_price_module" id="up_bulk_vc_price_module" class="button button-primary" style="display:none;" value="<?php !isset( $svc_row ) ? esc_html_e( 'Save', 'service-booking' ) : esc_attr_e( 'Update', 'service-booking' ); ?>" onclick="bulk_variable_price_module_validation_submit()">
                                                                     <a href="javascript:void(0)" name="cancel_svc_price" id="cancel_svc_price" class="button button-secondary" onclick="bm_open_close_tab('svc_price_modal')"><?php esc_attr_e( 'Cancel', 'service-booking' ); ?>&nbsp;</a>
                                                                 </td>
                                                             </tr>
