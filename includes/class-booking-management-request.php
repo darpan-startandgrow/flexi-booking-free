@@ -2255,496 +2255,7 @@ class BM_Request {
      * @author Darpan
      */
     public function bm_create_default_pdf_contents() {
-        // PDF_CUSTOMIZATION table removed in free version; Pro add-on handles this.
         return;
-
-        /* -------------------------
-        * BOOKING PDF – ENGLISH
-        * ------------------------- */
-        $booking_pdf_en = '
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-        {{logo}}
-        
-        <h1 style="color: #333; border-bottom: 2px solid #4A90E2; padding-bottom: 10px;">
-            Order Confirmation
-        </h1>
-        
-        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <strong>Booking Reference:</strong> {{booking_key}}<br>
-            <strong>Date:</strong> {{date}} at {{time}}
-        </div>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Customer Information</h2>
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Name:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_first_name}} {{billing_last_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Email:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_email}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Phone:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_contact}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px;"><strong>Address:</strong></td>
-                <td style="padding: 8px;">{{billing_address}}</td>
-            </tr>
-        </table>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Service Details</h2>
-        <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
-            <strong>Service:</strong> {{service_name}}<br>
-            <strong>Date:</strong> {{booking_date}}<br>
-            <strong>Time:</strong> {{booking_slots}}<br>
-            <strong>Duration:</strong> {{service_duration}}<br>
-            <strong>Payment Method:</strong> {{payment_method}}
-        </div>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Order Summary</h2>
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr style="background: #4A90E2; color: white;">
-                <th style="padding: 12px; text-align: left;">Description</th>
-                <th style="padding: 12px; text-align: center;">Qty</th>
-                <th style="padding: 12px; text-align: right;">Price</th>
-                <th style="padding: 12px; text-align: right;">Total</th>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{service_name}}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">{{service_qty}}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">{{service_price}}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">{{service_total}}</td>
-            </tr>
-            
-            {{extra_services}}
-            
-            <tr>
-                <td colspan="3" style="padding: 12px; text-align: right;"><strong>Subtotal:</strong></td>
-                <td style="padding: 12px; text-align: right;">{{subtotal}}</td>
-            </tr>
-            <tr>
-                <td colspan="3" style="padding: 12px; text-align: right;"><strong>Discount:</strong></td>
-                <td style="padding: 12px; text-align: right; color: #27AE60;">-{{disount_amount}}</td>
-            </tr>
-            <tr style="background: #f5f5f5;">
-                <td colspan="3" style="padding: 12px; text-align: right;"><strong>Total Amount:</strong></td>
-                <td style="padding: 12px; text-align: right; font-weight: bold;">{{total_cost}}</td>
-            </tr>
-        </table>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Infant Discount:</strong><br>
-            {{infant_count}} infant(s) - Discount: {{infant_discount}}
-        </div>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Child Discount:</strong><br>
-            {{child_count}} child(ren) - Discount: {{child_discount}}
-        </div>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Adult Discount:</strong><br>
-            {{adult_count}} adult(s) - Discount: {{adult_discount}}
-        </div>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Senior Discount:</strong><br>
-            {{senior_count}} senior(s) - Discount: {{senior_discount}}
-        </div>
-        
-        <div style="background: #E8F5E8; border-left: 4px solid #27AE60; padding: 15px; margin: 20px 0;">
-            <strong>Coupon Applied:</strong><br>
-            {{coupons}}
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <h3>Booking Verification QR Code</h3>
-            <p>Present this QR code at the time of service</p>
-            {{qr_code}}
-        </div>
-        
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>Thank you for your booking!</p>
-            <p>For any questions, please contact our customer service at {{admin_email}}.</p>
-            <p>© {{current_year}} Your Company Name. All rights reserved.</p>
-        </div>
-    </div>';
-
-        /* -------------------------
-        * BOOKING PDF – ITALIAN
-        * ------------------------- */
-        $booking_pdf_it = '
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-        {{logo}}
-        
-        <h1 style="color: #333; border-bottom: 2px solid #4A90E2; padding-bottom: 10px;">
-            Conferma Ordine
-        </h1>
-        
-        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <strong>Riferimento Prenotazione:</strong> {{booking_key}}<br>
-            <strong>Data:</strong> {{current_date}} alle {{current_time}}
-        </div>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Informazioni Cliente</h2>
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Nome:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_first_name}} {{billing_last_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Email:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_email}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Telefono:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_contact}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px;"><strong>Indirizzo:</strong></td>
-                <td style="padding: 8px;">{{billing_address}}</td>
-            </tr>
-        </table>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Dettagli Servizio</h2>
-        <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
-            <strong>Servizio:</strong> {{service_name}}<br>
-            <strong>Data:</strong> {{booking_date}}<br>
-            <strong>Ora:</strong> {{booking_slots}}<br>
-            <strong>Durata:</strong> {{service_duration}}<br>
-            <strong>Metodo di Pagamento:</strong> {{payment_method}}
-        </div>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Riepilogo Ordine</h2>
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr style="background: #4A90E2; color: white;">
-                <th style="padding: 12px; text-align: left;">Descrizione</th>
-                <th style="padding: 12px; text-align: center;">Qtà</th>
-                <th style="padding: 12px; text-align: right;">Prezzo</th>
-                <th style="padding: 12px; text-align: right;">Totale</th>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd;">{{service_name}}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">{{service_qty}}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">{{service_price}}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">{{service_total}}</td>
-            </tr>
-            
-            {{extra_services}}
-            
-            <tr>
-                <td colspan="3" style="padding: 12px; text-align: right;"><strong>Subtotale:</strong></td>
-                <td style="padding: 12px; text-align: right;">{{subtotal}}</td>
-            </tr>
-            <tr>
-                <td colspan="3" style="padding: 12px; text-align: right;"><strong>Sconto:</strong></td>
-                <td style="padding: 12px; text-align: right; color: #27AE60;">-{{disount_amount}}</td>
-            </tr>
-            <tr style="background: #f5f5f5;">
-                <td colspan="3" style="padding: 12px; text-align: right;"><strong>Totale:</strong></td>
-                <td style="padding: 12px; text-align: right; font-weight: bold;">{{total_cost}}</td>
-            </tr>
-        </table>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Sconto Neonati:</strong><br>
-            {{infant_count}} neonato/i - Sconto: {{infant_discount}}
-        </div>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Sconto Bambini:</strong><br>
-            {{child_count}} bambino/i - Sconto: {{child_discount}}
-        </div>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Sconto Adulti:</strong><br>
-            {{adult_count}} adulto/i - Sconto: {{adult_discount}}
-        </div>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 20px 0;">
-            <strong>Sconto Anziani:</strong><br>
-            {{senior_count}} anziano/i - Sconto: {{senior_discount}}
-        </div>
-        
-        <div style="background: #E8F5E8; border-left: 4px solid #27AE60; padding: 15px; margin: 20px 0;">
-            <strong>Coupon Applicato:</strong><br>
-            {{coupons}}
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <h3>Codice QR di Verifica Prenotazione</h3>
-            <p>Presentare questo codice QR al momento del servizio</p>
-            {{qr_code}}
-        </div>
-        
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>Grazie per la tua prenotazione!</p>
-            <p>Per qualsiasi domanda, contatta il nostro servizio clienti all\'indirizzo {{admin_email}}.</p>
-            <p>© {{current_year}} Nome Azienda. Tutti i diritti riservati.</p>
-        </div>
-    </div>';
-
-        /* -------------------------
-        * VOUCHER PDF – ENGLISH
-        * ------------------------- */
-        $voucher_pdf_en = '
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 2px dashed #4A90E2;">
-        {{logo}}
-        
-        <h1 style="color: #4A90E2; text-align: center; border-bottom: 2px solid #4A90E2; padding-bottom: 10px;">
-            SERVICE VOUCHER
-        </h1>
-        
-        <div style="text-align: center; margin: 30px 0; font-size: 18px;">
-            <strong>VOUCHER CODE:</strong><br>
-            <span style="font-size: 24px; font-weight: bold; color: #27AE60;">{{voucher_code}}</span>
-        </div>
-        
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Customer:</strong></td>
-                <td style="padding: 12px;">{{billing_first_name}} {{billing_last_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Service:</strong></td>
-                <td style="padding: 12px;">{{service_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Service Date:</strong></td>
-                <td style="padding: 12px;">{{booking_date}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Service Time:</strong></td>
-                <td style="padding: 12px;">{{booking_slots}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Voucher Value:</strong></td>
-                <td style="padding: 12px; font-weight: bold;">{{total_cost}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Redeemed On:</strong></td>
-                <td style="padding: 12px;">{{redeemed_date}}</td>
-            </tr>
-        </table>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 30px 0;">
-            <h3 style="margin-top: 0;">Important Instructions:</h3>
-            <ul>
-                <li>Present this voucher at the time of service</li>
-                <li>Voucher must be redeemed on the scheduled service date</li>
-                <li>Valid for one-time use only</li>
-                <li>Non-transferable and non-refundable</li>
-            </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>For assistance, contact: {{admin_email}} | {{admin_phone}}</p>
-            <p>Voucher generated on: {{current_date}}</p>
-        </div>
-    </div>';
-
-        /* -------------------------
-        * VOUCHER PDF – ITALIAN
-        * ------------------------- */
-        $voucher_pdf_it = '
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 2px dashed #4A90E2;">
-        {{logo}}
-        
-        <h1 style="color: #4A90E2; text-align: center; border-bottom: 2px solid #4A90E2; padding-bottom: 10px;">
-            VOUCHER SERVIZIO
-        </h1>
-        
-        <div style="text-align: center; margin: 30px 0; font-size: 18px;">
-            <strong>CODICE VOUCHER:</strong><br>
-            <span style="font-size: 24px; font-weight: bold; color: #27AE60;">{{voucher_code}}</span>
-        </div>
-        
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Cliente:</strong></td>
-                <td style="padding: 12px;">{{billing_first_name}} {{billing_last_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Servizio:</strong></td>
-                <td style="padding: 12px;">{{service_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Data Servizio:</strong></td>
-                <td style="padding: 12px;">{{booking_date}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Ora Servizio:</strong></td>
-                <td style="padding: 12px;">{{booking_slots}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Valore Voucher:</strong></td>
-                <td style="padding: 12px; font-weight: bold;">{{total_cost}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; background: #f5f5f5;"><strong>Riscattato il:</strong></td>
-                <td style="padding: 12px;">{{redeemed_date}}</td>
-            </tr>
-        </table>
-        
-        <div style="background: #FFF5E5; border-left: 4px solid #ffa500; padding: 15px; margin: 30px 0;">
-            <h3 style="margin-top: 0;">Istruzioni Importanti:</h3>
-            <ul>
-                <li>Presentare questo voucher al momento del servizio</li>
-                <li>Il voucher deve essere riscattato nella data programmata del servizio</li>
-                <li>Valido per un solo utilizzo</li>
-                <li>Non trasferibile e non rimborsabile</li>
-            </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>Per assistenza, contattare: {{admin_email}} | {{admin_phone}}</p>
-            <p>Voucher generato il: {{current_date}}</p>
-        </div>
-    </div>';
-
-        /* -------------------------
-        * INSERT DEFAULT PDF CONTENT
-        * ------------------------- */
-        $tmpl_data = array(
-            'id'             => 1,
-            'booking_pdf_en' => $booking_pdf_en,
-            'booking_pdf_it' => $booking_pdf_it,
-            'voucher_pdf_en' => $voucher_pdf_en,
-            'voucher_pdf_it' => $voucher_pdf_it,
-            'pdf_logo_guid'  => 0,
-            'created_at'     => current_time( 'mysql' ),
-            'updated_at'     => current_time( 'mysql' ),
-        );
-
-        $tmpl_arg = array(
-            '%d',
-            '%s',
-            '%s',
-            '%s',
-            '%s',
-            '%d',
-            '%s',
-            '%s',
-        );
-
-        /* -------------------------
-		* CUSTOMER INFO PDF – ENGLISH
-		* ------------------------- */
-		$customer_info_pdf_en = '
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-        {{logo}}
-        
-        <h1 style="color: #333; border-bottom: 2px solid #4A90E2; padding-bottom: 10px;">
-            Customer Information
-        </h1>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Personal Details</h2>
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>First Name:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_first_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Last Name:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_last_name}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Email:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_email}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Phone:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_contact}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px;"><strong>Address:</strong></td>
-                <td style="padding: 8px;">{{billing_address}}</td>
-            </tr>
-        </table>
-        
-        <h2 style="color: #4A90E2; margin-top: 30px;">Account Information</h2>
-        <p><strong>Customer since:</strong> {{customer_since}}</p>
-        <p><strong>Total bookings:</strong> {{total_bookings}}</p>
-        
-        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>© {{current_year}} Your Company Name. All rights reserved.</p>
-        </div>
-    </div>';
-
-        /* -------------------------
-        * CUSTOMER INFO PDF – ITALIAN
-        * ------------------------- */
-        $customer_info_pdf_it = '
-        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-            {{logo}}
-            
-            <h1 style="color: #333; border-bottom: 2px solid #4A90E2; padding-bottom: 10px;">
-                Informazioni Cliente
-            </h1>
-            
-            <h2 style="color: #4A90E2; margin-top: 30px;">Dettagli Personali</h2>
-            <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-                <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Nome:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_first_name}}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Cognome:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_last_name}}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Email:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_email}}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Telefono:</strong></td>
-                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{billing_contact}}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px;"><strong>Indirizzo:</strong></td>
-                    <td style="padding: 8px;">{{billing_address}}</td>
-                </tr>
-            </table>
-            
-            <h2 style="color: #4A90E2; margin-top: 30px;">Informazioni Account</h2>
-            <p><strong>Cliente dal:</strong> {{customer_since}}</p>
-            <p><strong>Prenotazioni totali:</strong> {{total_bookings}}</p>
-            
-            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p>© {{current_year}} Nome Azienda. Tutti i diritti riservati.</p>
-            </div>
-        </div>';
-
-        $tmpl_data = array(
-            'id'                   => 1,
-            'booking_pdf_en'       => $booking_pdf_en,
-            'booking_pdf_it'       => $booking_pdf_it,
-            'voucher_pdf_en'       => $voucher_pdf_en,
-            'voucher_pdf_it'       => $voucher_pdf_it,
-            'customer_info_pdf_en' => $customer_info_pdf_en,
-            'customer_info_pdf_it' => $customer_info_pdf_it,
-            'pdf_logo_guid'        => 0,
-            'created_at'           => current_time( 'mysql' ),
-            'updated_at'           => current_time( 'mysql' ),
-        );
-
-        $tmpl_arg = array(
-            '%d',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%s',
-			'%d',
-			'%s',
-			'%s',
-        );
-
-        $dbhandler->insert_row( 'PDF_CUSTOMIZATION', $tmpl_data, $tmpl_arg );
-        $dbhandler->update_global_option_value( 'bm_pdf_contents_created', '1' );
     } //end bm_create_default_pdf_contents()
 
 
@@ -7564,7 +7075,7 @@ class BM_Request {
 			if ( is_int( $unique_key ) ) {
 				$customer_data = $this->get_customer_info_for_order( $unique_key );
 			} elseif ( is_string( $unique_key ) ) {
-				$customer_data = array(); // FAILED_TRANSACTIONS table removed in free version.
+				$customer_data = array();
 			}
 
 			if ( ! empty( $customer_data ) && isset( $customer_data['billing_email'] ) ) {
@@ -7772,7 +7283,6 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_replace_field_values_in_email_body_for_orders_with_no_order_id( $field_name = '', $order_key = '' ) {
-		// FAILED_TRANSACTIONS table removed in free version.
 		return '';
 	}//end bm_replace_field_values_in_email_body_for_orders_with_no_order_id()
 
@@ -8523,7 +8033,6 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function get_customer_info_for_failed_order( $failed_booking_id = 0 ) {
-		// FAILED_TRANSACTIONS table removed in free version.
 		return array();
 	}//end get_customer_info_for_failed_order()
 
@@ -8982,7 +8491,6 @@ class BM_Request {
 			$dbhandler = new BM_DBhandler();
 
 			if ( is_string( $order_id ) ) {
-				// FAILED_TRANSACTIONS table removed in free version.
 				$order              = array();
 				$extra_ids          = '';
 				$extra_slots_booked = array();
@@ -9951,7 +9459,6 @@ class BM_Request {
 
 		if ( ! empty( $order_id ) ) {
 			if ( is_string( $order_id ) ) {
-				// FAILED_TRANSACTIONS table removed in free version.
 				$service_id = 0;
 			} else {
 				$service_id = $dbhandler->get_value( 'BOOKING', 'service_id', $order_id, 'id' );
@@ -13148,7 +12655,6 @@ class BM_Request {
 					$resp .= '<option value="' . $key . '">' . $value . '</option>';
 				} //end foreach
 			} elseif ( $process_id > 0 && $array_key >= 0 ) {
-				// EVENTNOTIFICATION table removed in free version.
 				$resp = '';
 			}
 		} //end if
@@ -13217,7 +12723,6 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_check_active_process_of_a_specific_type( $type = -1 ) {
-		// EVENTNOTIFICATION table removed in free version.
 		return false;
 	}//end bm_check_active_process_of_a_specific_type()
 
@@ -13228,7 +12733,6 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_fetch_active_process_id_of_a_specific_type( $type = -1 ) {
-		// EVENTNOTIFICATION table removed in free version.
 		return 0;
 	}//end bm_fetch_active_process_id_of_a_specific_type()
 
@@ -13430,7 +12934,6 @@ class BM_Request {
 							$mail_details .= '</div>';
 						}
 					} elseif ( $module_type == 'FAILED_TRANSACTIONS' ) {
-						// FAILED_TRANSACTIONS table removed in free version.
 						$mail_details .= '';
 					}
 				}
@@ -13779,7 +13282,6 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_fetch_failed_order_attachments( $failed_order_id ) {
-		// FAILED_TRANSACTIONS table removed in free version.
 		return array();
 	}//end bm_fetch_failed_order_attachments()
 
@@ -14508,7 +14010,6 @@ class BM_Request {
 	 * @author Darpan
 	 */
 	public function bm_fetch_all_failed_transactions_with_customer_data() {
-		// FAILED_TRANSACTIONS table removed in free version.
 		return array();
 	}//end bm_fetch_all_failed_transactions_with_customer_data()
 
