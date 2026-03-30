@@ -2549,7 +2549,7 @@ class Booking_Management_Public {
 			$gift_data['is_gift'] = $post['checkout_data']['other_data']['is_gift'];
 			unset( $post['checkout_data']['other_data']['is_gift'] );
 		}
-		$gift_key = base64_encode( $post['booking_data'] );
+		$gift_key = base64_encode( sanitize_text_field( $post['booking_data'] ) );
 		$dbhandler->bm_save_data_to_transient( $gift_key, $gift_data, 72 );
 
 		// Free version: Add to WooCommerce cart and redirect to checkout.

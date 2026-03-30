@@ -132,7 +132,8 @@ class WooCommerceService {
             // Add extra services to the cart.
             if ( ! empty( $extra_service_ids ) && ! empty( $extra_slots_booked ) ) {
                 $extra_slots_booked = explode( ',', $extra_slots_booked );
-                $additional         = 'id in(' . esc_sql( $extra_service_ids ) . ')';
+                $safe_ids           = implode( ',', array_map( 'absint', explode( ',', $extra_service_ids ) ) );
+                $additional         = 'id in(' . $safe_ids . ')';
                 $extras             = $dbhandler->get_all_result( 'EXTRA', '*', 1, 'results', 0, false, null, false, $additional );
 
                 if ( ! empty( $extras ) ) {
