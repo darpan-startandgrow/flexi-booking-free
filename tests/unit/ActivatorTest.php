@@ -55,7 +55,6 @@ class ActivatorTest extends TestCase {
 			'AVAILABILITY_PERIOD'  => array( 'AVAILABILITY_PERIOD' ),
 			'GLOBAL_EXTRA'         => array( 'GLOBAL_EXTRA' ),
 			'SERVICE_GLOBAL_EXTRA' => array( 'SERVICE_GLOBAL_EXTRA' ),
-			'PDF_CUSTOMIZATION'    => array( 'PDF_CUSTOMIZATION' ),
 			'GLOBAL'               => array( 'GLOBAL' ),
 		);
 	}
@@ -73,6 +72,8 @@ class ActivatorTest extends TestCase {
 			'EXTERNAL_SERVICE_PRICE_MODULE' => array( 'EXTERNAL_SERVICE_PRICE_MODULE' ),
 			'COUPON'                        => array( 'COUPON' ),
 			'SERVICE_CATEGORY_MAP'          => array( 'SERVICE_CATEGORY_MAP' ),
+			'MANAGECOLUMNS'                 => array( 'MANAGECOLUMNS' ),
+			'PDF_CUSTOMIZATION'             => array( 'PDF_CUSTOMIZATION' ),
 		);
 	}
 
