@@ -64,9 +64,7 @@ class Booking_Management_Activator {
 		`service_duration` float(24) DEFAULT NULL,
 		`service_operation` float(24) DEFAULT NULL,
 		`default_max_cap` int(100) NOT NULL DEFAULT 1,
-		`is_only_book_on_request` int(11) DEFAULT NULL,
 		`is_service_front` int(11) NOT NULL DEFAULT 1,
-		`show_stopsales_data` int(11) NOT NULL DEFAULT 1,
 		`service_short_desc` text DEFAULT NULL,
 		`service_desc` longtext DEFAULT NULL,
 		`default_price` float(50) DEFAULT NULL,
@@ -76,8 +74,6 @@ class Booking_Management_Activator {
 		`wc_product` int(11) DEFAULT NULL,
 		`service_status` int(11) NOT NULL DEFAULT 1,
 		`variable_svc_prices` longtext DEFAULT NULL,
-		`variable_max_cap` longtext DEFAULT NULL,
-		`variable_time_slots` longtext DEFAULT NULL,
 		`service_options` longtext DEFAULT NULL,
 		`service_settings` longtext DEFAULT NULL,
 		`service_position` int(11) NOT NULL DEFAULT '0',
@@ -519,8 +515,8 @@ class Booking_Management_Activator {
 				$table_name = $plugin_prefix . 'email_template';
 				break;
 			case 'MANAGECOLUMNS':
-				$table_name = $plugin_prefix . 'manage_columns';
-				break;
+			case 'PDF_CUSTOMIZATION':
+				return false;
 			case 'SAVESEARCH':
 				$table_name = $plugin_prefix . 'saved_search';
 				break;
@@ -550,9 +546,6 @@ class Booking_Management_Activator {
 				break;
 			case 'SERVICE_GLOBAL_EXTRA':
 				$table_name = $plugin_prefix . 'service_global_extras';
-				break;
-			case 'PDF_CUSTOMIZATION':
-				$table_name = $plugin_prefix . 'pdf_content_customization';
 				break;
 			default:
 				$classname = "BM_Helper_$identifier";
@@ -607,8 +600,8 @@ class Booking_Management_Activator {
 				$unique_field_name = 'id';
 				break;
 			case 'MANAGECOLUMNS':
-				$unique_field_name = 'id';
-				break;
+			case 'PDF_CUSTOMIZATION':
+				return false;
 			case 'SAVESEARCH':
 				$unique_field_name = 'id';
 				break;
@@ -637,9 +630,6 @@ class Booking_Management_Activator {
 				$unique_field_name = 'id';
 				break;
 			case 'SERVICE_GLOBAL_EXTRA':
-				$unique_field_name = 'id';
-				break;
-			case 'PDF_CUSTOMIZATION':
 				$unique_field_name = 'id';
 				break;
 			default:
@@ -697,9 +687,6 @@ class Booking_Management_Activator {
 			case 'default_max_cap':
 				$format = '%d';
 				break;
-			case 'is_only_book_on_request':
-				$format = '%d';
-				break;
 			case 'is_linked_wc_product':
 				$format = '%d';
 				break;
@@ -707,9 +694,6 @@ class Booking_Management_Activator {
 				$format = '%d';
 				break;
 			case 'is_service_front':
-				$format = '%d';
-				break;
-			case 'show_stopsales_data':
 				$format = '%d';
 				break;
 			case 'service_desc':
@@ -1637,7 +1621,6 @@ class Booking_Management_Activator {
 		add_option( 'bm_booking_currency', 'EUR' );
 		add_option( 'bm_currency_position', 'before' );
 		add_option( 'bm_payment_session_time', '3' );
-		add_option( 'bm_book_on_request_expiry', '7' );
 		add_option( 'bm_voucher_expiry', '30' );
 		add_option( 'bm_date_field_label_font', '20' );
 		add_option( 'bm_category_search_label_font', '20' );

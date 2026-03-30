@@ -6484,19 +6484,17 @@ class BM_Request {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Check if a service is book on request only.
+	 *
+	 * Book on Request is a Pro-only feature; always returns 0 in the free version.
+	 *
+	 * @since 1.0.0
+	 * @param int $service_id Service ID.
+	 * @return int Always 0 in free version.
+	 */
 	public function bm_check_if_book_on_request_only( $service_id = 0 ) {
-		$dbhandler       = new BM_DBhandler();
-		$book_on_request = 0;
-
-		if ( ! empty( $service_id ) ) {
-			$service = $dbhandler->get_row( 'SERVICE', $service_id );
-
-			if ( ! empty( $service ) ) {
-				$book_on_request = isset( $service->is_only_book_on_request ) ? $service->is_only_book_on_request : 0;
-			}
-		}
-
-		return $book_on_request;
+		return 0;
 	}//end bm_check_if_book_on_request_only()
 
 
@@ -12550,19 +12548,16 @@ class BM_Request {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Fetch book on request transactions.
+	 *
+	 * Book on Request is a Pro-only feature; always returns empty in the free version.
+	 *
+	 * @since 1.0.0
+	 * @return array Always empty in free version.
+	 */
 	public function bm_fetch_book_on_request_transactions() {
-		$dbhandler    = new BM_DBhandler();
-		$transactions = $dbhandler->get_all_result(
-			'TRANSACTIONS',
-			'*',
-			array(
-				'payment_status' => 'requires_capture',
-				'is_active'      => 1,
-			),
-			'results'
-		);
-
-		return $transactions;
+		return array();
 	} // end bm_fetch_book_on_request_transactions()
 
 
@@ -12676,18 +12671,17 @@ class BM_Request {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Mark book on request transactions as approved.
+	 *
+	 * Book on Request is a Pro-only feature; always returns false in the free version.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 * @return bool Always false in free version.
+	 */
 	public function bm_approve_book_on_request_transaction( $booking_id = 0 ) {
-		$dbhandler = new BM_DBhandler();
-		$approved  = false;
-
-		if ( ! empty( $booking_id ) ) {
-			$capture_amount  = $dbhandler->get_value( 'BOOKING', 'total_cost', $booking_id, 'id' );
-			$paymentIntentId = $dbhandler->get_value( 'TRANSACTIONS', 'transaction_id', $booking_id, 'booking_id' );
-			$paymentStatus   = $dbhandler->get_value( 'TRANSACTIONS', 'payment_status', $booking_id, 'booking_id' );
-			$is_active       = $dbhandler->get_value( 'TRANSACTIONS', 'is_active', $booking_id, 'booking_id' );
-		}
-
-		return $approved;
+		return false;
 	} // end bm_approve_book_on_request_transaction()
 
 
@@ -12808,26 +12802,16 @@ class BM_Request {
 	 *
 	 * @author Darpan
 	 */
+	/**
+	 * Approve book on request order.
+	 *
+	 * Book on Request is a Pro-only feature; no-op in the free version.
+	 *
+	 * @since 1.0.0
+	 * @param int $booking_id Booking ID.
+	 */
 	public function bm_approve_pending_book_on_request_order( $booking_id = 0 ) {
-		$dbhandler = new BM_DBhandler();
-		$approved  = $this->bm_approve_book_on_request_transaction( $booking_id );
-
-		if ( $approved ) {
-			do_action( 'flexibooking_set_process_approved_order', $booking_id );
-
-			// Event-driven dispatch for booking approval.
-			if ( class_exists( 'SG_Event_Dispatcher' ) ) {
-				SG_Event_Dispatcher::dispatch( 'booking.approved', array( 'booking_id' => $booking_id ) );
-			}
-
-			$voucher_code = $dbhandler->get_value( 'VOUCHERS', 'code', $booking_id, 'booking_id' );
-
-			if ( ! empty( $voucher_code ) ) {
-				do_action( 'flexibooking_set_process_new_order_voucher', $booking_id );
-			}
-
-			$dbhandler->update_global_option_value( 'bm_is_book_on_request_approved-' . $booking_id, 1 );
-		}
+		// Pro-only feature; no-op in free version.
 	}//end bm_approve_pending_book_on_request_order()
 
 

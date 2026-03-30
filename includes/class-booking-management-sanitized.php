@@ -166,9 +166,6 @@ class BM_Sanitizer {
 			case 'service_operation':
 				$value = sanitize_text_field( $value );
 				break;
-			case 'is_only_book_on_request':
-				$value = sanitize_text_field( $value );
-				break;
 			case 'is_linked_wc_product':
 				$value = sanitize_text_field( $value );
 				break;
@@ -181,9 +178,6 @@ class BM_Sanitizer {
 			case 'is_service_front':
 				$value = sanitize_text_field( $value );
 				break;
-			case 'show_stopsales_data':
-				$value = sanitize_text_field( $value );
-				break;
 			case 'service_desc':
 				$value = wp_kses_post( $value );
 				break;
@@ -194,12 +188,6 @@ class BM_Sanitizer {
 				$value = sanitize_text_field( $value );
 				break;
 			case 'variable_svc_prices':
-				$value = $value;
-				break;
-			case 'variable_max_cap':
-				$value = $value;
-				break;
-			case 'variable_time_slots':
 				$value = $value;
 				break;
 			case 'service_image_guid':

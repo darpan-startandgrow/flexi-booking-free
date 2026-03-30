@@ -318,16 +318,10 @@ if ( ( filter_input( INPUT_POST, 'savesvc' ) ) || ( filter_input( INPUT_POST, 'u
 
     if ( ( filter_input( INPUT_POST, 'upsvc' ) ) ) {
         if ( $id != 0 ) {
-            // Clear variable data when defaults change to keep them in sync.
+            // Clear variable price data when default price changes.
             if ( filter_input( INPUT_POST, 'default_price' ) != filter_input( INPUT_POST, 'old_default_price' ) ) {
                 $new_wc_price                = 1;
                 $data['variable_svc_prices'] = null;
-            }
-            if ( filter_input( INPUT_POST, 'default_max_cap' ) != filter_input( INPUT_POST, 'old_default_max_cap' ) ) {
-                $data['variable_max_cap'] = null;
-            }
-            if ( filter_input( INPUT_POST, 'total_time_slots' ) != filter_input( INPUT_POST, 'old_total_time_slots' ) ) {
-                $data['variable_time_slots'] = null;
             }
 
             $data['service_updated_at'] = $bmrequests->bm_fetch_current_wordpress_datetime_stamp();
