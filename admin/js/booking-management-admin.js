@@ -13,166 +13,15 @@ class BMAdminCore {
         	$("#errorMessage").delay(5000).fadeOut(300);
         	$("#successMessage").delay(3000).fadeOut(300);
 
-        	// Sort Service Listing
-        	$('.service_records').sortable({
-        		axis: "y",
-        		items: ".single_service_record",
-        		containment: "#service_records_listing",
-        		revert: true,
-        		scroll: true,
-        		cursor: "move",
-        		update: function () {
-        			var ids = {};
-        			var pagenum = sessionStorage.getItem("servicePagno");
-        			$(".service_records .single_service_record .service_listing_number").each(function (i) {
-        				ids[i] = $(this).data('id');
-        			})
-        			bm_sort_service_listing(ids, pagenum != null ? pagenum : '1');
-        		}
-        	}).disableSelection();
+        	// Sort Service Listing & Tab Display handled by BMServiceManager (bm-admin-services.js)
 
-        	// Sort Category Listing
-        	$('.category_records').sortable({
-        		axis: "y",
-        		items: ".single_category_record",
-        		containment: "#category_records_listing",
-        		revert: true,
-        		scroll: true,
-        		cursor: "move",
-        		update: function () {
-        			var ids = {};
-        			var pagenum = sessionStorage.getItem("categoryPagno");
-        			$(".category_records .single_category_record .category_listing_number").each(function (i) {
-        				ids[i] = $(this).data('id');
-        			})
-        			bm_sort_category_listing(ids, pagenum != null ? pagenum : '1');
-        		}
-        	}).disableSelection();
-
-
-        	// Display Condition for Tabs in Service Page
-        	if (getUrlParameter('extra_id') || sessionStorage.getItem("extravalue") != null) {
-        		if ($("#service_extra").not(':visible')) $('#service_extra').show();
-        		if (sessionStorage.getItem("extravalue") != null) {
-        			$('button.tablinks.active').removeClass('active');
-        			$("#extra_button").addClass("active");
-        		}
-        	} else if (sessionStorage.getItem("galleryvalue") != null) {
-        		if ($("#service_gallery").not(':visible')) $('#service_gallery').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#gallery_button").addClass("active");
-        	} else if ((sessionStorage.getItem("variableprice") != null)) {
-        		if ($("#price_calendar").not(':visible')) $('#price_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#price_calendar_button").addClass("active");
-        	} else if ((sessionStorage.getItem("variablehour") != null)) {
-        		if ($("#stopsales_calendar").not(':visible')) $('#stopsales_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#stopsales_calendar_button").addClass("active");
-        	} else if ((sessionStorage.getItem("variablesaleswitch") != null)) {
-        		if ($("#saleswitch_calendar").not(':visible')) $('#saleswitch_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#saleswitch_calendar_button").addClass("active");
-        	} else if (sessionStorage.getItem("variablecapacity") != null) {
-        		if ($("#capacity_calendar").not(':visible')) $('#capacity_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#capacity_calendar_button").addClass("active");
-        	} else if (sessionStorage.getItem("variabletimeslot") != null) {
-        		if ($("#time_slots_calendar").not(':visible')) $('#time_slots_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#time_slot_button").addClass("active");
-        	} else if (sessionStorage.getItem("svcsettingstab") != null) {
-        		if ($("#svc_settings_section").not(':visible')) $('#svc_settings_section').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#svc_settings_button").addClass("active");
-        	} else {
-        		if ($("#service_details").not(':visible')) $('#service_details').show();
-        	}
+        	// Sort Category Listing handled by BMCategoryManager (bm-admin-categories.js)
 
 
         	// Display Condition for Tabs in Fields Page
         	if ($("#field_listing").not(':visible')) $('#field_listing').addClass('flexdisplay');
 
-        	// Service Image Selection
-        	var custom_uploader;
-
-        	$('.svc-image').click(function (e) {
-        		e.preventDefault();
-        		//If the uploader object has already been created, reopen the dialog
-        		if (custom_uploader) {
-        			custom_uploader.open();
-        			return;
-        		}
-        		//Extend the wp.media object
-        		custom_uploader = wp.media.frames.file_frame = wp.media({
-        			title: bm_normal_object.choose_image,
-        			button: {
-        				text: bm_normal_object.choose_image
-        			},
-        			library: {
-        				type: 'image'
-        			},
-        			multiple: false
-        		});
-
-        		custom_uploader.on('select', function () {
-        			attachment = custom_uploader.state().get('selection').first().toJSON();
-        			var file_size = parseInt(attachment.filesizeInBytes);
-        			var file_width = parseInt(attachment.sizes.full.width);
-        			var file_height = parseInt(attachment.sizes.full.height);
-
-        			var min_file_size = parseInt(bm_normal_object.image_min_size);
-        			var max_file_size = parseInt(bm_normal_object.image_max_size);
-        			var minimum_width = parseInt(bm_normal_object.image_min_width);
-        			var maximum_width = parseInt(bm_normal_object.image_max_width);
-        			var minimum_height = parseInt(bm_normal_object.image_min_height);
-        			var maximum_height = parseInt(bm_normal_object.image_max_height);
-
-        			if (attachment['type'] == 'image') {
-        				if (min_file_size != 0 && file_size < min_file_size) {
-        					alert(bm_error_object.file_size_less_message + min_file_size + ' bytes');
-        				} else if (max_file_size != 0 && file_size > max_file_size) {
-        					alert(bm_error_object.file_size_more_message + max_file_size + ' bytes');
-        				} else if (minimum_width != 0 && file_width < minimum_width) {
-        					alert(bm_error_object.file_width_less_message + minimum_width + ' pixels');
-        				} else if (maximum_width != 0 && file_width > maximum_width) {
-        					alert(bm_error_object.file_width_more_message + maximum_width + ' pixels');
-        				} else if (minimum_height != 0 && file_height < minimum_height) {
-        					alert(bm_error_object.file_width_less_message + minimum_height + ' pixels');
-        				} else if (maximum_height != 0 && file_height > maximum_height) {
-        					alert(bm_error_object.file_width_more_message + maximum_height + ' pixels');
-        				} else {
-        					$('#svc_image_id').val(attachment.id);
-        					$('#svc_image_preview').attr('src', attachment.url);
-        					$('.svc_image_container').show();
-        				}
-        			} else {
-        				alert(bm_error_object.file_type_not_supported);
-        			}
-
-        		});
-
-        		//Open the uploader dialog
-        		custom_uploader.open();
-        	});
-
-
-        	// Service Extra Add Button
-        	$("#add_extra").click(function (e) {
-        		if ($("#svc_extra_fields").not(':visible')) $("#svc_extra_fields").css('display', 'block');
-        		$("#if_extra_svc").val('1');
-        		if ($("#extraTitle").is(':visible')) $("#extraTitle").css('display', 'none');
-        		if ($("#existing_extra_content").is(':visible')) $("#existing_extra_content").hide();
-        	});
-
-
-        	// Service Extra Cancel Button
-        	$("#cancel_extra").click(function (e) {
-        		if ($("#svc_extra_fields").is(':visible')) $("#svc_extra_fields").css('display', 'none');
-        		$("#if_extra_svc").val('0');
-        		if ($("#extraTitle").not(':visible')) $("#extraTitle").css('display', 'block');
-        		if ($("#existing_extra_content").not(':visible')) $("#existing_extra_content").show();
-        	});
+        	// Service Image/Gallery/Extra handlers handled by BMServiceManager (bm-admin-services.js)
 
         // Redirect to edit service page
 
@@ -653,325 +502,10 @@ class BMAdminCore {
         		},
         	});
 
-        // Load Stopsales Calendar
+        // Stopsales, Saleswitch, Capacity and Time Slots calendars are Pro-only features.
+        // Their datepicker initialization is not needed in the free version.
 
-        	if (getUrlParameter('id') != '') $('#old_default_stopsales').val($('#default_stopsales').val());
-
-        	$("#stopsales_datepicker").datepicker({
-        		dateFormat: 'yy-mm-dd',
-        		showButtonPanel: true,
-        		changeMonth: true,
-        		changeYear: true,
-        		// numberOfMonths: 3,
-        		minDate: 0,
-        		beforeShow: getUrlParameter('id') != '' ? bm_get_service_stopsales() : addStopsalesInfo(),
-        		//---^----------- if closed by default (when you're using <input>)
-        		beforeShowDay: function (date) {
-        			var returnday = "weekday";
-        			return [true, returnday];
-        		},
-        		onChangeMonthYear: function () { getUrlParameter('id') != '' ? bm_get_service_stopsales() : addStopsalesInfo('drawYear') },
-        		onSelect: function (date, inst) {
-        			$('#variable_stopsales_date').val(date);
-
-        			var stopsales = $(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
-        				return $(this).find('a').text() == inst.selectedDay;
-        			}).find("a").attr('data-custom');
-        			$('select[name^="variable_hour"] option:selected').attr("selected", null);
-        			if (stopsales.split('h')[0] != '' || stopsales.split('h')[0] != 0) $('select[name^="variable_hour"] option[value="' + stopsales.split('h')[0] + '"]').attr("selected", "selected");
-
-        			$('.stopsales_errortext').html(' ');
-        			$('.stopsales_update_successtext').html(' ');
-        			$('.stopsales_update_errortext').html(' ');
-        			$('.variable_hour_errortext').html('');
-        			$('.bulk_stopsales_errortext').html('');
-        			$('#from_bulk_stopsales_change').val('');
-        			$('#to_bulk_stopsales_change').val('');
-        			$('#bulk_variable_hour').val('');
-
-        			$('#to_bulk_stopsales_change').prop('readonly', true);
-        			$('#bulk_hour_change').prop('checked', false);
-
-        			if ($('#up_svc_hour').not(':visible')) $('#up_svc_hour').show();
-        			if ($('#cancel_svc_stopsales').not(':visible')) $('#cancel_svc_stopsales').show();
-        			if ($('#stopsales_modal').not(':visible')) $('#stopsales_modal').show();
-        			$('#single_hour_change').show();
-
-        			if ($('.stopsales_errortext').is(':visible')) $('.stopsales_errortext').hide();
-        			if ($('.stopsales_update_successtext').is(':visible')) $('.stopsales_update_successtext').hide();
-        			if ($('.stopsales_update_errortext').is(':visible')) $('.stopsales_update_errortext').hide();
-        			if ($('.variable_hour_errortext').is(':visible')) $('.variable_hour_errortext').hide();
-        			if ($('.bulk_stopsales_errortext').is(':visible')) $('.bulk_stopsales_errortext').hide();
-        			$('#calendar_bulk_hour_change').hide();
-
-        			//Prevent the redraw.
-        			inst.inline = false;
-        		},
-        	});
-        	// getUrlParameter('id') != '' ? bm_get_service_stopsales() : addStopsalesInfo(); // if open by default (when you're using <div>)
-
-        // Load Saleswitch Calendar
-
-        	if (getUrlParameter('id') != '') $('#old_default_saleswitch').val($('#default_saleswitch').val());
-
-        	$("#saleswitch_datepicker").datepicker({
-        		dateFormat: 'yy-mm-dd',
-        		showButtonPanel: true,
-        		changeMonth: true,
-        		changeYear: true,
-        		// numberOfMonths: 3,
-        		minDate: 0,
-        		beforeShow: getUrlParameter('id') != '' ? bm_get_service_saleswitch() : addSaleswitchInfo(),
-        		//---^----------- if closed by default (when you're using <input>)
-        		beforeShowDay: function (date) {
-        			var returnday = "weekday";
-        			return [true, returnday];
-        		},
-        		onChangeMonthYear: function () { getUrlParameter('id') != '' ? bm_get_service_saleswitch() : addSaleswitchInfo('drawYear') },
-        		onSelect: function (date, inst) {
-        			$('#variable_saleswitch_date').val(date);
-
-        			var saleswitch = $(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
-        				return $(this).find('a').text() == inst.selectedDay;
-        			}).find("a").attr('data-custom');
-        			$('select[name^="variable_saleswitch_hour"] option:selected').attr("selected", null);
-        			if (saleswitch.split('h')[0] != '' || saleswitch.split('h')[0] != 0) $('select[name^="variable_saleswitch_hour"] option[value="' + saleswitch.split('h')[0] + '"]').attr("selected", "selected");
-
-        			$('.saleswitch_errortext').html(' ');
-        			$('.saleswitch_update_successtext').html(' ');
-        			$('.saleswitch_update_errortext').html(' ');
-        			$('.variable_saleswitch_errortext').html('');
-        			$('.bulk_saleswitch_errortext').html('');
-        			$('#from_bulk_saleswitch_change').val('');
-        			$('#to_bulk_saleswitch_change').val('');
-        			$('#bulk_saleswitch_hour').val('');
-
-        			$('#to_bulk_saleswitch_change').prop('readonly', true);
-        			$('#bulk_saleswitch_change').prop('checked', false);
-
-        			if ($('#up_svc_saleswitch').not(':visible')) $('#up_svc_saleswitch').show();
-        			if ($('#cancel_svc_saleswitch').not(':visible')) $('#cancel_svc_saleswitch').show();
-        			if ($('#saleswitch_modal').not(':visible')) $('#saleswitch_modal').show();
-        			$('#single_saleswitch_change').show();
-
-        			if ($('.saleswitch_errortext').is(':visible')) $('.saleswitch_errortext').hide();
-        			if ($('.saleswitch_update_successtext').is(':visible')) $('.saleswitch_update_successtext').hide();
-        			if ($('.saleswitch_update_errortext').is(':visible')) $('.saleswitch_update_errortext').hide();
-        			if ($('.variable_saleswitch_errortext').is(':visible')) $('.variable_saleswitch_errortext').hide();
-        			if ($('.bulk_saleswitch_errortext').is(':visible')) $('.bulk_saleswitch_errortext').hide();
-        			$('#calendar_bulk_saleswitch_change').hide();
-
-        			//Prevent the redraw.
-        			inst.inline = false;
-        		},
-        	});
-        	// getUrlParameter('id') != '' ? bm_get_service_saleswitch() : addSaleswitchInfo(); // if open by default (when you're using <div>)
-
-        // Load Capacity Calendar
-
-        	if (getUrlParameter('id') != '') $('#old_default_max_cap').val($('#default_max_cap').val());
-
-        	$("#cap_datepicker").datepicker({
-        		dateFormat: 'yy-mm-dd',
-        		showButtonPanel: true,
-        		changeMonth: true,
-        		changeYear: true,
-        		// numberOfMonths: 3,
-        		minDate: 0,
-        		beforeShow: getUrlParameter('id') != '' ? bm_get_service_max_cap() : addCapacityInfo(),
-        		//---^----------- if closed by default (when you're using <input>)
-        		beforeShowDay: function (date) {
-        			var returnday = "weekday";
-        			return [true, returnday];
-        		},
-        		onChangeMonthYear: function () { getUrlParameter('id') != '' ? bm_get_service_max_cap() : addCapacityInfo('drawYear') },
-        		onSelect: function (date, inst) {
-        			if ($('#default_max_cap').val() != '') {
-        				$('#max_cap_date').val(date);
-
-        				var capacity = $(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
-        					return $(this).find('a').text() == inst.selectedDay;
-        				}).find("a").attr('data-custom');
-        				$('#max_cap_value').val(capacity);
-
-
-        				$('.capacity_calendar_errortext').html(' ');
-        				$('.capacity_update_successtext').html(' ');
-        				$('.capacity_update_errortext').html(' ');
-        				$('.max_cap_errortext').html('');
-        				$('.bulk_cap_errortext').html('');
-        				$('#from_bulk_cap_change').val('');
-        				$('#to_bulk_cap_change').val('');
-        				$('#bulk_max_cap').val('');
-
-        				$('#to_bulk_cap_change').prop('readonly', true);
-        				$('#bulk_max_cap_change').prop('checked', false);
-
-        				$('#up_max_cap').show();
-        				$('#cancel_max_cap').show();
-        				$('#max_cap_modal').show();
-        				$('#single_max_cap_change').show();
-
-        				$('.capacity_calendar_errortext').hide();
-        				$('.capacity_update_successtext').hide();
-        				$('.capacity_update_errortext').hide();
-        				$('.max_cap_errortext').hide();
-        				$('.bulk_cap_errortext').hide();
-        				$('#max_cap_bulk_change').hide();
-
-        				//Prevent the redraw.
-        				inst.inline = false;
-        			} else {
-        				$('.capacity_calendar_errortext').html(bm_error_object.set_max_cap);
-        				if ($('.capacity_calendar_errortext').not(':visible')) $('.capacity_calendar_errortext').show();
-
-        				//Prevent the redraw.
-        				inst.inline = false;
-        			}
-        		},
-        	});
-        	// getUrlParameter('id') != '' ? bm_get_service_max_cap() : addCapacityInfo(); // if open by default (when you're using <div>)
-
-        // Load Time Slots Calendar
-
-        	if (getUrlParameter('id') != '') $('#old_total_time_slots').val($('#total_time_slots').val());
-
-        	$("#time_slots_datepicker").datepicker({
-        		dateFormat: 'yy-mm-dd',
-        		showButtonPanel: true,
-        		changeMonth: true,
-        		changeYear: true,
-        		// numberOfMonths: 3,
-        		minDate: 0,
-        		beforeShow: getUrlParameter('id') != '' ? bm_get_service_time_slots() : addTimeSlotInfo(),
-        		//---^----------- if closed by default (when you're using <input>)
-        		beforeShowDay: function (date) {
-        			var returnday = "weekday";
-        			return [true, returnday];
-        		},
-        		onChangeMonthYear: function () { getUrlParameter('id') != '' ? bm_get_service_time_slots() : addTimeSlotInfo('drawYear') },
-        		onSelect: function (date, inst) {
-        			if ($('#time_slots').html() != '') {
-        				$('#time_slot_date').val(date);
-        				$("#time_slot_value").html('');
-        				$('#remove_slot_button').html('');
-
-        				var slot_value = $(inst.dpDiv).find('[data-year="' + inst.selectedYear + '"][data-month="' + inst.selectedMonth + '"]').filter(function () {
-        					return $(this).find('a').text() == inst.selectedDay;
-        				}).find("a").attr('data-custom');
-
-        				var old_total_element = $('#old_total_time_slots').val();
-        				var total_element = $('#total_time_slots').val();
-        				var old_default_max_cap = $('#old_default_max_cap').val();
-        				var default_max_cap = $('#default_max_cap').val();
-        				var duration = $('#service_duration').val();
-        				var time_slot_inputs = $('.slot_data_element').length;
-
-        				if (slot_value == 'Default' || slot_value == 'N/A') {
-        					if (time_slot_inputs != 0) {
-        						var time_slot_lastid = $('.slot_data_element:last').attr("id");
-        						var time_slot_nextindex = Number(time_slot_lastid.split("_")[4]) + 1;
-        					} else {
-        						if (getUrlParameter('id') != '') {
-        							if (old_total_element != total_element) {
-        								var time_slot_nextindex = 1;
-        							} else {
-        								var time_slot_nextindex = Number($('#total_variable_slots').val()) + 1;
-        							}
-        						} else {
-        							var time_slot_nextindex = 1;
-        						}
-        					}
-
-        					if (total_element != 0) {
-        						var slot_from = '00:00';
-        						var slot_to = convertNumToTime(duration);
-        						var time_slot_html = '';
-        						for (var i = 1; i <= total_element; i++) {
-        							time_slot_html += "<div id='variable_active_slot_" + i + "'><span class='bminput bm_required_variable time_box'>From:&nbsp;<input type='time' name='variable_time_slots[" + time_slot_nextindex + "][from][" + i + "]' id='variable_from_" + i + "' value='" + slot_from + "' data-slot='" + time_slot_nextindex + "' onchange='checkVariableTime(this)'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;<span class='bminput bm_required_variable time_box'>To:&nbsp;<input type='time' name='variable_time_slots[" + time_slot_nextindex + "][to][" + i + "]' id='variable_to_" + i + "' value='" + slot_to + "' data-slot='" + time_slot_nextindex + "' onchange='checkVariableTime(this)'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        								"&nbsp;&nbsp;<span class='bminput bm_required_variable'>Min Cap:&nbsp;<input name='variable_time_slots[" + time_slot_nextindex + "][min_cap][" + i + "]' type='number' min='1' id='variable_min_cap_" + i + "' placeholder='" + bm_normal_object.minimum_capacity + "' value='1' style='width: 80px' onchange='changeVariableMaxCap(this)' autocomplete='off'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        								"&nbsp;&nbsp;<span class='bminput bm_required_variable'>Max Cap:&nbsp;<input name='variable_time_slots[" + time_slot_nextindex + "][max_cap][" + i + "]' type='number' min='1' id='variable_max_cap_" + i + "' placeholder='" + bm_normal_object.maximum_capacity + "' value=" + default_max_cap + " style='width: 80px' onchange='changeVariableMaxCap(this)' autocomplete='off'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        								"&nbsp;&nbsp;<span><input type='checkbox' name='variable_time_slots[" + time_slot_nextindex + "][hide_to_slot][" + i + "]' id='variable_hide_to_slot_" + i + "' value='0' onchange='hideToSlot(this)'>&nbsp;Hide 'to' slot ?</span>" +
-        								"&nbsp;&nbsp;<span><input type='checkbox' name='variable_time_slots[" + time_slot_nextindex + "][disable][" + i + "]' id='variable_disable_" + i + "' value='0' data-slot='" + time_slot_nextindex + "' onchange='disableVariableSlot(this)'>&nbsp;" + bm_normal_object.disable + "</span>" +
-        								"<div id='variable_universal_slot_error_" + i + "' style='display :none;font-family: monospace;color: #fb0000;font-size: 12px;margin-top :8px'></div></div><br>";
-        							slot_from = slot_to;
-        							slot_to = addTime(convertNumToTime(duration), slot_from);
-        						}
-        						$("#time_slot_value").append("<input type='hidden' name='variable_time_slots[" + time_slot_nextindex + "][total_slots]' value='" + total_element + "'>");
-        						$("#time_slot_value").append("<input type='hidden' name='variable_time_slots[" + time_slot_nextindex + "][slot_id]' id='variable_slot_id_" + time_slot_nextindex + "' value='" + time_slot_nextindex + "'>");
-        						$("#time_slot_value").append("<input type='hidden' name='variable_time_slots[" + time_slot_nextindex + "][auto_time]' id='variable_auto_time_" + time_slot_nextindex + "' value='1'>");
-        						$("#time_slot_value").append("<div id='autoSelectTime' class='bm-checkbox-td'><b>Autoselect Time ?</b>&nbsp;&nbsp;<input type='checkbox' checked name='variable_autoselect_time_" + time_slot_nextindex + "' id='variable_autoselect_time_" + time_slot_nextindex + "' class='auto-checkbox bm_toggle' value='1' onchange='variableAutoTime(this)'><label for='variable_autoselect_time_" + time_slot_nextindex + "'></label></div><br>" + time_slot_html);
-        						$("#variable_active_slot_" + total_element + "").after("<div class='variable_slot_all_error_text' style='display :none;'></div>");
-        					}
-        				} else {
-        					$('#loader_div').show();
-        					if (getUrlParameter('id') != '') {
-        						var id = getUrlParameter('id');
-        						var data = { 'id': id, 'date': date, 'nonce': bm_ajax_object.nonce };
-        						bmRestRequest('bm_get_specific_time_slot', data, function (response) {
-        							if (bmSafeParse(response).status == true) {
-
-        								var slot_data = bmSafeParse(response).slot_data;
-
-        								if (slot_data.total_slots != 0) {
-        									var time_slot_html = '';
-
-        									if (old_default_max_cap != default_max_cap) {
-        										for (var i = 1; i <= total_element; i++) {
-        											time_slot_html += "<div id='variable_active_slot_" + i + "'><span class='bminput bm_required_variable time_box'>From:&nbsp;<input type='time' name='variable_time_slots[" + slot_data.slot_id + "][from][" + i + "]' id='variable_from_" + i + "' value='" + slot_data.from[i] + "' data-slot='" + slot_data.slot_id + "' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='checkVariableTime(this)'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;<span class='bminput bm_required_variable time_box'>To:&nbsp;<input type='time' name='variable_time_slots[" + slot_data.slot_id + "][to][" + i + "]' id='variable_to_" + i + "' value='" + slot_data.to[i] + "' data-slot='" + slot_data.slot_id + "' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='checkVariableTime(this)'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        												"&nbsp;&nbsp;<span class='bminput bm_required_variable'>Min Cap:&nbsp;<input name='variable_time_slots[" + slot_data.slot_id + "][min_cap][" + i + "]' type='number' min='1' id='variable_min_cap_" + i + "' placeholder='" + bm_normal_object.minimum_capacity + "' value='" + (slot_data.min_cap[i] !== null && slot_data.min_cap[i] <= default_max_cap ? slot_data.min_cap[i] : '1') + "' style='width: 80px' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='changeVariableMaxCap(this)' autocomplete='off'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        												"&nbsp;&nbsp;<span class='bminput bm_required_variable'>Max Cap:&nbsp;<input name='variable_time_slots[" + slot_data.slot_id + "][max_cap][" + i + "]' type='number' min='1' id='variable_max_cap_" + i + "' placeholder='" + bm_normal_object.maximum_capacity + "' value='" + default_max_cap + "' style='width: 80px' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='changeVariableMaxCap(this)' autocomplete='off'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        												"&nbsp;&nbsp;<span><input type='checkbox' name='variable_time_slots[" + slot_data.slot_id + "][hide_to_slot][" + i + "]' id='variable_hide_to_slot_" + i + "' value='" + (typeof (slot_data.hide_to_slot) != "undefined" && slot_data.hide_to_slot[i] !== null && slot_data.hide_to_slot[i] !== "undefined" ? slot_data.hide_to_slot[i] : '0') + "' " + (typeof (slot_data.hide_to_slot) != "undefined" && slot_data.hide_to_slot[i] !== null && slot_data.hide_to_slot[i] == 1 ? 'checked' : '') + " " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'class="readonly_checkbox"' : '') + " onchange='hideToSlot(this)'>&nbsp;Hide 'to' slot ?</span>" +
-        												"&nbsp;&nbsp;<span><input type='checkbox' name='variable_time_slots[" + slot_data.slot_id + "][disable][" + i + "]' id='variable_disable_" + i + "' value='" + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] !== "undefined" ? slot_data.disable[i] : '0') + "' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'checked' : '') + " data-slot='" + slot_data.slot_id + "' onchange='disableVariableSlot(this)'>&nbsp;" + bm_normal_object.disable + "</span>" +
-        												"<div id='variable_universal_slot_error_" + i + "' style='display :none;font-family: monospace;color: #fb0000;font-size: 12px;margin-top :8px'></div></div><br>";
-        										}
-        									} else if (old_default_max_cap == default_max_cap) {
-        										for (var i = 1; i <= slot_data.total_slots; i++) {
-        											time_slot_html += "<div id='variable_active_slot_" + i + "'><span class='bminput bm_required_variable time_box'>From:&nbsp;<input type='time' name='variable_time_slots[" + slot_data.slot_id + "][from][" + i + "]' id='variable_from_" + i + "' value='" + slot_data.from[i] + "' data-slot='" + slot_data.slot_id + "' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='checkVariableTime(this)'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;<span class='bminput bm_required_variable time_box'>To:&nbsp;<input type='time' name='variable_time_slots[" + slot_data.slot_id + "][to][" + i + "]' id='variable_to_" + i + "' value='" + slot_data.to[i] + "' data-slot='" + slot_data.slot_id + "' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='checkVariableTime(this)'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        												"&nbsp;&nbsp;<span class='bminput bm_required_variable'>Min Cap:&nbsp;<input name='variable_time_slots[" + slot_data.slot_id + "][min_cap][" + i + "]' type='number' min='1' id='variable_min_cap_" + i + "' placeholder='" + bm_normal_object.minimum_capacity + "' value='" + slot_data.min_cap[i] + "' style='width: 80px' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='changeVariableMaxCap(this)' autocomplete='off'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        												"&nbsp;&nbsp;<span class='bminput bm_required_variable'>Max Cap:&nbsp;<input name='variable_time_slots[" + slot_data.slot_id + "][max_cap][" + i + "]' type='number' min='" + slot_data.min_cap[i] + "' id='variable_max_cap_" + i + "' placeholder='" + bm_normal_object.maximum_capacity + "' value='" + slot_data.max_cap[i] + "' style='width: 80px' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'readonly' : '') + " onchange='changeVariableMaxCap(this)' autocomplete='off'><span class='variable_slots_errortext variable_calculated_time'></span></span>&nbsp;&nbsp;" +
-        												"&nbsp;&nbsp;<span><input type='checkbox' name='variable_time_slots[" + slot_data.slot_id + "][hide_to_slot][" + i + "]' id='variable_hide_to_slot_" + i + "' value='" + (typeof (slot_data.hide_to_slot) != "undefined" && slot_data.hide_to_slot[i] !== null && slot_data.hide_to_slot[i] !== "undefined" ? slot_data.hide_to_slot[i] : '0') + "' " + (typeof (slot_data.hide_to_slot) != "undefined" && slot_data.hide_to_slot[i] !== null && slot_data.hide_to_slot[i] == 1 ? 'checked' : '') + " " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'class="readonly_checkbox"' : '') + " onchange='hideToSlot(this)'>&nbsp;Hide 'to' slot ?</span>" +
-        												"&nbsp;&nbsp;<span><input type='checkbox' name='variable_time_slots[" + slot_data.slot_id + "][disable][" + i + "]' id='variable_disable_" + i + "' value='" + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] !== "undefined" ? slot_data.disable[i] : '0') + "' " + (typeof (slot_data.disable) != "undefined" && slot_data.disable[i] !== null && slot_data.disable[i] == 1 ? 'checked' : '') + " data-slot='" + slot_data.slot_id + "' onchange='disableVariableSlot(this)'>&nbsp;" + bm_normal_object.disable + "</span>" +
-        												"<div id='variable_universal_slot_error_" + i + "' style='display :none;font-family: monospace;color: #fb0000;font-size: 12px;margin-top :8px'></div></div><br>";
-        										}
-        									}
-        									$('.bm-slot-spiner').after("<span id='remove_slot_button'><a href='javascript:void(0)' name='remove_time_slot_data' id='" + date + "' class='button button-primary' onClick='remove_time_slot(this.id)'>Remove Slot</a></span>");
-        									$("#time_slot_value").append("<input type='hidden' name='variable_time_slots[" + slot_data.slot_id + "][total_slots]' value='" + slot_data.total_slots + "'>");
-        									$("#time_slot_value").append("<input type='hidden' name='variable_time_slots[" + slot_data.slot_id + "][slot_id]' id='variable_slot_id_" + slot_data.slot_id + "' value='" + slot_data.slot_id + "'>");
-        									$("#time_slot_value").append("<input type='hidden' name='variable_time_slots[" + slot_data.slot_id + "][auto_time]' id='variable_auto_time_" + slot_data.slot_id + "' value='" + slot_data.auto_time + "'>");
-        									$("#time_slot_value").append("<div id='autoSelectTime' class='bm-checkbox-td'><b>Autoselect Time ?</b>&nbsp;&nbsp;<input type='checkbox' name='variable_autoselect_time_" + slot_data.slot_id + "' id='variable_autoselect_time_" + slot_data.slot_id + "' class='auto-checkbox bm_toggle' value='" + slot_data.auto_time + "' " + (slot_data.auto_time == 1 ? 'checked' : '') + " onchange='variableAutoTime(this)'><label for='variable_autoselect_time_" + slot_data.slot_id + "'></label></div><br>" + time_slot_html);
-        									$("#variable_active_slot_" + slot_data.total_slots + "").after("<div class='variable_slot_all_error_text' style='display :none;'></div>");
-        								}
-        							}
-        						});
-        					} else {
-        						var id = slot_value.split('_')[1];
-        						$('.bm-slot-spiner').after("<span id='remove_slot_button'><a href='javascript:void(0)' name='remove_time_slot_data' id='" + today + "' class='button button-primary' onClick='remove_time_slot(this.id)'>Remove Slot</a></span>");
-        						$("#time_slot_value").append($("#variable_time_slot_data_" + id + "").html());
-        					}
-        					$('#loader_div').hide();
-        				}
-
-        				$('.time_slot_calendar_errortext').html('');
-        				$('.time_slot_update_errortext').html('');
-        				$('.time_slot_update_successtext').html('');
-        				$('#time_slot_modal').show();
-        				$([document.documentElement, document.body]).animate({
-        					scrollTop: $("#time_slot_date").offset().top
-        				}, 2000);
-
-        				//Prevent the redraw.
-        				inst.inline = false;
-        			} else {
-        				$('.time_slot_calendar_errortext').html(bm_error_object.set_time_slot);
-        				$('.time_slot_calendar_errortext').show();
-
-        				//Prevent the redraw.
-        				inst.inline = false;
-        			}
-        		},
-        	});
-        	// getUrlParameter('id') != '' ? bm_get_service_time_slots() : addTimeSlotInfo(); // if open by default (when you're using <div>)
+        // Time Slots Calendar is a Pro-only feature — initialization not needed in the free version.
 
         // Close primary email Modal
 
@@ -2254,151 +1788,7 @@ class BMAdminCore {
         });
     }
 
-    // Service Image Remove
-    static svc_remove_image() {
-    	jQuery('#svc_image_id').val('');
-    	jQuery('#svc_image_preview').attr('src', '');
-    	jQuery('.svc_image_container').hide();
-    }
-
-
-    // Service Gallery Image Remove
-    static svc_gallery_remove($this) {
-
-    	// Set Session Value If Doesn't Exist
-    	if (sessionStorage.getItem("galleryvalue") == null) sessionStorage.setItem("galleryvalue", 1);
-
-    	// Remove Image
-    	var id = jQuery($this).attr('id');
-    	var image_ids = jQuery('#svc_gallery_image_id').val();
-    	image_ids = image_ids.split(',');
-    	if (jQuery.inArray(id, image_ids) !== -1) {
-    		image_ids = jQuery.grep(image_ids, function (value) {
-    			return value != id;
-    		});
-    	}
-    	jQuery('#svc_gallery_image_id').val(image_ids.join(','));
-    	jQuery($this).find('image').attr('src', '');
-    	jQuery($this).parent('span').hide();
-    }
-
-
-    // Form Validation
-    static add_form_validation(type = '') {
-
-    	jQuery('.errortext').html('');
-    	jQuery('.svc_short_desc_error').html('');
-    	jQuery('.errortext').hide();
-    	jQuery('.svc_short_desc_error').hide();
-
-    	var divclass = '.bm_required';
-    	var b = 0;
-
-    	if (type == 'extra') {
-    		divclass = '.bm_ex_required';
-    		if (sessionStorage.getItem("extravalue") == null) sessionStorage.setItem("extravalue", 1);
-    	}
-
-    	// Form Validation for extras
-    	if (jQuery("#if_extra_svc").val() == '1') {
-    		jQuery('.bm_ex_required').each(
-    			function (index, element) {
-    				var type = jQuery(this).children().prop('type');
-    				var value = type == 'select-one' ? jQuery.trim(jQuery(this).children('select').val()) : jQuery.trim(jQuery(this).children('input').val());
-    				if (value == "") {
-    					jQuery(this).children('.errortext').html(bm_error_object.required_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				} else if (jQuery(this).children('input').attr('name') == 'svc_extra_price') {
-    					var regex = /^[1-9]\d*(\.\d+)?$/;
-    					if (!value.match(regex)) {
-    						jQuery(this).children('.errortext').html(bm_error_object.numeric_field);
-    						jQuery(this).children('.errortext').show();
-    						b++;
-    					}
-    				} else if (jQuery(this).children('select').attr('name') == 'svc_extra_duration') {
-    					if (jQuery("#svc_extra_duration").val() > jQuery("#svc_extra_operation").val()) {
-    						jQuery(this).children('.errortext').html(bm_error_object.svc_duration_field);
-    						jQuery(this).children('.errortext').show();
-    						b++;
-    					}
-    				}
-    			}
-    		);
-    	}
-
-    	jQuery(divclass).each(
-    		function (index, element) {
-    			var type = jQuery(this).children().prop('type');
-    			var value = type == 'select-one' ? jQuery.trim(jQuery(this).children('select').val()) : jQuery.trim(jQuery(this).children('input').val());
-    			if (value == "") {
-    				if (jQuery('#time_slots').html() != '') {
-    					if (jQuery(this).children().attr('id').startsWith('from_') || jQuery(this).children().attr('id').startsWith('to_') || jQuery(this).children().attr('id').startsWith('min_cap_') || jQuery(this).children().attr('id').startsWith('max_cap_')) {
-    						if (!jQuery(this).children('input').prop('readonly')) {
-    							jQuery(this).children('.errortext').html(bm_error_object.required);
-    							b++;
-    						}
-    					} else {
-    						jQuery(this).children('.errortext').html(bm_error_object.required_field);
-    						b++;
-    					}
-    				} else {
-    					jQuery(this).children('.errortext').html(bm_error_object.required_field);
-    					b++;
-    				}
-    				jQuery(this).children('.errortext').show();
-    			} else if (jQuery(this).children('input').attr('name') == 'default_price' || jQuery(this).children('input').attr('name') == 'svc_extra_price') {
-    				var regex = /^[1-9]\d*(\.\d+)?$/;
-    				if (!value.match(regex)) {
-    					jQuery(this).children('.errortext').html(bm_error_object.numeric_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				}
-    			}
-
-    			if (jQuery(this).children('select').attr('name') == 'service_duration') {
-    				if (jQuery("#service_duration").val() > jQuery("#service_operation").val()) {
-    					jQuery(this).children('.errortext').html(bm_error_object.svc_duration_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				}
-    			}
-
-    			if (jQuery(this).children('select').attr('name') == 'svc_extra_duration') {
-    				if (jQuery("#svc_extra_duration").val() > jQuery("#svc_extra_operation").val()) {
-    					jQuery(this).children('.errortext').html(bm_error_object.svc_duration_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				}
-    			}
-    		}
-    	);
-
-    	var svc_shrt_desc_chr_limit = bm_normal_object.svc_shrt_dsc_lmt;
-
-    	if (typeof tinymce !== 'undefined') {
-    		var editor = tinymce.get('service_short_desc');
-    		if (editor) {
-    			var content = editor.getContent({ format: 'text' })
-    				.replace(/\s+/g, ' ')
-    				.replace(/[\u200B-\u200D\uFEFF]/g, '')
-    				.replace(/\u00A0/g, ' ')
-    				.replace(/\n/g, '')
-    				.trim();
-
-    			if (svc_shrt_desc_chr_limit > 0 && content.length > svc_shrt_desc_chr_limit) {
-    				showMessage(bm_error_object.svc_short_desc_limit, 'error');
-    				b++;
-    			}
-    		}
-    	}
-
-    	if (b === 0) {
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
+    // svc_remove_image, svc_gallery_remove, add_form_validation moved to BMServiceManager (bm-admin-services.js)
 
     // Show/Hide Section
     static bm_open_close_tab(a) {
@@ -3100,39 +2490,51 @@ class BMAdminCore {
     		module_date_array.push(this.value);
     	});
 
+    	// Use .each() instead of .html() to iterate cells without replacing their date number content
     	setTimeout(function () {
     		jQuery("#price_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
     			var year = jQuery(this).parent().data('year');
     			var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
+    			var defaultPriceFloat = parseFloat(default_price);
 
     			if (jQuery.inArray(date, price_date_array) !== -1) {
     				var price = price_array[jQuery.inArray(date, price_date_array)];
-    				var text = currency_position == 'before' ? currency_symbol + parseFloat(price).toFixed(2) : parseFloat(price).toFixed(2) + currency_symbol;
-    				jQuery(this).attr('data-custom', price != '' ? text : 'N/A');
+    				var priceFloat = parseFloat(price);
+    				if (price !== '' && !isNaN(priceFloat)) {
+    					var text = currency_position == 'before' ? currency_symbol + priceFloat.toFixed(2) : priceFloat.toFixed(2) + currency_symbol;
+    					jQuery(this).attr('data-custom', text);
+    				} else {
+    					jQuery(this).attr('data-custom', 'N/A');
+    				}
 
-    				if (parseFloat(price) > parseFloat(default_price)) {
-    					jQuery(this).addClass('highValue');
-    				} else if (parseFloat(price) < parseFloat(default_price)) {
-    					jQuery(this).addClass('lowValue');
+    				if (!isNaN(defaultPriceFloat) && !isNaN(priceFloat)) {
+    					if (priceFloat > defaultPriceFloat) {
+    						jQuery(this).addClass('highValue');
+    					} else if (priceFloat < defaultPriceFloat) {
+    						jQuery(this).addClass('lowValue');
+    					}
     				}
     			} else if (jQuery.inArray(date, module_date_array) !== -1) {
     				var module_id = module_array[jQuery.inArray(date, module_date_array)];
-    				var text = '#module_' + module_id;
-    				jQuery(this).attr('data-custom', module_id != '' ? text : 'N/A');
+    				jQuery(this).attr('data-custom', module_id != '' ? '#module_' + module_id : 'N/A');
     				jQuery(this).addClass('bluetValue');
     			} else {
-    				var text = currency_position == 'before' ? currency_symbol + parseFloat(default_price).toFixed(2) : parseFloat(default_price).toFixed(2) + currency_symbol;
-    				jQuery(this).attr('data-custom', default_price != '' ? text : 'N/A');
+    				if (default_price !== '' && !isNaN(defaultPriceFloat)) {
+    					var text = currency_position == 'before' ? currency_symbol + defaultPriceFloat.toFixed(2) : defaultPriceFloat.toFixed(2) + currency_symbol;
+    					jQuery(this).attr('data-custom', text);
+    				} else {
+    					jQuery(this).attr('data-custom', 'N/A');
+    				}
     				jQuery(this).addClass('brightValue');
     			}
     		});
-    	});
+    	}, 50);
     }
 
     // Set Stopsales Value in Calendar in fresh service
@@ -3169,7 +2571,7 @@ class BMAdminCore {
     		jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3201,7 +2603,7 @@ class BMAdminCore {
     			if ((parseFloat(stopsales) == default_stopsales) || default_stopsales == '') jQuery(this).addClass('brightValue');
     			jQuery(this).attr('data-custom', stopsales != '' ? parseFloat(stopsales) + 'h' : 'N/A');
     		});
-    	});
+    	}, 50);
     }
 
     // Set Saleswitch Value in Calendar in fresh service
@@ -3238,7 +2640,7 @@ class BMAdminCore {
     		jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3270,7 +2672,7 @@ class BMAdminCore {
     			if ((parseFloat(saleswitch) == default_saleswitch) || default_saleswitch == '') jQuery(this).addClass('brightValue');
     			jQuery(this).attr('data-custom', saleswitch != '' ? parseFloat(saleswitch) + 'h' : 'N/A');
     		});
-    	});
+    	}, 50);
     }
 
     // Set Capacity Value in Calendar in fresh service
@@ -3368,7 +2770,7 @@ class BMAdminCore {
     		jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3402,7 +2804,7 @@ class BMAdminCore {
     			}
     			jQuery(this).attr('data-custom', capacity != '' ? capacity : 'N/A');
     		});
-    	});
+    	}, 50);
     }
 
     // Confirm Time Slot change in Calendar
@@ -3443,7 +2845,7 @@ class BMAdminCore {
     		jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
     			var year = jQuery(this).parent().data('year');
@@ -3473,7 +2875,7 @@ class BMAdminCore {
     				jQuery(this).attr('data-custom', time_slot_html != '' ? 'Default' : 'N/A');
     			}
     		});
-    	});
+    	}, 50);
     }
 
     // Variable Service Price Field Validation and Submission
@@ -4715,7 +4117,7 @@ class BMAdminCore {
     						jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     							var date = jQuery(this).text();
     							return /\d/.test(date);
-    						}).find('a', 'span').html(function (i, html) {
+    						}).find('a, span').each(function () {
     							var day = jQuery(this).data('date');
     							var month = jQuery(this).parent().data('month') + 1;
     							var year = jQuery(this).parent().data('year');
@@ -4729,7 +4131,7 @@ class BMAdminCore {
     								jQuery(this).css('color', '#000000');
     							}
     						});
-    					});
+    					}, 50);
     					jQuery('#time_slot_modal').hide();
     					jQuery('.time_slot_update_successtext').html(bm_success_object.slot_remove_success);
     					jQuery('.time_slot_update_successtext').show();
@@ -4909,21 +4311,21 @@ class BMAdminCore {
     	element.find("a").attr('data-custom', text);
 
     	if (type == 'module') {
-    		element.find('a', 'span').html(function (i, html) {
-    			jQuery(this).css('color', '#0995fc')
+    		element.find('a, span').each(function () {
+    			jQuery(this).css('color', '#0995fc');
     		});
     	} else if (type == 'price') {
     		if (parseFloat(value) > parseFloat(default_value)) {
-    			element.find('a', 'span').html(function (i, html) {
-    				jQuery(this).css('color', '#fc2e05')
+    			element.find('a, span').each(function () {
+    				jQuery(this).css('color', '#fc2e05');
     			});
     		} else if (parseFloat(value) < parseFloat(default_value)) {
-    			element.find('a', 'span').html(function (i, html) {
-    				jQuery(this).css('color', '#12812a')
+    			element.find('a, span').each(function () {
+    				jQuery(this).css('color', '#12812a');
     			});
     		} else {
-    			element.find('a', 'span').html(function (i, html) {
-    				jQuery(this).css('color', '#12812a')
+    			element.find('a, span').each(function () {
+    				jQuery(this).css('color', '#12812a');
     			});
     		}
     	}
@@ -4944,7 +4346,7 @@ class BMAdminCore {
     				jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -4995,7 +4397,7 @@ class BMAdminCore {
     				jQuery('#stopsales_modal').hide();
     				jQuery('.stopsales_update_successtext').html(bm_success_object.stopsales_set);
     				if (jQuery('.stopsales_update_successtext').not(':visible')) jQuery('.stopsales_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#stopsales_modal').hide();
     			jQuery('.stopsales_update_errortext').html(bm_error_object.server_error);
@@ -5019,7 +4421,7 @@ class BMAdminCore {
     				jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -5070,7 +4472,7 @@ class BMAdminCore {
     				jQuery('#saleswitch_modal').hide();
     				jQuery('.saleswitch_update_successtext').html(bm_success_object.saleswitch_set);
     				if (jQuery('.saleswitch_update_successtext').not(':visible')) jQuery('.saleswitch_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#saleswitch_modal').hide();
     			jQuery('.saleswitch_update_errortext').html(bm_error_object.server_error);
@@ -5093,7 +4495,7 @@ class BMAdminCore {
     				jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -5132,7 +4534,7 @@ class BMAdminCore {
     				jQuery('#max_cap_modal').hide();
     				jQuery('.capacity_update_successtext').html(bm_success_object.capacity_set);
     				if (jQuery('.capacity_update_successtext').not(':visible')) jQuery('.capacity_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#max_cap_modal').hide();
     			jQuery('.capacity_update_errortext').html(bm_error_object.server_error);
@@ -5166,7 +4568,7 @@ class BMAdminCore {
     				jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -5193,7 +4595,7 @@ class BMAdminCore {
     				jQuery('#time_slot_modal').hide();
     				jQuery('.time_slot_update_successtext').html(bm_success_object.time_slot_set);
     				jQuery('.time_slot_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#time_slot_modal').hide();
     			jQuery('.time_slot_errortext').html(bm_error_object.server_error);
@@ -5271,7 +4673,7 @@ class BMAdminCore {
     						return /\d/.test(jQuery(this).text());
     					})
     					.find('a, span')
-    					.html(function (i, html) {
+    					.each(function () {
     						var $this = jQuery(this);
     						var day = $this.data('date');
     						var month = $this.parent().data('month') + 1;
@@ -5281,21 +4683,21 @@ class BMAdminCore {
     						if (priceDateLookup.hasOwnProperty(date)) {
     							var price = priceDateLookup[date];
     							var priceFloat = parseFloat(price);
-    							if (priceFloat > defaultPriceFloat) {
+    							if (!isNaN(priceFloat) && !isNaN(defaultPriceFloat) && priceFloat > defaultPriceFloat) {
     								$this.addClass('highValue');
-    							} else if (priceFloat < defaultPriceFloat) {
+    							} else if (!isNaN(defaultPriceFloat) && priceFloat < defaultPriceFloat) {
     								$this.addClass('lowValue');
     							}
     							var price_text = currency_position === 'before'
     								? currency_symbol + priceFloat.toFixed(2)
     								: priceFloat.toFixed(2) + currency_symbol;
-    							$this.attr('data-custom', price === '' ? 'N/A' : price_text);
+    							$this.attr('data-custom', (price === '' || isNaN(priceFloat)) ? 'N/A' : price_text);
     						} else if (moduleDateLookup.hasOwnProperty(date)) {
     							$this.attr('data-custom', '#module_' + moduleDateLookup[date]);
     							$this.addClass('bluetValue');
     						} else {
     							$this.addClass('brightValue');
-    							$this.attr('data-custom', default_price === '' ? 'N/A' : default_price_text);
+    							$this.attr('data-custom', (default_price === '' || isNaN(defaultPriceFloat)) ? 'N/A' : default_price_text);
     						}
 
     						var isUnavailable = false;
@@ -5343,7 +4745,7 @@ class BMAdminCore {
 
     						$this.addClass(isUnavailable ? 'not_available_for_booking' : 'available_for_booking');
     					});
-    			});
+    			}, 50);
     		});
     	} else {
     		jQuery('.calendar_errortext').html(bm_error_object.server_error).show();
@@ -5369,7 +4771,7 @@ class BMAdminCore {
     					jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5476,7 +4878,7 @@ class BMAdminCore {
     						}
     						jQuery(this).attr('data-custom', stopsales == ' ' || stopsales == 0 || stopsales == 'N/A' ? 'N/A' : parseFloat(stopsales) + 'h');
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.stopsales_errortext').html(bm_error_object.server_error);
     				jQuery('.stopsales_errortext').show();
@@ -5507,7 +4909,7 @@ class BMAdminCore {
     					jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5614,7 +5016,7 @@ class BMAdminCore {
     						}
     						jQuery(this).attr('data-custom', saleswitch == ' ' || saleswitch == 0 || saleswitch == 'N/A' ? 'N/A' : parseFloat(saleswitch) + 'h');
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.saleswitch_errortext').html(bm_error_object.server_error);
     				if (jQuery('.saleswitch_errortext').not(':visible')) jQuery('.saleswitch_errortext').show();
@@ -5648,7 +5050,7 @@ class BMAdminCore {
     					jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5740,7 +5142,7 @@ class BMAdminCore {
     						if (!jQuery(this).hasClass('not_available_for_booking')) jQuery(this).addClass('available_for_booking');
     						jQuery(this).attr('data-custom', capacity == '' ? 'N/A' : capacity);
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.capacity_calendar_errortext').html(bm_error_object.server_error);
     				if (jQuery('.capacity_calendar_errortext').not(':visible')) jQuery('.capacity_calendar_errortext').show();
@@ -5781,7 +5183,7 @@ class BMAdminCore {
     					jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5860,7 +5262,7 @@ class BMAdminCore {
     							jQuery(this).addClass('available_for_booking');
     						}
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.time_slot_calendar_errortext').html(bm_error_object.server_error);
     				jQuery('.time_slot_calendar_errortext').show();
@@ -8294,23 +7696,7 @@ class BMAdminCore {
     		});
     }
 
-    static bm_remove_availability_period(el) {
-        if (confirm('Remove this availability period?')) {
-            jQuery(el).closest('.bm-availability-chip').remove();
-        }
-    }
-
-    static bm_remove_global_unavailable_range(el) {
-        if (confirm('Remove this date range?')) {
-            jQuery(el).parent('span').remove();
-
-            jQuery('#global_unavailable_date_ranges .date_range_span input').each(function(index) {
-                const i = index + 1;
-                jQuery(this).attr('id', 'global_unavailable_date_range_' + i);
-                jQuery(this).attr('name', 'bm_global_unavailability[dates][' + i + ']');
-            });
-        }
-    }
+    // bm_remove_availability_period, bm_remove_global_unavailable_range moved to BMServiceManager (bm-admin-services.js)
 
     static bm_remove_pdf_logo() {
     	jQuery('#pdf_logo_guid').val('');
@@ -8324,11 +7710,11 @@ window.BMAdmin = window.BMAdmin || {};
 window.BMAdmin.Core = BMAdminCore;
 window.bmAdminCore = new BMAdminCore();
 
-window.svc_remove_image = BMAdminCore.svc_remove_image;
+window.svc_remove_image = BMServiceManager.svcRemoveImage;
 window.openSection = BMServiceManager.openSection;
-window.svc_gallery_remove = BMAdminCore.svc_gallery_remove;
+window.svc_gallery_remove = BMServiceManager.svcGalleryRemove;
 window.extraUpdate = BMServiceManager.extraUpdate;
-window.add_form_validation = BMAdminCore.add_form_validation;
+window.add_form_validation = BMServiceManager.addFormValidation;
 window.bm_open_close_tab = BMAdminCore.bm_open_close_tab;
 window.field_remove_image = BMAdminCore.field_remove_image;
 window.changeMaxCap = BMAdminCore.changeMaxCap;
@@ -8437,7 +7823,7 @@ window.bm_get_state_of_country = BMAdminCore.bm_get_state_of_country;
 window.bm_show_vocuher_booking_info = BMAdminCore.bm_show_vocuher_booking_info;
 window.bm_show_vocuher_gifter_info = BMAdminCore.bm_show_vocuher_gifter_info;
 window.bm_show_vocuher_recipient_info = BMAdminCore.bm_show_vocuher_recipient_info;
-window.bm_remove_availability_period = BMAdminCore.bm_remove_availability_period;
-window.bm_remove_global_unavailable_range = BMAdminCore.bm_remove_global_unavailable_range;
+window.bm_remove_availability_period = BMServiceManager.removeAvailabilityPeriod;
+window.bm_remove_global_unavailable_range = BMServiceManager.removeGlobalUnavailableRange;
 window.bm_remove_pdf_logo = BMAdminCore.bm_remove_pdf_logo;
 window.remove_pdf_logo = BMAdminCore.bm_remove_pdf_logo;
