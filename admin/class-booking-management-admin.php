@@ -4036,6 +4036,10 @@ class Booking_Management_Admin {
 					}
 				}
 
+				if ( ! isset( $conditional['field_options'] ) || ! is_array( $conditional['field_options'] ) ) {
+					$conditional['field_options'] = array();
+				}
+
 				if ( $type == 'email' ) {
 					$conditional['field_options']['is_main_email'] = ! isset( $conditional['field_options']['is_main_email'] ) ? 0 : 1;
 				}
@@ -4049,11 +4053,21 @@ class Booking_Management_Admin {
 				}
 
 				if ( $type != 'file' && $type != 'checkbox' && $type != 'radio' && $type != 'reset' && $type != 'button' && $type != 'submit' && $type != 'hidden' && $type != 'color' && $type != 'range' ) {
-					$conditional['field_options']['autocomplete'] = ! isset( $conditional['field_options']['autocomplete'] ) ? 0 : 1;
+					$conditional['field_options']['autocomplete'] = ( ! empty( $conditional['autocomplete'] ) || ! empty( $conditional['field_options']['autocomplete'] ) ) ? 1 : 0;
 				}
 
 				if ( $type != 'button' && $type != 'submit' && $type != 'hidden' ) {
-					$conditional['field_options']['is_visible'] = ! isset( $conditional['field_options']['is_visible'] ) ? 0 : 1;
+					$conditional['field_options']['is_visible'] = ( ! empty( $conditional['is_visible'] ) || ! empty( $conditional['field_options']['is_visible'] ) ) ? 1 : 0;
+				}
+
+				// Move non-column keys from conditional into field_options to
+				// prevent "Unknown column" database errors on insert/update.
+				$db_columns = array( 'id', 'form_id', 'field_type', 'field_label', 'field_name', 'field_desc', 'field_options', 'is_required', 'is_editable', 'visible', 'ordering', 'woocommerce_field', 'field_key', 'field_position' );
+				foreach ( array_keys( $conditional ) as $key ) {
+					if ( 'field_options' !== $key && ! in_array( $key, $db_columns, true ) ) {
+						$conditional['field_options'][ $key ] = $conditional[ $key ];
+						unset( $conditional[ $key ] );
+					}
 				}
 
 				$data      = array_merge( $common_data, $conditional );
@@ -4099,7 +4113,8 @@ class Booking_Management_Admin {
 	public function bm_fetch_preview_form() {
 		$nonce = filter_input( INPUT_POST, 'nonce' );
 		if ( ! isset( $nonce ) || ! wp_verify_nonce( $nonce, 'ajax-nonce' ) ) {
-			die( esc_html__( 'Failed security check', 'service-booking' ) );
+			wp_send_json_error( esc_html__( 'Failed security check', 'service-booking' ) );
+			return;
 		}
 
 		$bmrequests      = new BM_Request();
@@ -4114,8 +4129,12 @@ class Booking_Management_Admin {
 			$resp .= '</p>';
 		}
 
-		echo wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() );
-		die;
+		wp_send_json(
+			array(
+				'success' => true,
+				'html'    => wp_kses( $resp, $bmrequests->bm_fetch_expanded_allowed_tags() ),
+			)
+		);
 	}//end bm_fetch_preview_form()
 
 
