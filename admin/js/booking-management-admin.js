@@ -13,166 +13,15 @@ class BMAdminCore {
         	$("#errorMessage").delay(5000).fadeOut(300);
         	$("#successMessage").delay(3000).fadeOut(300);
 
-        	// Sort Service Listing
-        	$('.service_records').sortable({
-        		axis: "y",
-        		items: ".single_service_record",
-        		containment: "#service_records_listing",
-        		revert: true,
-        		scroll: true,
-        		cursor: "move",
-        		update: function () {
-        			var ids = {};
-        			var pagenum = sessionStorage.getItem("servicePagno");
-        			$(".service_records .single_service_record .service_listing_number").each(function (i) {
-        				ids[i] = $(this).data('id');
-        			})
-        			bm_sort_service_listing(ids, pagenum != null ? pagenum : '1');
-        		}
-        	}).disableSelection();
+        	// Sort Service Listing & Tab Display handled by BMServiceManager (bm-admin-services.js)
 
-        	// Sort Category Listing
-        	$('.category_records').sortable({
-        		axis: "y",
-        		items: ".single_category_record",
-        		containment: "#category_records_listing",
-        		revert: true,
-        		scroll: true,
-        		cursor: "move",
-        		update: function () {
-        			var ids = {};
-        			var pagenum = sessionStorage.getItem("categoryPagno");
-        			$(".category_records .single_category_record .category_listing_number").each(function (i) {
-        				ids[i] = $(this).data('id');
-        			})
-        			bm_sort_category_listing(ids, pagenum != null ? pagenum : '1');
-        		}
-        	}).disableSelection();
-
-
-        	// Display Condition for Tabs in Service Page
-        	if (getUrlParameter('extra_id') || sessionStorage.getItem("extravalue") != null) {
-        		if ($("#service_extra").not(':visible')) $('#service_extra').show();
-        		if (sessionStorage.getItem("extravalue") != null) {
-        			$('button.tablinks.active').removeClass('active');
-        			$("#extra_button").addClass("active");
-        		}
-        	} else if (sessionStorage.getItem("galleryvalue") != null) {
-        		if ($("#service_gallery").not(':visible')) $('#service_gallery').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#gallery_button").addClass("active");
-        	} else if ((sessionStorage.getItem("variableprice") != null)) {
-        		if ($("#price_calendar").not(':visible')) $('#price_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#price_calendar_button").addClass("active");
-        	} else if ((sessionStorage.getItem("variablehour") != null)) {
-        		if ($("#stopsales_calendar").not(':visible')) $('#stopsales_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#stopsales_calendar_button").addClass("active");
-        	} else if ((sessionStorage.getItem("variablesaleswitch") != null)) {
-        		if ($("#saleswitch_calendar").not(':visible')) $('#saleswitch_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#saleswitch_calendar_button").addClass("active");
-        	} else if (sessionStorage.getItem("variablecapacity") != null) {
-        		if ($("#capacity_calendar").not(':visible')) $('#capacity_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#capacity_calendar_button").addClass("active");
-        	} else if (sessionStorage.getItem("variabletimeslot") != null) {
-        		if ($("#time_slots_calendar").not(':visible')) $('#time_slots_calendar').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#time_slot_button").addClass("active");
-        	} else if (sessionStorage.getItem("svcsettingstab") != null) {
-        		if ($("#svc_settings_section").not(':visible')) $('#svc_settings_section').show();
-        		$('button.tablinks.active').removeClass('active');
-        		$("#svc_settings_button").addClass("active");
-        	} else {
-        		if ($("#service_details").not(':visible')) $('#service_details').show();
-        	}
+        	// Sort Category Listing handled by BMCategoryManager (bm-admin-categories.js)
 
 
         	// Display Condition for Tabs in Fields Page
         	if ($("#field_listing").not(':visible')) $('#field_listing').addClass('flexdisplay');
 
-        	// Service Image Selection
-        	var custom_uploader;
-
-        	$('.svc-image').click(function (e) {
-        		e.preventDefault();
-        		//If the uploader object has already been created, reopen the dialog
-        		if (custom_uploader) {
-        			custom_uploader.open();
-        			return;
-        		}
-        		//Extend the wp.media object
-        		custom_uploader = wp.media.frames.file_frame = wp.media({
-        			title: bm_normal_object.choose_image,
-        			button: {
-        				text: bm_normal_object.choose_image
-        			},
-        			library: {
-        				type: 'image'
-        			},
-        			multiple: false
-        		});
-
-        		custom_uploader.on('select', function () {
-        			attachment = custom_uploader.state().get('selection').first().toJSON();
-        			var file_size = parseInt(attachment.filesizeInBytes);
-        			var file_width = parseInt(attachment.sizes.full.width);
-        			var file_height = parseInt(attachment.sizes.full.height);
-
-        			var min_file_size = parseInt(bm_normal_object.image_min_size);
-        			var max_file_size = parseInt(bm_normal_object.image_max_size);
-        			var minimum_width = parseInt(bm_normal_object.image_min_width);
-        			var maximum_width = parseInt(bm_normal_object.image_max_width);
-        			var minimum_height = parseInt(bm_normal_object.image_min_height);
-        			var maximum_height = parseInt(bm_normal_object.image_max_height);
-
-        			if (attachment['type'] == 'image') {
-        				if (min_file_size != 0 && file_size < min_file_size) {
-        					alert(bm_error_object.file_size_less_message + min_file_size + ' bytes');
-        				} else if (max_file_size != 0 && file_size > max_file_size) {
-        					alert(bm_error_object.file_size_more_message + max_file_size + ' bytes');
-        				} else if (minimum_width != 0 && file_width < minimum_width) {
-        					alert(bm_error_object.file_width_less_message + minimum_width + ' pixels');
-        				} else if (maximum_width != 0 && file_width > maximum_width) {
-        					alert(bm_error_object.file_width_more_message + maximum_width + ' pixels');
-        				} else if (minimum_height != 0 && file_height < minimum_height) {
-        					alert(bm_error_object.file_width_less_message + minimum_height + ' pixels');
-        				} else if (maximum_height != 0 && file_height > maximum_height) {
-        					alert(bm_error_object.file_width_more_message + maximum_height + ' pixels');
-        				} else {
-        					$('#svc_image_id').val(attachment.id);
-        					$('#svc_image_preview').attr('src', attachment.url);
-        					$('.svc_image_container').show();
-        				}
-        			} else {
-        				alert(bm_error_object.file_type_not_supported);
-        			}
-
-        		});
-
-        		//Open the uploader dialog
-        		custom_uploader.open();
-        	});
-
-
-        	// Service Extra Add Button
-        	$("#add_extra").click(function (e) {
-        		if ($("#svc_extra_fields").not(':visible')) $("#svc_extra_fields").css('display', 'block');
-        		$("#if_extra_svc").val('1');
-        		if ($("#extraTitle").is(':visible')) $("#extraTitle").css('display', 'none');
-        		if ($("#existing_extra_content").is(':visible')) $("#existing_extra_content").hide();
-        	});
-
-
-        	// Service Extra Cancel Button
-        	$("#cancel_extra").click(function (e) {
-        		if ($("#svc_extra_fields").is(':visible')) $("#svc_extra_fields").css('display', 'none');
-        		$("#if_extra_svc").val('0');
-        		if ($("#extraTitle").not(':visible')) $("#extraTitle").css('display', 'block');
-        		if ($("#existing_extra_content").not(':visible')) $("#existing_extra_content").show();
-        	});
+        	// Service Image/Gallery/Extra handlers handled by BMServiceManager (bm-admin-services.js)
 
         // Redirect to edit service page
 
@@ -2254,151 +2103,7 @@ class BMAdminCore {
         });
     }
 
-    // Service Image Remove
-    static svc_remove_image() {
-    	jQuery('#svc_image_id').val('');
-    	jQuery('#svc_image_preview').attr('src', '');
-    	jQuery('.svc_image_container').hide();
-    }
-
-
-    // Service Gallery Image Remove
-    static svc_gallery_remove($this) {
-
-    	// Set Session Value If Doesn't Exist
-    	if (sessionStorage.getItem("galleryvalue") == null) sessionStorage.setItem("galleryvalue", 1);
-
-    	// Remove Image
-    	var id = jQuery($this).attr('id');
-    	var image_ids = jQuery('#svc_gallery_image_id').val();
-    	image_ids = image_ids.split(',');
-    	if (jQuery.inArray(id, image_ids) !== -1) {
-    		image_ids = jQuery.grep(image_ids, function (value) {
-    			return value != id;
-    		});
-    	}
-    	jQuery('#svc_gallery_image_id').val(image_ids.join(','));
-    	jQuery($this).find('image').attr('src', '');
-    	jQuery($this).parent('span').hide();
-    }
-
-
-    // Form Validation
-    static add_form_validation(type = '') {
-
-    	jQuery('.errortext').html('');
-    	jQuery('.svc_short_desc_error').html('');
-    	jQuery('.errortext').hide();
-    	jQuery('.svc_short_desc_error').hide();
-
-    	var divclass = '.bm_required';
-    	var b = 0;
-
-    	if (type == 'extra') {
-    		divclass = '.bm_ex_required';
-    		if (sessionStorage.getItem("extravalue") == null) sessionStorage.setItem("extravalue", 1);
-    	}
-
-    	// Form Validation for extras
-    	if (jQuery("#if_extra_svc").val() == '1') {
-    		jQuery('.bm_ex_required').each(
-    			function (index, element) {
-    				var type = jQuery(this).children().prop('type');
-    				var value = type == 'select-one' ? jQuery.trim(jQuery(this).children('select').val()) : jQuery.trim(jQuery(this).children('input').val());
-    				if (value == "") {
-    					jQuery(this).children('.errortext').html(bm_error_object.required_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				} else if (jQuery(this).children('input').attr('name') == 'svc_extra_price') {
-    					var regex = /^[1-9]\d*(\.\d+)?$/;
-    					if (!value.match(regex)) {
-    						jQuery(this).children('.errortext').html(bm_error_object.numeric_field);
-    						jQuery(this).children('.errortext').show();
-    						b++;
-    					}
-    				} else if (jQuery(this).children('select').attr('name') == 'svc_extra_duration') {
-    					if (jQuery("#svc_extra_duration").val() > jQuery("#svc_extra_operation").val()) {
-    						jQuery(this).children('.errortext').html(bm_error_object.svc_duration_field);
-    						jQuery(this).children('.errortext').show();
-    						b++;
-    					}
-    				}
-    			}
-    		);
-    	}
-
-    	jQuery(divclass).each(
-    		function (index, element) {
-    			var type = jQuery(this).children().prop('type');
-    			var value = type == 'select-one' ? jQuery.trim(jQuery(this).children('select').val()) : jQuery.trim(jQuery(this).children('input').val());
-    			if (value == "") {
-    				if (jQuery('#time_slots').html() != '') {
-    					if (jQuery(this).children().attr('id').startsWith('from_') || jQuery(this).children().attr('id').startsWith('to_') || jQuery(this).children().attr('id').startsWith('min_cap_') || jQuery(this).children().attr('id').startsWith('max_cap_')) {
-    						if (!jQuery(this).children('input').prop('readonly')) {
-    							jQuery(this).children('.errortext').html(bm_error_object.required);
-    							b++;
-    						}
-    					} else {
-    						jQuery(this).children('.errortext').html(bm_error_object.required_field);
-    						b++;
-    					}
-    				} else {
-    					jQuery(this).children('.errortext').html(bm_error_object.required_field);
-    					b++;
-    				}
-    				jQuery(this).children('.errortext').show();
-    			} else if (jQuery(this).children('input').attr('name') == 'default_price' || jQuery(this).children('input').attr('name') == 'svc_extra_price') {
-    				var regex = /^[1-9]\d*(\.\d+)?$/;
-    				if (!value.match(regex)) {
-    					jQuery(this).children('.errortext').html(bm_error_object.numeric_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				}
-    			}
-
-    			if (jQuery(this).children('select').attr('name') == 'service_duration') {
-    				if (jQuery("#service_duration").val() > jQuery("#service_operation").val()) {
-    					jQuery(this).children('.errortext').html(bm_error_object.svc_duration_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				}
-    			}
-
-    			if (jQuery(this).children('select').attr('name') == 'svc_extra_duration') {
-    				if (jQuery("#svc_extra_duration").val() > jQuery("#svc_extra_operation").val()) {
-    					jQuery(this).children('.errortext').html(bm_error_object.svc_duration_field);
-    					jQuery(this).children('.errortext').show();
-    					b++;
-    				}
-    			}
-    		}
-    	);
-
-    	var svc_shrt_desc_chr_limit = bm_normal_object.svc_shrt_dsc_lmt;
-
-    	if (typeof tinymce !== 'undefined') {
-    		var editor = tinymce.get('service_short_desc');
-    		if (editor) {
-    			var content = editor.getContent({ format: 'text' })
-    				.replace(/\s+/g, ' ')
-    				.replace(/[\u200B-\u200D\uFEFF]/g, '')
-    				.replace(/\u00A0/g, ' ')
-    				.replace(/\n/g, '')
-    				.trim();
-
-    			if (svc_shrt_desc_chr_limit > 0 && content.length > svc_shrt_desc_chr_limit) {
-    				showMessage(bm_error_object.svc_short_desc_limit, 'error');
-    				b++;
-    			}
-    		}
-    	}
-
-    	if (b === 0) {
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
+    // svc_remove_image, svc_gallery_remove, add_form_validation moved to BMServiceManager (bm-admin-services.js)
 
     // Show/Hide Section
     static bm_open_close_tab(a) {
@@ -3104,7 +2809,7 @@ class BMAdminCore {
     		jQuery("#price_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3113,26 +2818,35 @@ class BMAdminCore {
 
     			if (jQuery.inArray(date, price_date_array) !== -1) {
     				var price = price_array[jQuery.inArray(date, price_date_array)];
-    				var text = currency_position == 'before' ? currency_symbol + parseFloat(price).toFixed(2) : parseFloat(price).toFixed(2) + currency_symbol;
-    				jQuery(this).attr('data-custom', price != '' ? text : 'N/A');
+    				if (price !== '' && !isNaN(parseFloat(price))) {
+    					var text = currency_position == 'before' ? currency_symbol + parseFloat(price).toFixed(2) : parseFloat(price).toFixed(2) + currency_symbol;
+    					jQuery(this).attr('data-custom', text);
+    				} else {
+    					jQuery(this).attr('data-custom', 'N/A');
+    				}
 
-    				if (parseFloat(price) > parseFloat(default_price)) {
-    					jQuery(this).addClass('highValue');
-    				} else if (parseFloat(price) < parseFloat(default_price)) {
-    					jQuery(this).addClass('lowValue');
+    				if (default_price !== '' && !isNaN(parseFloat(default_price))) {
+    					if (parseFloat(price) > parseFloat(default_price)) {
+    						jQuery(this).addClass('highValue');
+    					} else if (parseFloat(price) < parseFloat(default_price)) {
+    						jQuery(this).addClass('lowValue');
+    					}
     				}
     			} else if (jQuery.inArray(date, module_date_array) !== -1) {
     				var module_id = module_array[jQuery.inArray(date, module_date_array)];
-    				var text = '#module_' + module_id;
-    				jQuery(this).attr('data-custom', module_id != '' ? text : 'N/A');
+    				jQuery(this).attr('data-custom', module_id != '' ? '#module_' + module_id : 'N/A');
     				jQuery(this).addClass('bluetValue');
     			} else {
-    				var text = currency_position == 'before' ? currency_symbol + parseFloat(default_price).toFixed(2) : parseFloat(default_price).toFixed(2) + currency_symbol;
-    				jQuery(this).attr('data-custom', default_price != '' ? text : 'N/A');
+    				if (default_price !== '' && !isNaN(parseFloat(default_price))) {
+    					var text = currency_position == 'before' ? currency_symbol + parseFloat(default_price).toFixed(2) : parseFloat(default_price).toFixed(2) + currency_symbol;
+    					jQuery(this).attr('data-custom', text);
+    				} else {
+    					jQuery(this).attr('data-custom', 'N/A');
+    				}
     				jQuery(this).addClass('brightValue');
     			}
     		});
-    	});
+    	}, 50);
     }
 
     // Set Stopsales Value in Calendar in fresh service
@@ -3169,7 +2883,7 @@ class BMAdminCore {
     		jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3201,7 +2915,7 @@ class BMAdminCore {
     			if ((parseFloat(stopsales) == default_stopsales) || default_stopsales == '') jQuery(this).addClass('brightValue');
     			jQuery(this).attr('data-custom', stopsales != '' ? parseFloat(stopsales) + 'h' : 'N/A');
     		});
-    	});
+    	}, 50);
     }
 
     // Set Saleswitch Value in Calendar in fresh service
@@ -3238,7 +2952,7 @@ class BMAdminCore {
     		jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3270,7 +2984,7 @@ class BMAdminCore {
     			if ((parseFloat(saleswitch) == default_saleswitch) || default_saleswitch == '') jQuery(this).addClass('brightValue');
     			jQuery(this).attr('data-custom', saleswitch != '' ? parseFloat(saleswitch) + 'h' : 'N/A');
     		});
-    	});
+    	}, 50);
     }
 
     // Set Capacity Value in Calendar in fresh service
@@ -3368,7 +3082,7 @@ class BMAdminCore {
     		jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
 
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
@@ -3402,7 +3116,7 @@ class BMAdminCore {
     			}
     			jQuery(this).attr('data-custom', capacity != '' ? capacity : 'N/A');
     		});
-    	});
+    	}, 50);
     }
 
     // Confirm Time Slot change in Calendar
@@ -3443,7 +3157,7 @@ class BMAdminCore {
     		jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
     			return /\d/.test(date);
-    		}).find('a', 'span').html(function (i, html) {
+    		}).find('a, span').each(function () {
     			var day = jQuery(this).data('date');
     			var month = jQuery(this).parent().data('month') + 1;
     			var year = jQuery(this).parent().data('year');
@@ -3473,7 +3187,7 @@ class BMAdminCore {
     				jQuery(this).attr('data-custom', time_slot_html != '' ? 'Default' : 'N/A');
     			}
     		});
-    	});
+    	}, 50);
     }
 
     // Variable Service Price Field Validation and Submission
@@ -4715,7 +4429,7 @@ class BMAdminCore {
     						jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     							var date = jQuery(this).text();
     							return /\d/.test(date);
-    						}).find('a', 'span').html(function (i, html) {
+    						}).find('a, span').each(function () {
     							var day = jQuery(this).data('date');
     							var month = jQuery(this).parent().data('month') + 1;
     							var year = jQuery(this).parent().data('year');
@@ -4729,7 +4443,7 @@ class BMAdminCore {
     								jQuery(this).css('color', '#000000');
     							}
     						});
-    					});
+    					}, 50);
     					jQuery('#time_slot_modal').hide();
     					jQuery('.time_slot_update_successtext').html(bm_success_object.slot_remove_success);
     					jQuery('.time_slot_update_successtext').show();
@@ -4909,21 +4623,21 @@ class BMAdminCore {
     	element.find("a").attr('data-custom', text);
 
     	if (type == 'module') {
-    		element.find('a', 'span').html(function (i, html) {
-    			jQuery(this).css('color', '#0995fc')
+    		element.find('a, span').each(function () {
+    			jQuery(this).css('color', '#0995fc');
     		});
     	} else if (type == 'price') {
     		if (parseFloat(value) > parseFloat(default_value)) {
-    			element.find('a', 'span').html(function (i, html) {
-    				jQuery(this).css('color', '#fc2e05')
+    			element.find('a, span').each(function () {
+    				jQuery(this).css('color', '#fc2e05');
     			});
     		} else if (parseFloat(value) < parseFloat(default_value)) {
-    			element.find('a', 'span').html(function (i, html) {
-    				jQuery(this).css('color', '#12812a')
+    			element.find('a, span').each(function () {
+    				jQuery(this).css('color', '#12812a');
     			});
     		} else {
-    			element.find('a', 'span').html(function (i, html) {
-    				jQuery(this).css('color', '#12812a')
+    			element.find('a, span').each(function () {
+    				jQuery(this).css('color', '#12812a');
     			});
     		}
     	}
@@ -4944,7 +4658,7 @@ class BMAdminCore {
     				jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -4995,7 +4709,7 @@ class BMAdminCore {
     				jQuery('#stopsales_modal').hide();
     				jQuery('.stopsales_update_successtext').html(bm_success_object.stopsales_set);
     				if (jQuery('.stopsales_update_successtext').not(':visible')) jQuery('.stopsales_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#stopsales_modal').hide();
     			jQuery('.stopsales_update_errortext').html(bm_error_object.server_error);
@@ -5019,7 +4733,7 @@ class BMAdminCore {
     				jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -5070,7 +4784,7 @@ class BMAdminCore {
     				jQuery('#saleswitch_modal').hide();
     				jQuery('.saleswitch_update_successtext').html(bm_success_object.saleswitch_set);
     				if (jQuery('.saleswitch_update_successtext').not(':visible')) jQuery('.saleswitch_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#saleswitch_modal').hide();
     			jQuery('.saleswitch_update_errortext').html(bm_error_object.server_error);
@@ -5093,7 +4807,7 @@ class BMAdminCore {
     				jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -5132,7 +4846,7 @@ class BMAdminCore {
     				jQuery('#max_cap_modal').hide();
     				jQuery('.capacity_update_successtext').html(bm_success_object.capacity_set);
     				if (jQuery('.capacity_update_successtext').not(':visible')) jQuery('.capacity_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#max_cap_modal').hide();
     			jQuery('.capacity_update_errortext').html(bm_error_object.server_error);
@@ -5166,7 +4880,7 @@ class BMAdminCore {
     				jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     					var date = jQuery(this).text();
     					return /\d/.test(date);
-    				}).find('a', 'span').html(function (i, html) {
+    				}).find('a, span').each(function () {
     					var day = jQuery(this).data('date');
     					var month = jQuery(this).parent().data('month') + 1;
     					var year = jQuery(this).parent().data('year');
@@ -5193,7 +4907,7 @@ class BMAdminCore {
     				jQuery('#time_slot_modal').hide();
     				jQuery('.time_slot_update_successtext').html(bm_success_object.time_slot_set);
     				jQuery('.time_slot_update_successtext').show();
-    			});
+    			}, 50);
     		} else {
     			jQuery('#time_slot_modal').hide();
     			jQuery('.time_slot_errortext').html(bm_error_object.server_error);
@@ -5271,7 +4985,7 @@ class BMAdminCore {
     						return /\d/.test(jQuery(this).text());
     					})
     					.find('a, span')
-    					.html(function (i, html) {
+    					.each(function () {
     						var $this = jQuery(this);
     						var day = $this.data('date');
     						var month = $this.parent().data('month') + 1;
@@ -5281,21 +4995,21 @@ class BMAdminCore {
     						if (priceDateLookup.hasOwnProperty(date)) {
     							var price = priceDateLookup[date];
     							var priceFloat = parseFloat(price);
-    							if (priceFloat > defaultPriceFloat) {
+    							if (!isNaN(priceFloat) && !isNaN(defaultPriceFloat) && priceFloat > defaultPriceFloat) {
     								$this.addClass('highValue');
-    							} else if (priceFloat < defaultPriceFloat) {
+    							} else if (!isNaN(defaultPriceFloat) && priceFloat < defaultPriceFloat) {
     								$this.addClass('lowValue');
     							}
     							var price_text = currency_position === 'before'
     								? currency_symbol + priceFloat.toFixed(2)
     								: priceFloat.toFixed(2) + currency_symbol;
-    							$this.attr('data-custom', price === '' ? 'N/A' : price_text);
+    							$this.attr('data-custom', (price === '' || isNaN(priceFloat)) ? 'N/A' : price_text);
     						} else if (moduleDateLookup.hasOwnProperty(date)) {
     							$this.attr('data-custom', '#module_' + moduleDateLookup[date]);
     							$this.addClass('bluetValue');
     						} else {
     							$this.addClass('brightValue');
-    							$this.attr('data-custom', default_price === '' ? 'N/A' : default_price_text);
+    							$this.attr('data-custom', (default_price === '' || isNaN(defaultPriceFloat)) ? 'N/A' : default_price_text);
     						}
 
     						var isUnavailable = false;
@@ -5343,7 +5057,7 @@ class BMAdminCore {
 
     						$this.addClass(isUnavailable ? 'not_available_for_booking' : 'available_for_booking');
     					});
-    			});
+    			}, 50);
     		});
     	} else {
     		jQuery('.calendar_errortext').html(bm_error_object.server_error).show();
@@ -5369,7 +5083,7 @@ class BMAdminCore {
     					jQuery("#stopsales_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5476,7 +5190,7 @@ class BMAdminCore {
     						}
     						jQuery(this).attr('data-custom', stopsales == ' ' || stopsales == 0 || stopsales == 'N/A' ? 'N/A' : parseFloat(stopsales) + 'h');
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.stopsales_errortext').html(bm_error_object.server_error);
     				jQuery('.stopsales_errortext').show();
@@ -5507,7 +5221,7 @@ class BMAdminCore {
     					jQuery("#saleswitch_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5614,7 +5328,7 @@ class BMAdminCore {
     						}
     						jQuery(this).attr('data-custom', saleswitch == ' ' || saleswitch == 0 || saleswitch == 'N/A' ? 'N/A' : parseFloat(saleswitch) + 'h');
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.saleswitch_errortext').html(bm_error_object.server_error);
     				if (jQuery('.saleswitch_errortext').not(':visible')) jQuery('.saleswitch_errortext').show();
@@ -5648,7 +5362,7 @@ class BMAdminCore {
     					jQuery("#cap_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5740,7 +5454,7 @@ class BMAdminCore {
     						if (!jQuery(this).hasClass('not_available_for_booking')) jQuery(this).addClass('available_for_booking');
     						jQuery(this).attr('data-custom', capacity == '' ? 'N/A' : capacity);
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.capacity_calendar_errortext').html(bm_error_object.server_error);
     				if (jQuery('.capacity_calendar_errortext').not(':visible')) jQuery('.capacity_calendar_errortext').show();
@@ -5781,7 +5495,7 @@ class BMAdminCore {
     					jQuery("#time_slots_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     						var date = jQuery(this).text();
     						return /\d/.test(date);
-    					}).find('a', 'span').html(function (i, html) {
+    					}).find('a, span').each(function () {
     						var day = jQuery(this).data('date');
     						var month = jQuery(this).parent().data('month') + 1;
     						var year = jQuery(this).parent().data('year');
@@ -5860,7 +5574,7 @@ class BMAdminCore {
     							jQuery(this).addClass('available_for_booking');
     						}
     					});
-    				});
+    				}, 50);
     			} else {
     				jQuery('.time_slot_calendar_errortext').html(bm_error_object.server_error);
     				jQuery('.time_slot_calendar_errortext').show();
@@ -8294,23 +8008,7 @@ class BMAdminCore {
     		});
     }
 
-    static bm_remove_availability_period(el) {
-        if (confirm('Remove this availability period?')) {
-            jQuery(el).closest('.bm-availability-chip').remove();
-        }
-    }
-
-    static bm_remove_global_unavailable_range(el) {
-        if (confirm('Remove this date range?')) {
-            jQuery(el).parent('span').remove();
-
-            jQuery('#global_unavailable_date_ranges .date_range_span input').each(function(index) {
-                const i = index + 1;
-                jQuery(this).attr('id', 'global_unavailable_date_range_' + i);
-                jQuery(this).attr('name', 'bm_global_unavailability[dates][' + i + ']');
-            });
-        }
-    }
+    // bm_remove_availability_period, bm_remove_global_unavailable_range moved to BMServiceManager (bm-admin-services.js)
 
     static bm_remove_pdf_logo() {
     	jQuery('#pdf_logo_guid').val('');
@@ -8324,11 +8022,11 @@ window.BMAdmin = window.BMAdmin || {};
 window.BMAdmin.Core = BMAdminCore;
 window.bmAdminCore = new BMAdminCore();
 
-window.svc_remove_image = BMAdminCore.svc_remove_image;
+window.svc_remove_image = BMServiceManager.svcRemoveImage;
 window.openSection = BMServiceManager.openSection;
-window.svc_gallery_remove = BMAdminCore.svc_gallery_remove;
+window.svc_gallery_remove = BMServiceManager.svcGalleryRemove;
 window.extraUpdate = BMServiceManager.extraUpdate;
-window.add_form_validation = BMAdminCore.add_form_validation;
+window.add_form_validation = BMServiceManager.addFormValidation;
 window.bm_open_close_tab = BMAdminCore.bm_open_close_tab;
 window.field_remove_image = BMAdminCore.field_remove_image;
 window.changeMaxCap = BMAdminCore.changeMaxCap;
@@ -8437,7 +8135,7 @@ window.bm_get_state_of_country = BMAdminCore.bm_get_state_of_country;
 window.bm_show_vocuher_booking_info = BMAdminCore.bm_show_vocuher_booking_info;
 window.bm_show_vocuher_gifter_info = BMAdminCore.bm_show_vocuher_gifter_info;
 window.bm_show_vocuher_recipient_info = BMAdminCore.bm_show_vocuher_recipient_info;
-window.bm_remove_availability_period = BMAdminCore.bm_remove_availability_period;
-window.bm_remove_global_unavailable_range = BMAdminCore.bm_remove_global_unavailable_range;
+window.bm_remove_availability_period = BMServiceManager.removeAvailabilityPeriod;
+window.bm_remove_global_unavailable_range = BMServiceManager.removeGlobalUnavailableRange;
 window.bm_remove_pdf_logo = BMAdminCore.bm_remove_pdf_logo;
 window.remove_pdf_logo = BMAdminCore.bm_remove_pdf_logo;
