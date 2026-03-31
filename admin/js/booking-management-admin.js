@@ -2490,6 +2490,7 @@ class BMAdminCore {
     		module_date_array.push(this.value);
     	});
 
+    	// Use .each() instead of .html() to iterate cells without replacing their date number content
     	setTimeout(function () {
     		jQuery("#price_datepicker").datepicker().find(".ui-datepicker-calendar td").filter(function () {
     			var date = jQuery(this).text();
@@ -2500,20 +2501,22 @@ class BMAdminCore {
     			var month = jQuery(this).parent().data('month') + 1;
     			var year = jQuery(this).parent().data('year');
     			var date = year + "-" + padWithZeros(month) + "-" + padWithZeros(day);
+    			var defaultPriceFloat = parseFloat(default_price);
 
     			if (jQuery.inArray(date, price_date_array) !== -1) {
     				var price = price_array[jQuery.inArray(date, price_date_array)];
-    				if (price !== '' && !isNaN(parseFloat(price))) {
-    					var text = currency_position == 'before' ? currency_symbol + parseFloat(price).toFixed(2) : parseFloat(price).toFixed(2) + currency_symbol;
+    				var priceFloat = parseFloat(price);
+    				if (price !== '' && !isNaN(priceFloat)) {
+    					var text = currency_position == 'before' ? currency_symbol + priceFloat.toFixed(2) : priceFloat.toFixed(2) + currency_symbol;
     					jQuery(this).attr('data-custom', text);
     				} else {
     					jQuery(this).attr('data-custom', 'N/A');
     				}
 
-    				if (default_price !== '' && !isNaN(parseFloat(default_price))) {
-    					if (parseFloat(price) > parseFloat(default_price)) {
+    				if (!isNaN(defaultPriceFloat) && !isNaN(priceFloat)) {
+    					if (priceFloat > defaultPriceFloat) {
     						jQuery(this).addClass('highValue');
-    					} else if (parseFloat(price) < parseFloat(default_price)) {
+    					} else if (priceFloat < defaultPriceFloat) {
     						jQuery(this).addClass('lowValue');
     					}
     				}
@@ -2522,8 +2525,8 @@ class BMAdminCore {
     				jQuery(this).attr('data-custom', module_id != '' ? '#module_' + module_id : 'N/A');
     				jQuery(this).addClass('bluetValue');
     			} else {
-    				if (default_price !== '' && !isNaN(parseFloat(default_price))) {
-    					var text = currency_position == 'before' ? currency_symbol + parseFloat(default_price).toFixed(2) : parseFloat(default_price).toFixed(2) + currency_symbol;
+    				if (default_price !== '' && !isNaN(defaultPriceFloat)) {
+    					var text = currency_position == 'before' ? currency_symbol + defaultPriceFloat.toFixed(2) : defaultPriceFloat.toFixed(2) + currency_symbol;
     					jQuery(this).attr('data-custom', text);
     				} else {
     					jQuery(this).attr('data-custom', 'N/A');
