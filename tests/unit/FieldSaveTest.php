@@ -46,23 +46,23 @@ class FieldSaveTest extends TestCase {
 			$conditional['field_options'] = array();
 		}
 
-		if ( $type == 'email' ) {
+		if ( $type === 'email' ) {
 			$conditional['field_options']['is_main_email'] = ! isset( $conditional['field_options']['is_main_email'] ) ? 0 : 1;
 		}
 
-		if ( $type == 'select' || $type == 'checkbox' ) {
+		if ( $type === 'select' || $type === 'checkbox' ) {
 			$conditional['field_options']['is_multiple'] = ! isset( $conditional['field_options']['is_multiple'] ) ? 0 : 1;
 		}
 
-		if ( $type == 'tel' ) {
+		if ( $type === 'tel' ) {
 			$conditional['field_options']['show_intl_code'] = ! isset( $conditional['field_options']['show_intl_code'] ) ? 0 : 1;
 		}
 
-		if ( $type != 'file' && $type != 'checkbox' && $type != 'radio' && $type != 'reset' && $type != 'button' && $type != 'submit' && $type != 'hidden' && $type != 'color' && $type != 'range' ) {
+		if ( $type !== 'file' && $type !== 'checkbox' && $type !== 'radio' && $type !== 'reset' && $type !== 'button' && $type !== 'submit' && $type !== 'hidden' && $type !== 'color' && $type !== 'range' ) {
 			$conditional['field_options']['autocomplete'] = ( ! empty( $conditional['autocomplete'] ) || ! empty( $conditional['field_options']['autocomplete'] ) ) ? 1 : 0;
 		}
 
-		if ( $type != 'button' && $type != 'submit' && $type != 'hidden' ) {
+		if ( $type !== 'button' && $type !== 'submit' && $type !== 'hidden' ) {
 			$conditional['field_options']['is_visible'] = ( ! empty( $conditional['is_visible'] ) || ! empty( $conditional['field_options']['is_visible'] ) ) ? 1 : 0;
 		}
 
