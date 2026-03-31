@@ -542,5 +542,9 @@ if ( ! class_exists( 'BM_Request' ) ) {
 		public function bm_fetch_order_status_name( $status ) {
 			return $status;
 		}
+
+		public function bm_get_theme_color( $slug ) {
+			return null;
+		}
 	}
 }
