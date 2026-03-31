@@ -24,9 +24,19 @@ $unavailability_data = array(
 );
 
 // Availability periods — collected separately, saved to dedicated table after service insert/update.
-$availability_periods_new = isset( $_POST['availability_periods_new'] )
-    ? filter_input( INPUT_POST, 'availability_periods_new', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY )
-    : array();
+// Note: filter_input() with FILTER_REQUIRE_ARRAY does not support nested arrays
+// (availability_periods_new[start][] / availability_periods_new[end][]),
+// so we sanitize the nested structure manually.
+$availability_periods_new = array();
+if ( isset( $_POST['availability_periods_new'] ) && is_array( $_POST['availability_periods_new'] ) ) {
+    $raw = $_POST['availability_periods_new']; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified in parent file.
+    if ( isset( $raw['start'] ) && is_array( $raw['start'] ) ) {
+        $availability_periods_new['start'] = array_map( 'sanitize_text_field', $raw['start'] );
+    }
+    if ( isset( $raw['end'] ) && is_array( $raw['end'] ) ) {
+        $availability_periods_new['end'] = array_map( 'sanitize_text_field', $raw['end'] );
+    }
+}
 
 $availability_periods_existing = isset( $_POST['availability_periods'] ) && isset( $_POST['availability_periods']['existing'] )
     ? array_map( 'absint', $_POST['availability_periods']['existing'] )
