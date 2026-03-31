@@ -4023,6 +4023,16 @@ class Booking_Management_Admin {
 			if ( ! empty( $common_data ) && ! empty( $conditional ) ) {
 				$type = isset( $common_data['field_type'] ) ? $common_data['field_type'] : '';
 
+				// Enforce field-type restrictions for the free version.
+				if ( $id == 0 && ! Booking_Management_Limits::can_add_basic_field( $type ) ) {
+					$response = array(
+						'status'  => 'error',
+						'message' => esc_html( Booking_Management_Limits::get_limit_message( 'custom_fields' ) ),
+					);
+					echo wp_json_encode( $response );
+					die;
+				}
+
 				! isset( $common_data['is_required'] ) ? $common_data['is_required'] = 0 : $common_data['is_required'] = 1;
 				! isset( $common_data['is_editable'] ) ? $common_data['is_editable'] = 0 : $common_data['is_editable'] = 1;
 
