@@ -87,13 +87,10 @@
 		 * Bind all UI events.
 		 */
 		bindEvents: function () {
-			// Click on free sidebar field type to add to canvas.
+			// Click on free sidebar field type — blocked in free version (Pro feature).
 			$(document).on('click', '.bm-fb-field-type-free', function (e) {
 				e.preventDefault();
-				var type = $(this).data('type');
-				if (type) {
-					BmFormBuilder.addFieldToCanvas(type);
-				}
+				BmFormBuilder.showToast(bmFbI18n.add_field_pro || 'Adding new fields is a Pro feature.', 'error');
 			});
 
 			// Sidebar tabs.
@@ -105,12 +102,9 @@
 				$('#bm-fb-tab-' + tab).show();
 			});
 
-			// Template cards.
+			// Template cards — blocked in free version (Pro feature).
 			$(document).on('click', '.bm-fb-template-card', function () {
-				var tplKey = $(this).data('template');
-				if (tplKey && typeof bmFbTemplatesData !== 'undefined' && bmFbTemplatesData[tplKey]) {
-					BmFormBuilder.applyTemplate(bmFbTemplatesData[tplKey]);
-				}
+				BmFormBuilder.showToast(bmFbI18n.templates_pro || 'Pre-built templates are a Pro feature.', 'error');
 			});
 
 			// Edit field button.
@@ -121,14 +115,11 @@
 				BmFormBuilder.openFieldSettings(fieldId);
 			});
 
-			// Remove field button.
+			// Remove field button — blocked in free version (default fields cannot be deleted).
 			$(document).on('click', '.bm-fb-field-remove', function (e) {
 				e.preventDefault();
 				e.stopPropagation();
-				var fieldId = $(this).data('field-id');
-				if (confirm(bmFbI18n.confirm_remove || 'Are you sure you want to remove this field?')) {
-					BmFormBuilder.removeFieldFromCanvas(fieldId);
-				}
+				BmFormBuilder.showToast(bmFbI18n.delete_field_pro || 'Default billing fields cannot be deleted in the free version.', 'error');
 			});
 
 			// Also open settings on field card click (except drag handle and action buttons).

@@ -158,10 +158,10 @@ $templates = array(
 
 				<div class="bm-fb-field-types" id="bm-fb-field-types">
 					<?php foreach ( $field_types as $ft ) : ?>
-						<div class="bm-fb-field-type bm-fb-field-type-free" data-type="<?php echo esc_attr( $ft['type'] ); ?>" title="<?php echo esc_attr( $ft['label'] ); ?>">
+						<div class="bm-fb-field-type bm-fb-field-type-free bm-fb-pro-locked" data-type="<?php echo esc_attr( $ft['type'] ); ?>" title="<?php echo esc_attr( $ft['label'] ); ?>" style="opacity:0.6;cursor:not-allowed;">
 							<span class="dashicons <?php echo esc_attr( $ft['icon'] ); ?>"></span>
 							<span class="bm-fb-ft-label"><?php echo esc_html( $ft['label'] ); ?></span>
-							<span class="dashicons dashicons-plus-alt bm-fb-ft-add-icon"></span>
+							<span class="sg-pro-badge" style="font-size:9px;margin-left:auto;"><?php esc_html_e( 'Pro', 'service-booking' ); ?></span>
 						</div>
 					<?php endforeach; ?>
 				</div>

@@ -685,6 +685,9 @@ class Booking_Management_Admin {
 						'gdpr_default_text' => __( 'I consent to the storage and processing of my personal data.', 'service-booking' ),
 						'pro_only'          => __( 'Pro', 'service-booking' ),
 						'upgrade_to_pro'    => __( 'Upgrade to Pro', 'service-booking' ),
+						'add_field_pro'     => __( 'Adding new fields to the billing form is a Pro feature. Upgrade to Pro!', 'service-booking' ),
+						'delete_field_pro'  => __( 'Default billing fields cannot be deleted in the free version. Upgrade to Pro!', 'service-booking' ),
+						'templates_pro'     => __( 'Pre-built templates are a Pro feature. Upgrade to Pro!', 'service-booking' ),
 					)
 				);
 
@@ -4022,6 +4025,16 @@ class Booking_Management_Admin {
 
 			if ( ! empty( $common_data ) && ! empty( $conditional ) ) {
 				$type = isset( $common_data['field_type'] ) ? $common_data['field_type'] : '';
+
+				// Enforce free-version restriction: no new fields allowed.
+				if ( $id == 0 && ! Booking_Management_Limits::can_add_new_field() ) {
+					$response = array(
+						'status'  => 'error',
+						'message' => esc_html( Booking_Management_Limits::get_limit_message( 'add_new_fields' ) ),
+					);
+					echo wp_json_encode( $response );
+					die;
+				}
 
 				// Enforce field-type restrictions for the free version.
 				if ( $id == 0 && ! Booking_Management_Limits::can_add_basic_field( $type ) ) {
