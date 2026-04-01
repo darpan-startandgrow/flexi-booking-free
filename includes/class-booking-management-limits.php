@@ -162,6 +162,19 @@ class Booking_Management_Limits {
 	}
 
 	/**
+	 * Check if a new field can be added to the billing form.
+	 *
+	 * Free version: cannot add new fields (only edit existing defaults).
+	 * Pro version: can add new fields.
+	 *
+	 * @since 1.3.1
+	 * @return bool
+	 */
+	public static function can_add_new_field() {
+		return self::is_pro_active();
+	}
+
+	/**
 	 * Check if a basic field can be added in the free version.
 	 *
 	 * Free version: can add fields from FREE_FIELD_TYPES via the form builder.
@@ -506,6 +519,9 @@ class Booking_Management_Limits {
 				self::FREE_VOUCHER_LIMIT
 			),
 			'custom_fields'          => __( 'Adding new custom fields is a Pro feature. You can edit the default fields in the free version.', 'service-booking' ),
+			'add_new_fields'         => __( 'Adding new fields to the billing form is a Pro feature. You can edit the existing default fields in the free version.', 'service-booking' ),
+			'delete_default_fields'  => __( 'Default billing fields cannot be deleted in the free version. Upgrade to Pro for full field management.', 'service-booking' ),
+			'templates'              => __( 'Pre-built templates are a Pro feature. Upgrade to Pro to use form templates.', 'service-booking' ),
 			'mail_templates'         => sprintf(
 				/* translators: %d: Maximum number of mail templates allowed */
 				__( 'You have reached the free limit of %d mail templates. Upgrade to Pro for unlimited templates and all template types.', 'service-booking' ),
